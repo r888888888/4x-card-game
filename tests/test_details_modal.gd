@@ -2,6 +2,11 @@ extends "res://tests/lib/test_case.gd"
 ## The card details modal in the real main scene (backlog 056): I opens it for the focused card, Esc closes it, it
 ## blocks the board's keys while open, and supply piles show their definition. Hook: main.details.shown() is the
 ## details on show ({} while hidden).
+## In detail (from docs/testing.md, 331): The details modal in the real `main.tscn`: I opens it for the focused card,
+## Esc closes it, board keys blocked, supply piles, Play on a hand card's details (225), no Learn outside the Knowledge
+## screen (229), no Buy outside a supply pile (259); uses `main.details.shown()`, `play_button()` and
+## `research_button()` (Move… and Disband, 163, are in `test_unit_moves.gd`: `unit_buttons()`,
+## `main.move_modal.target_buttons()`)
 
 
 func test_i_opens_details_for_the_focused_card_and_esc_closes_them() -> void:

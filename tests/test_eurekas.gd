@@ -52,10 +52,10 @@ func entry(e: GameEngine, id: String) -> Dictionary:
 # --- AC1: loading ---
 
 func test_card_and_tag_eurekas_load() -> void:
-	for eureka in [FARMS, CITIES]:
-		var r := load_x({"eureka": eureka})
-		eq(r.errors, [] as Array[String], "%s: errors" % [eureka])
-		eq(r.warnings, [] as Array[String], "%s: warnings" % [eureka])
+	check_loads([
+		["a card eureka", {"eureka": FARMS}, {}],
+		["a tag eureka", {"eureka": CITIES}, {}],
+	], load_x)
 
 
 func test_eureka_validation() -> void:
@@ -72,7 +72,7 @@ func test_eureka_validation() -> void:
 			"cards.json: card 'x': eureka: unknown card 'dragon'"],
 		["on a building", [{"eureka": FARMS}, "building"], "cards.json: card 'x': 'eureka' only applies to techs (ignored)",
 			"warning_only"],
-	], func(args): return load_x(args[0], args[1]))
+	], load_x.callv)
 
 
 # --- AC2: a card eureka counts the tableau ---
@@ -142,20 +142,28 @@ func test_the_tree_shows_a_eureka_and_ticks_it_when_met() -> void:
 	var main := open_main()
 	main.start_game(1)
 	press_key(main, KEY_T)
-	var screen: Node = main.get("knowledge")  # read by name: a missing hook mustn't strand the fixture engine
-	if screen != null and screen.has_method("tile"):
-		var t: Button = screen.tile("Lore")
-		check(t.tooltip_text.split("\n").has("Eureka: -2 insight with 2 Farms"), "unmet: the tooltip: %s" % t.tooltip_text)
-		check(not screen.tile_texts("Lore").has("✔ Eureka"), "unmet: not on the tile: %s" % [screen.tile_texts("Lore")])
-		press_key(main, KEY_T)
-		build_farms(Game.engine, 2)
-		press_key(main, KEY_T)
-		check(screen.tile_texts("Lore").has("✔ Eureka"), "met: on the tile: %s" % [screen.tile_texts("Lore")])
-		press_key(main, KEY_T)
-		check(Game.engine.buy_tech(lore_uid(Game.engine)), "learn Lore")
-		press_key(main, KEY_T)
-		check(not screen.tile_texts("Lore").has("✔ Eureka"), "a researched tech shows no eureka: %s" % [screen.tile_texts("Lore")])
-	else:
-		check(false, "main.knowledge.tile() exists")
+	var screen: KnowledgeScreen = main.knowledge
+	var t: Button = screen.tile("Lore")
+	check(t.tooltip_text.split("\n").has("Eureka: -2 insight with 2 Farms"), "unmet: the tooltip: %s" % t.tooltip_text)
+	check(not screen.tile_texts("Lore").has("✔ Eureka"), "unmet: not on the tile: %s" % [screen.tile_texts("Lore")])
+	press_key(main, KEY_T)
+	build_farms(Game.engine, 2)
+	press_key(main, KEY_T)
+	check(screen.tile_texts("Lore").has("✔ Eureka"), "met: on the tile: %s" % [screen.tile_texts("Lore")])
+	press_key(main, KEY_T)
+	check(Game.engine.buy_tech(lore_uid(Game.engine)), "learn Lore")
+	press_key(main, KEY_T)
+	check(not screen.tile_texts("Lore").has("✔ Eureka"), "a researched tech shows no eureka: %s" % [screen.tile_texts("Lore")])
 	close_main(main)
 	Game.engine = real
+
+
+# --- Backlog 325: affordable at the cost now ---
+
+func test_a_eureka_makes_a_tech_affordable_at_its_cost_now() -> void:
+	var e := lore_engine(FARMS)
+	e.resources[GameEngine.INSIGHT] = 1
+	eq(entry(e, "lore").get("affordable"), false, "1 insight is short of 3")
+	build_farms(e, 2)
+	eq(entry(e, "lore").get("cost"), 1, "precondition: the eureka takes it to 1")
+	eq(entry(e, "lore").get("affordable"), true, "1 insight covers the cost now")

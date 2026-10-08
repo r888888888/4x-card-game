@@ -42,7 +42,7 @@ static func build(e: GameEngine, card_id: String, territory_uid: int) -> bool:
 	var target := territory_uid if territory_uid != -1 else targets(e, card_id)[0]
 	if e.config.build_menu[card_id].once:
 		e.state.built_once.append(card_id)
-	CardPlay.put_into_play(e, e._make_card(card_id), target, "Built")
+	CardPlay.put_into_play(e, e._make_card(card_id), target, "Built", true)
 	return true
 
 
@@ -50,10 +50,14 @@ static func preview(e: GameEngine, card_id: String, territory_uid: int) -> Dicti
 	if error(e, card_id, territory_uid) != "":
 		return {}
 	var cost := CardPlay.cost_to_play(e, e.card_db[card_id])
+	var where := territory_uid
+	if e.card_db[card_id].is_upgrade():  # what changes is on its base's territory (302)
+		var base := territory_uid if territory_uid != -1 else targets(e, card_id)[0]
+		where = e.zone("tableau").find(base).territory_uid
 	var f := e.fork()
-	var before := _readings(e, territory_uid)
+	var before := _readings(e, where)
 	build(f, card_id, territory_uid)
-	var after := _readings(f, territory_uid)
+	var after := _readings(f, where)
 	var lines: Array = []
 	for key in before:
 		if before[key] != after[key]:
@@ -69,8 +73,9 @@ static func _readings(e: GameEngine, territory_uid: int) -> Dictionary:
 	for r in e.config.resources:
 		out[r] = forecast.get(r, 0)
 	out["free_slots"] = e.free_slots(territory_uid)
+	out["free_sea_slots"] = e.free_sea_slots(territory_uid)  # 366
 	out["free_workers"] = e.free_workers(territory_uid)
-	out["defense"] = e.defense(territory_uid)
+	out["defense"] = e.military.defense(territory_uid)
 	out["housing"] = e.housing(territory_uid)
 	if e.actions_per_turn() >= 0:
 		out["actions_left"] = e.actions_left()
@@ -81,12 +86,16 @@ static func _readings(e: GameEngine, territory_uid: int) -> Dictionary:
 static func unlock(e: GameEngine, card_id: String, source: CardInstance) -> void:
 	if e.state.locked_builds.erase(card_id):
 		var prefix := "  %s: " % source.def.name if source != null else "  "
-		e._notice("%s%s can now be %s." % [prefix, e.card_db[card_id].name, made(e.card_db[card_id])])
+		e._notice(prefix + now_text(e.card_db, card_id))
 
 
-## How def comes out of the build menu (296): a unit is "recruited", a building "built".
-static func made(def: CardDef) -> String:
-	return "recruited" if def.type == CardDef.UNIT else "built"
+## What unlocking build-menu entry card_id means: "Granary can now be built.", a unit "… recruited." (296), an upgrade
+## "Plough can now be built on a Farm." (300).
+static func now_text(card_db: Dictionary, card_id: String) -> String:
+	var def: CardDef = card_db[card_id]
+	if def.is_upgrade():
+		return "%s can now be built on %s." % [def.name, Population.with_article(card_db[def.upgrade_of].name)]
+	return "%s can now be %s." % [def.name, "recruited" if def.type == CardDef.UNIT else "built"]
 
 
 ## A stand-in copy of card_id for the checks, with no uid: building makes the real one.

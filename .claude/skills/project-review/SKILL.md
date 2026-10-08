@@ -38,7 +38,7 @@ concrete fix. Check:
 - **Data model.** Card types and resources as constants (CLAUDE.md rule); per-type fields in
   `DataLoader.TYPE_FIELDS`; effect parameters validated against a whitelist (e.g. which zones `create` may
   target); dependency cycles between classes.
-- **Drift.** PLAN.md layout and API text versus the tree; `docs/testing.md` tables versus `tests/`; tracked junk;
+- **Drift.** PLAN.md layout and API text versus the tree; `docs/testing.md`'s helper table versus `tests/lib/` (`test_docs` checks `docs/testing-index.md`); tracked junk;
   local permissions that contradict CLAUDE.md.
 
 ## 2. Tests
@@ -91,8 +91,9 @@ unless asked.
 2. Use the `spec` skill for each item. Run `ls docs/backlog docs/backlog/done` right before picking each id: other sessions add
    items in parallel. Never edit or renumber another session's item; renumber your own if you collide.
 3. Group small related fixes into one item and split large ones (at most ~6 criteria each). For refactors,
-   add an acceptance criterion that pins behavior: existing tests pass unedited, and the sim output
-   (`scripts/sim.sh 20`) is identical before and after.
+   add an acceptance criterion that pins behavior: existing tests pass unedited. If the refactor touches the
+   rules or `sim/`, add a Manual check for the user: the sim output (`scripts/sim.sh 20`) is identical before and
+   after (balance runs are manual; the item doesn't run it).
 4. **Sequence to minimize churn**, and explain each position:
    - docs and housekeeping first (so later items have less to keep in sync);
    - bugs that restore lost coverage next;

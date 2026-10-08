@@ -18,17 +18,20 @@ const TYPES: Array[String] = [ACTION, BUILDING, CITY, TERRITORY, TECH, EVENT, CI
 const RAID_WARNING := 2  # event phases between a raid being drawn and striking (257)
 const RAID_PREFIXES := {"repel": "If repelled: ", "pillage": "If pillaged: "}
 ## Each modifier key's noun in card text, [singular, plural] (129).
-## Each modifier key's line in card text (129, 109, 110): %d is the amount and %s the plural "s" ("%.0s" drops it,
-## since "pop" has no plural); [for a gain, for a loss].
+## Each modifier key's line in card text (129, 109, 110): %d is the amount, and %s the plural "s" for the keys in
+## PLURAL_MODIFIERS; [for a gain, for a loss].
 const MODIFIER_TEXT := {
 	Modifiers.ACTIONS: ["+%d action%s each turn", "−%d action%s each turn"],
 	Modifiers.HAND_SIZE: ["Draw up to %d more card%s each turn", "Draw up to %d fewer card%s each turn"],
-	Modifiers.HOUSING: ["Every territory houses %d more pop%.0s", "Every territory houses %d less pop%.0s"],
-	Modifiers.UNREST_LIMIT: ["Unrest limit +%d%.0s", "Unrest limit −%d%.0s"],
+	Modifiers.HOUSING: ["Every territory houses %d more pop", "Every territory houses %d less pop"],
+	Modifiers.UNREST_LIMIT: ["Unrest limit +%d", "Unrest limit −%d"],
 	Modifiers.RENEWAL: ["Renewal trashes %d more card%s", "Renewal trashes %d fewer card%s"],
-	Modifiers.INSIGHT_PER_GAIN: ["Each insight gain +%d%.0s", "Each insight gain −%d%.0s"],
-	Modifiers.ADMINISTERS: ["Administration cap +%d%.0s", "Administration cap −%d%.0s"],
+	Modifiers.INSIGHT_PER_GAIN: ["Each insight gain +%d", "Each insight gain −%d"],
+	Modifiers.ADMINISTERS: ["Administration cap +%d", "Administration cap −%d"],
 }
+
+## The modifier keys whose line names a countable noun, so it takes a plural "s" (329).
+const PLURAL_MODIFIERS: Array[String] = [Modifiers.ACTIONS, Modifiers.HAND_SIZE, Modifiers.RENEWAL]
 
 var id: String = ""
 var name: String = ""
@@ -42,7 +45,11 @@ var slots: int = 0  # territories: building slots
 var housing: int = 0  # territories: most pop the territory can hold; buildings: housing added to their territory
 var famine_guard: int = 0  # buildings: pop on their territory saved from starving each upkeep, while working
 var strength: int = 0  # units: how much it counts in defence (160)
+var upgrades_to := ""  # units: the id of the unit it can be upgraded to in place (166), or "" for none
 var defense: int = 0  # buildings and cities: defence added to their territory while working (161)
+var upgrade_of := ""  # buildings: the id of the building it is built onto (300), or "" for none
+var tier := ""  # buildings: the id of the settlement tier its territory needs (301), or "" for none
+var tier_name := ""  # buildings: that tier's name, set by ConfigLoader (CardDef has no config)
 var project := false  # buildings: built over turns as a site, its wealth cost paid in bit by bit (286)
 var training: int = 0  # buildings: strength added to the units stationed on their territory while working (164)
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
@@ -62,9 +69,9 @@ var raid: Dictionary = {}  # events: {strength, targets, pop} when the event is 
 var choices: Array = []  # events: the options a choice event offers (269), each {cost: {resource: n}, effects: Array[Effect]}
 var has_discard := false  # events: the card data sets a discard (the Famine card may not, 083)
 var text: String = ""  # optional override; otherwise generated from effects
-var flavor: String = ""  # civilizations, governments, techs, events: a line of history, shown in the details
-var quote_text: String = ""  # civilizations, governments, techs: a quote shown in the details, with quote_by
-var quote_by: String = ""  # civilizations, governments, techs: who said quote_text
+var flavor: String = ""  # civilizations, governments, techs, events, actions, buildings: a line of history, shown in the details
+var quote_text: String = ""  # civilizations, governments, techs, events, buildings (396): a quote shown in the details, with quote_by
+var quote_by: String = ""  # civilizations, governments, techs, events, buildings: who said quote_text
 var home: String = ""  # civilizations: the territory card id the game starts on, or "" for starting.territory (111)
 var city_names: Array[String] = []  # civilizations: the names its settled territories take, in order (248)
 
@@ -73,9 +80,20 @@ func is_permanent() -> bool:
 	return type != ACTION
 
 
-## Whether a played copy uses a worker on its territory (a building, or a unit on its home, 160).
+## Whether a played copy uses a worker on its territory (a building, or a unit on its home, 160); an upgrade (300)
+## takes none.
 func uses_worker() -> bool:
-	return type == BUILDING or type == UNIT
+	return (type == BUILDING and upgrade_of == "") or type == UNIT
+
+
+## Whether it is a building's upgrade (300): built onto a building already in play.
+func is_upgrade() -> bool:
+	return upgrade_of != ""
+
+
+## An upgrade's first line (300): "Builds on a Farm."
+func upgrade_text(card_db: Dictionary) -> String:
+	return "Builds on %s." % Population.with_article(card_db[upgrade_of].name)
 
 
 ## Whether one of the card's effects adds an era of techs (such a tech can't be lost).
@@ -95,29 +113,63 @@ func effects_for(trigger: String) -> Array[Effect]:
 	return out
 
 
-## Short card text for the card face. Generated from effects so it always matches the data:
-## "⟳" marks upkeep, and a keyword bonus joins the line it adds to ("⟳ +1 food (+1 Flood Plain)").
+## The card face's text (382), generated from the data so it always matches: {ledger: [[label, value], …] (a
+## government's figures), rules: the lines of what it does ("⟳" marks upkeep, a keyword bonus joins the line it adds
+## to, every unlock joins one "Unlocks …" line), fine: the gates (what it needs, its eureka, where it starts, how it is
+## built)}. A card with its own text has only rules, its lines. An upgrade's "Builds on" is left to its type line.
+func face(card_db: Dictionary) -> Dictionary:
+	if text != "":
+		return {"ledger": [], "rules": text.split("\n"), "fine": PackedStringArray()}
+	var ledger := []
+	for figure in _figures():
+		ledger.append(figure.slice(0, 2))
+	return {"ledger": ledger, "rules": _face_rules(card_db), "fine": _fine_print(card_db)}
+
+
+## The face in one string: the ledger as sentences, the rules, then the fine print (tests and the event modal).
 func rules_text(card_db: Dictionary) -> String:
 	if text != "":
 		return text
 	var parts: PackedStringArray = []
+	for figure in _figures():
+		parts.append(figure[2])
+	var shown := face(card_db)
+	parts.append_array(shown.rules)
+	parts.append_array(shown.fine)
+	return "\n".join(parts)
+
+
+## A government's figures, each [label, value, sentence], for the ones it has.
+func _figures() -> Array:
+	var out := []
+	if actions > 0:
+		out.append(["Actions", str(actions), actions_text()])
+	if unrest_limit > 0:
+		out.append(["Unrest limit", str(unrest_limit), unrest_limit_text()])
+	if tolerates_name != "":
+		out.append(["Tolerates", tolerates_name, tolerates_text()])
+	if administers > 0:
+		out.append(["Administers", str(administers), administers_text()])
+	return out
+
+
+## The face's rules lines (see face).
+func _face_rules(card_db: Dictionary) -> PackedStringArray:
+	var parts: PackedStringArray = []
 	if type == UNIT:
 		parts.append(strength_text())
-	if actions > 0:
-		parts.append(actions_text())
-	if unrest_limit > 0:
-		parts.append(unrest_limit_text())
-	if tolerates_name != "":
-		parts.append(tolerates_text())
-	if administers > 0:
-		parts.append(administers_text())
-	if home != "":
-		parts.append("Starts on: %s" % card_db[home].name)
-	if not requires.is_empty():
-		parts.append("Needs " + "/".join(PackedStringArray(requires.map(func(k): return k.capitalize()))))
+	if upgrades_to != "":
+		parts.append(upgrades_to_text(card_db))
+	var unlocks := -1  # the Unlocks line's index, once there is one
 	var prev: Effect = null
 	for e in effects:
-		if prev != null and e.can_merge_with(prev):
+		var unlocked := e.unlocked_name(card_db)
+		if unlocked != "" and unlocks >= 0:
+			parts[unlocks] += ", " + unlocked
+		elif unlocked != "":
+			unlocks = parts.size()
+			parts.append("Unlocks " + unlocked)
+		elif prev != null and e.can_merge_with(prev):
 			parts[-1] += " (%s %s)" % [e.bonus_text(), e.keyword.capitalize()]
 		else:
 			var line := e.describe(card_db)
@@ -145,17 +197,29 @@ func rules_text(card_db: Dictionary) -> String:
 		parts.append(defense_text())
 	if training > 0:
 		parts.append(training_text())
-	if project:
-		parts.append(PROJECT_TEXT)
-	if prereq != "":
-		parts.append("Needs %s" % card_db[prereq].name)
-	if not eureka.is_empty():
-		parts.append(eureka_text(card_db))
 	if not raid.is_empty():
 		parts.insert(0, raid_face_text())
 	elif type == EVENT:
 		parts.append(lasts_text())
-	return "\n".join(parts)
+	return parts
+
+
+## The face's fine print (see face): requires, tier, prereq, eureka, home, project, in that order.
+func _fine_print(card_db: Dictionary) -> PackedStringArray:
+	var fine: PackedStringArray = []
+	if not requires.is_empty():
+		fine.append("Needs " + "/".join(PackedStringArray(requires.map(func(k): return k.capitalize()))))
+	if tier_name != "":
+		fine.append("Needs %s" % Population.with_article(tier_name))
+	if prereq != "":
+		fine.append("Needs %s" % card_db[prereq].name)
+	if not eureka.is_empty():
+		fine.append(eureka_text(card_db))
+	if home != "":
+		fine.append("Starts on %s" % card_db[home].name)
+	if project:
+		fine.append("Built over turns")
+	return fine
 
 
 ## Full card text for the hover tooltip: one line per effect, spelled out. For a territory, its
@@ -167,8 +231,14 @@ func rules_tooltip(card_db: Dictionary, skip_ops: Array[String] = []) -> String:
 	var parts: PackedStringArray = []
 	if type == TERRITORY:
 		return territory_text(keywords)
+	if is_upgrade():
+		parts.append(upgrade_text(card_db))
+	if tier_name != "":
+		parts.append("Needs %s." % Population.with_article(tier_name))
 	if type == UNIT:
 		parts.append(strength_text())
+	if upgrades_to != "":
+		parts.append(upgrades_to_text(card_db))
 	if actions > 0:
 		parts.append(actions_text())
 	if unrest_limit > 0:
@@ -263,6 +333,11 @@ func strength_text() -> String:
 	return "Strength %d" % strength
 
 
+## A unit's upgrade line (166): "Upgrades to Pikes."
+func upgrades_to_text(card_db: Dictionary) -> String:
+	return "Upgrades to %s." % card_db[upgrades_to].name
+
+
 ## A raid's line on the card face (162): "Raid 3 (mountain/hills)", or "Raid 3" without targets.
 func raid_face_text() -> String:
 	if raid.targets.is_empty():
@@ -324,7 +399,11 @@ func modifier_lines(long: bool) -> PackedStringArray:
 	var out: PackedStringArray = []
 	for key in modifiers:
 		var n: int = modifiers[key]
-		var line: String = MODIFIER_TEXT[key][0 if n > 0 else 1] % [absi(n), "" if absi(n) == 1 else "s"]
+		var line: String = MODIFIER_TEXT[key][0 if n > 0 else 1]
+		if key in PLURAL_MODIFIERS:
+			line = line % [absi(n), "" if absi(n) == 1 else "s"]
+		else:
+			line = line % absi(n)
 		out.append(line + (" while active" if long and type == EVENT else ""))
 	return out
 

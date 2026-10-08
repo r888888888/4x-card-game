@@ -244,13 +244,14 @@ func buy(view: CardView) -> void:
 	var id: Variant = _views.find_key(view)
 	if not is_open() or id == null or e.buy_error(id) != "":
 		return
+	var from := Rect2(view.global_position, view.size)  # before the refresh that follows the buy relays the pile card
 	e.buy(id)  # the refresh that follows rolls the wealth down (181)
 	# A copy flies to the screen's Discard counter, which pulses as it lands.
 	var copy := CardView.new()
 	copy.setup(CardInstance.new(-100, e.card_db[id]), e.card_db, false)
 	_fx.add_child(copy)
-	copy.size = view.size
-	copy.global_position = view.global_position
+	copy.lay_out_now(from.size)
+	copy.global_position = from.position
 	copy.leave(_fx, _discard.get_global_rect().get_center(), true, null, UIKit.pulse.bind(_discard))
 
 

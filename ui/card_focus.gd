@@ -129,7 +129,8 @@ func move(step: int) -> void:
 		hand_index = i
 
 
-## The choice row the card focus moves through while a choice is owed: the explore reveal, or the government deck
+## The choice row the card focus moves through while a choice is owed: the explore reveal, the offered cards (370),
+## or the government deck
 ## (254: the default first); null otherwise.
 func _choice_row() -> Container:
 	match _board.pending_kind():
@@ -137,6 +138,8 @@ func _choice_row() -> Container:
 			return _board.choices.reveal
 		GameEngine.PENDING_GOVERNMENT:
 			return _board.choices.government_row
+		GameEngine.PENDING_TAKE:
+			return _board.choices.take_row
 	return null
 
 
@@ -175,7 +178,7 @@ func set_card(view: CardView, shown := true) -> void:
 	view.set_focused(shown)
 	_board.get_viewport().gui_release_focus()
 	if view.in_hand and is_instance_valid(view.slot):
-		_board.hand_scroll.ensure_control_visible(view.slot)
+		_board.hand_scroll.follow(view.slot)
 
 
 ## After the board changes, keeps the focus somewhere sensible: on the first choice card (the default government, 254)

@@ -5,8 +5,9 @@ extends RefCounted
 ## unplayed game from one queue until none is left (play_claimed, 291) and writes its games to a file, which the parent
 ## reads back (read_workers). A parallel run given a lock_path runs only while no other run holds that lock (291).
 
-const METRICS: Array[String] = ["score", "cities", "pop", "techs", "bought", "era", "explored", "anarchies", "revolts",
-	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed", "lookahead_turns"]
+const METRICS: Array[String] = ["score", "settlements", "pop", "techs", "bought", "era", "explored", "anarchies", "revolts",
+	"anarchy_turns", "restored", "gov_changes", "famine_turns", "trashed", "deck_end", "lookahead_turns", "raids",
+	"raids_repelled", "raid_strength_max", "raid_pop_lost", "raid_units_lost", "raid_food_lost", "raid_wealth_lost"]
 ## How long a parallel run's worker may go without finishing a turn before it is stopped and the run fails (318).
 ## SIM_STALL_SEC overrides it (stall_sec_from_env).
 const DEFAULT_STALL_SEC := 600
@@ -23,8 +24,9 @@ const JOBS_FILE := "jobs.json"
 ## is the last turn played when it never happened. The Anarchy metrics (158): anarchies (times it began), revolts,
 ## anarchy_turns (turns that started under it), restored (times order was bought), gov_changes (times the ruling
 ## government's id changed, Anarchy not counted), famine_turns (turns that started with a Famine), trashed (cards
-## trashed by the end), and <id>_turns per government (see _governments): turns that started with it ruling.
-## lookahead_turns (294) is the turns the bot's rollouts played (GenericBot.lookahead_turns).
+## trashed by the end), deck_end (the cards in the deck, hand and discard at the end, 376), and <id>_turns per government (see _governments): turns that started with it ruling.
+## lookahead_turns (294) is the turns the bot's rollouts played (GenericBot.lookahead_turns). The raid metrics (375)
+## add up the game's raid_resolved outcomes (raid_metrics).
 static func run(cards: Dictionary, config: Dictionary, seeds: Array, strategy := GenericBot.STRATEGY, civ := "") -> Dictionary:
 	return _summaries(_values(cards, config, seeds, strategy, civ))
 
@@ -43,15 +45,22 @@ static func _collect(games: Array, names: Array[String]) -> Dictionary:
 	return values
 
 
-## The metrics a game reports, in report order: METRICS, <id>_turns for each of _governments, then era_<n>_open and
-## era_<n>_done for each era with techs.
+## The metrics a game reports, in report order: METRICS, <id>_turns for each of _governments, era_<n>_open and
+## era_<n>_done for each era with techs, then tier_<id> for each settlement tier (328, see _tiers).
 static func metric_names(cards: Dictionary, config: Dictionary) -> Array[String]:
 	var names := METRICS.duplicate()
 	for id in _governments(cards, config):
 		names.append("%s_turns" % id)
 	for n in _techs_per_era(cards, config):
 		names.append_array(["era_%d_open" % n, "era_%d_done" % n])
+	for t in _tiers(config):
+		names.append("tier_%s" % t.id)
 	return names
+
+
+## The config's settlement tiers (281), lowest first; [] with population or tiers off.
+static func _tiers(config: Dictionary) -> Array:
+	return config.get("population", {}).get("tiers", [])
 
 
 ## Plays job ([seed, strategy, civ]) and returns its metrics, {name: int} for names. Calls on_turn (when valid) with
@@ -95,11 +104,14 @@ static func play_game(cards: Dictionary, config: Dictionary, job: Array, names: 
 			if tally.has("%s_turns" % ruling):
 				tally["%s_turns" % ruling] += 1
 	var on_revolted := func(): tally.revolts += 1
+	var raids: Array[Dictionary] = []
+	var on_raid := func(outcome: Dictionary): raids.append(outcome)
 	var on_restored := func(): tally.restored += 1
 	engine.changed.connect(on_changed)
 	engine.changed.connect(on_state)
 	engine.revolted.connect(on_revolted)
 	engine.order_restored.connect(on_restored)
+	engine.raid_resolved.connect(on_raid)
 	on_changed.call()  # an empty territory deck from the start, era 1 open
 	on_state.call()  # turn 1 as it started
 	GenericBot.lookahead_turns = 0
@@ -108,13 +120,44 @@ static func play_game(cards: Dictionary, config: Dictionary, job: Array, names: 
 	engine.changed.disconnect(on_state)
 	engine.revolted.disconnect(on_revolted)
 	engine.order_restored.disconnect(on_restored)
+	engine.raid_resolved.disconnect(on_raid)
 	var game := game_metrics(engine, config)
 	game.merge(tally)
+	game.merge(raid_metrics(raids))
 	game.lookahead_turns = GenericBot.lookahead_turns
 	var out := {}
 	for m in names:
 		out[m] = game[m] if game.has(m) else seen.get(m, engine.turn)
 	return out
+
+
+## The raid metrics (375) of a game's raid_resolved outcomes: raids (strikes), raids_repelled, raid_strength_max, and
+## what the pillages took: raid_pop_lost, raid_units_lost, raid_food_lost, raid_wealth_lost. A repelled raid's own
+## losses don't count.
+static func raid_metrics(outcomes: Array) -> Dictionary:
+	var out := {"raids": outcomes.size(), "raids_repelled": 0, "raid_strength_max": 0, "raid_pop_lost": 0,
+		"raid_units_lost": 0, "raid_food_lost": 0, "raid_wealth_lost": 0}
+	for o in outcomes:
+		out.raid_strength_max = maxi(out.raid_strength_max, o.strength)
+		if o.repelled:
+			out.raids_repelled += 1
+			continue
+		out.raid_pop_lost += o.pop_lost
+		out.raid_units_lost += o.units_lost.size()
+		out.raid_food_lost += o.lost.get(GameEngine.FOOD, 0)
+		out.raid_wealth_lost += o.lost.get(GameEngine.WEALTH, 0)
+	return out
+
+
+## "raids by civilization: sumer 4.0 (1.5 repelled, 2.5 pop lost), …" (375) from per_civ, [[civ ("" for the default),
+## {metric: [one value per game]}], …] in report order.
+static func raids_by_civilization(per_civ: Array) -> String:
+	var parts: PackedStringArray = []
+	for row in per_civ:
+		var values: Dictionary = row[1]
+		parts.append("%s %.1f (%.1f repelled, %.1f pop lost)" % [row[0] if row[0] != "" else "default",
+			_summary(values.raids).mean, _summary(values.raids_repelled).mean, _summary(values.raid_pop_lost).mean])
+	return "raids by civilization: " + ", ".join(parts)
 
 
 ## The governments a game can have, in config order (158): starting.government, then each one a card creates, in
@@ -154,21 +197,30 @@ static func _summaries(values: Dictionary) -> Dictionary:
 	return stats
 
 
-## The metrics of one finished game.
+## The metrics of one finished game. settlements counts the cities founded, the starting ones not counted;
+## tier_<id> (328) how many settled territories, the home one included, ended in each tier.
 static func game_metrics(engine: GameEngine, config: Dictionary) -> Dictionary:
 	var bought := 0
 	var supply: Dictionary = config.get("supply", {})
 	for id in supply:
 		bought += supply[id].count - engine.supply_left(id)
-	return {
+	var out := {
 		"score": engine.score(),
-		"cities": _count_type(engine.zone("tableau").cards, "city") - _starting_cities(engine, config),
+		"settlements": _count_type(engine.zone("tableau").cards, "city") - _starting_cities(engine, config),
 		"pop": engine.total_pop(),
 		"techs": engine.zone("researched").size(),
 		"bought": bought,
 		"era": engine.era(),
 		"trashed": engine.zone("trashed").size(),
+		"deck_end": engine.zone("deck").size() + engine.zone("hand").size() + engine.zone("discard").size(),
 	}
+	var tiers := _tiers(config)
+	for t in tiers:
+		out["tier_%s" % t.id] = 0
+	for c in engine.zone("tableau").cards:
+		if c.def.type == CardDef.TERRITORY and not tiers.is_empty():
+			out["tier_%s" % tiers[Population.tier(engine, c.uid)].id] += 1
+	return out
 
 
 ## Loads the data files and runs seeds 1..seed_count with strategy. Returns {code, lines, procs, games_per_proc, played,
@@ -213,14 +265,17 @@ static func run_files(cards_path: String, config_path: String, seed_count: int, 
 		lines.append("== %s" % s)
 		var all := {}
 		var scores: PackedStringArray = []
+		var civ_values := []
 		for i in per_civ:
 			var civ: String = jobs[next][2]
 			var values := _collect(games.slice(next, next + seed_count), names)
 			next += seed_count
 			scores.append("%s %.1f" % [civ if civ != "" else "default", _summary(values.score).mean])
+			civ_values.append([civ, values])
 			for m in values:
 				all[m] = all.get(m, []) + values[m]
 		lines.append("score by civilization: " + ", ".join(scores))
+		lines.append(raids_by_civilization(civ_values))
 		lines.append_array(_metric_lines(_summaries(all)))
 	return out
 

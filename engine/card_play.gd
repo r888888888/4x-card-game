@@ -16,6 +16,15 @@ static func error(e: GameEngine, uid: int, target_uid: int) -> String:
 	return place_error(e, card, target_uid)
 
 
+## The part of cost e can't pay now, {resource: amount} for each resource it is short of: what a price error names (337).
+static func short_of(e: GameEngine, cost: Dictionary) -> Dictionary:
+	var short := {}
+	for r in cost:
+		if not e.can_pay({r: cost[r]}):
+			short[r] = cost[r]
+	return short
+
+
 ## Why card (in the hand, or a new copy to build, 295) can't be put into play on target_uid now, or "": actions, Anarchy,
 ## its cost, its play effects' blocks and its target.
 static func place_error(e: GameEngine, card: CardInstance, target_uid: int) -> String:
@@ -24,16 +33,16 @@ static func place_error(e: GameEngine, card: CardInstance, target_uid: int) -> S
 	var anarchy := Anarchy.play_error(e, card)
 	if anarchy != "":
 		return anarchy
-	var cost := cost_to_play(e, card.def)
-	if not e.can_pay(cost):  # names the first resource it is short of
-		for r in cost:
-			if not e.can_pay({r: cost[r]}):
-				return "%s needs %d %s (you have %d)." % [card.def.name, cost[r], r, e.resources.get(r, 0)]
+	var short := short_of(e, cost_to_play(e, card.def))
+	if not short.is_empty():
+		return e.price_error(card.def.name, short)
 	for effect in card.def.effects:
 		if effect.trigger == "play":
 			var blocked := effect.play_block_error(e, card)
 			if blocked != "":
 				return blocked
+	if card.def.is_upgrade():
+		return Upgrades.target_error(e, card, target_uid)
 	if not needs_target(card):
 		return ""
 	var targets := targets_for(e, card)
@@ -45,10 +54,18 @@ static func place_error(e: GameEngine, card: CardInstance, target_uid: int) -> S
 		var target := e.zone("tableau").find(target_uid)
 		if building and target != null and target.def.type == CardDef.TERRITORY and not Territories.meets_requires(card, target):
 			return Territories.requires_error(card)
+		if building and Territories.settled(e, target_uid) != null and Fallback.below_tier(e, card.def, target_uid):
+			return Fallback.tier_error(e, card.def, target_uid)
+		var settled := Territories.settled(e, target_uid)
+		if placed and settled != null and (not building or Territories.has_room(e, settled, card)) \
+				and not Population.has_worker(e, settled):
+			return Population.NO_WORKER
+		if building and settled != null and Territories.sea_only_error(e, card, target_uid) != "":
+			return Territories.sea_only_error(e, card, target_uid)
 		return "That target isn't valid."
 	if targets.is_empty():
 		if card.def.type == CardDef.UNIT:
-			return "No territory with a free worker."
+			return Population.NO_WORKER
 		return Territories.no_building_target_error(e, card) if building else target_effect(card).no_target_error()
 	if targets.size() > 1:
 		return "Choose a territory for %s." % card.def.name if placed else target_effect(card).choose_target_error()
@@ -65,6 +82,8 @@ static func targets_for(e: GameEngine, card: CardInstance) -> Array[int]:
 	var out: Array[int] = []
 	if not needs_target(card):
 		return out
+	if card.def.is_upgrade():
+		return Upgrades.targets(e, card)
 	if card.def.type == CardDef.BUILDING:
 		return Territories.building_targets(e, card)
 	if card.def.type == CardDef.UNIT:
@@ -90,8 +109,9 @@ static func play(e: GameEngine, uid: int, target_uid: int) -> bool:
 
 ## Puts card, out of any zone, into play on target (-1 for none): uses an action, pays its cost, moves it (a permanent
 ## to the tableau on target, an action to the discard), resolves its play effects and emits card_played and changed.
-## Playing a hand card and building a build-menu entry (295) both end here; verb starts the log line.
-static func put_into_play(e: GameEngine, card: CardInstance, target: int, verb := "Played") -> void:
+## Playing a hand card and building a build-menu entry (295) both end here; verb starts the log line. built: a
+## build, which emits built(uid) first (357).
+static func put_into_play(e: GameEngine, card: CardInstance, target: int, verb := "Played", built := false) -> void:
 	var uid := card.uid
 	e.state.actions_used += 1
 	var to_zone := _destination(card)
@@ -103,7 +123,9 @@ static func put_into_play(e: GameEngine, card: CardInstance, target: int, verb :
 		if cost[r] > 0:
 			e._outcome.paid[r] = cost[r]
 	e._log("%s %s." % [verb, card.def.name])
-	if card.def.type == CardDef.BUILDING:
+	if card.def.is_upgrade():  # onto its base, on the base's territory (300)
+		Upgrades.attach(e, card, target)
+	elif card.def.type == CardDef.BUILDING:
 		card.territory_uid = target
 	if card.def.type == CardDef.UNIT:  # homed and stationed where it is recruited (160)
 		card.territory_uid = target
@@ -117,6 +139,8 @@ static func put_into_play(e: GameEngine, card: CardInstance, target: int, verb :
 	var outcome := e._outcome
 	e._outcome = {}
 	e.play_target = -1
+	if built:
+		e.built.emit(uid)
 	e.card_played.emit(outcome)
 	e.changed.emit()
 
@@ -151,9 +175,9 @@ static func needs_target_choice(e: GameEngine, uid: int) -> bool:
 	return e.needs_target(uid) and targets_of(e, uid).size() > 1 and e.playable_error(uid) == ""
 
 
-## Buildings and units target a territory; other cards need a target if a "play" effect does.
+## Buildings and units target a territory, upgrades a building (300); other cards need a target if a "play" effect does.
 static func needs_target(card: CardInstance) -> bool:
-	return card.def.uses_worker() or target_effect(card) != null
+	return card.def.uses_worker() or card.def.is_upgrade() or target_effect(card) != null
 
 
 ## The card's first "play" effect that needs a target, or null.

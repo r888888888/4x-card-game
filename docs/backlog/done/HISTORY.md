@@ -146,3 +146,74 @@ Build in this order; IDs are creation order, not build order. Each item assumes 
 136. 214 the title screen's sun over a hill
 
 Not scheduled: 073 event discard conditions (draft: a behavior question is still open).
+
+## Planned order through 367 (closed by 2026-10-07)
+
+The README's next "Planned order", kept for its sequencing rationale. Every item in it is done, or wontfix where
+struck through.
+
+Barbarians and military (units are homed on a territory, using a worker there, and stationed where they defend):
+1. 160 unit cards garrisoned on a home territory
+2. 161 territory defence from units, walls, cities and terrain
+3. 162 barbarian raids, announced a turn ahead
+4. 163 move and disband units
+5. ~~168 the sim bot meets raids~~: superseded by 314 (the generic bot defends through its value)
+6. 164 Barracks training, then 165 veterans, then 166 upgrades
+7. 167 era units and era 2–3 raids
+
+
+Settlement tiers (pop sets a territory's tier, which adds slots; governments tolerate tiers up to one):
+1. 281 settlement tiers add building slots, and buildings past the slots go idle
+2. 282 governments tolerate territories up to a tier; bigger ones add unrest
+3. 283 growth "where needed most" prefers a territory one pop short of its next tier
+
+Build menu (buildings and units leave the deck: techs unlock them, you build them onto a territory):
+1. 295 buildings are built from a build menu instead of bought
+2. 296 units are recruited from the build menu
+3. 299 preview what building an entry on a territory would change
+4. 297 Build… on a territory's view: the list-and-forecast modal, and "+ Build" on empty slots
+5. ~~298 the sim bot builds, recruits and keeps Settlers~~: superseded by 314 (`build` joins `legal_actions`); then a
+   balance item for costs and wealth
+
+Building upgrades (upgrades build onto a building, add to it, and may need a settlement tier; makes tall worth it):
+1. 300 upgrades built onto buildings: no slot or worker, they add to their base, stack and chain
+2. 301 a building or upgrade may need a tier, and falls back below it (returns by itself)
+3. 304 the `gain_per_pop` op (independent; needed by 306)
+4. 302 ribbons on the territory view, "+ Upgrade", the Build modal's Upgrades heading (after 297)
+5. ~~303 the sim bot builds upgrades~~: superseded by 314
+6. 305 rural upgrades and realism fixes, 306 Temple and Library become urban upgrades, 307 new urban chains, 308 gap
+   buildings (then a balance item for the whole roster)
+
+Generic sim bot (from `spike/generic-bot`: one value function over every legal action instead of a rule per mechanic):
+1. 309 `turn_forecast`, 310 targets from any zone, 311 sample fork (independent engine queries)
+2. 312 `legal_actions` with a coverage check
+3. 313 `GenericBot` plays as the strategy `generic`
+4. 314 it replaces ScriptedBot (generic, wide, tall; rollouts in cheap mode; raids), closing 168, 298 and 303
+5. 315 forecast cache (then a balance item re-baselines the sim)
+
+Project review cleanup (2026-10-06 review; build before the military items 165–167 below unless gameplay comes first):
+1. 330 docs and housekeeping: PLAN.md and timings brought up to date, the bench file and orphan `.uid` files gone, a
+   check that docs name only real paths (first, so later items have less to keep in sync)
+2. 331 test files' headers become the source; `docs/testing.md` keeps one line per file (docs, before items add files)
+3. 332 bug: the upkeep forecast after a declared revolution (the one player-visible finding, with its missing test)
+4. 333 red-phase scaffolding out of the tests, checked (cleans the tests before others are added beside them)
+5. 334 shared UI test helpers, `click` split (test infrastructure before items that add UI tests)
+6. 335 the suite's critical path: the cache tests share their games, slow files dealt first (compacts the tests 336
+   changes)
+7. 336 the engine says what a forecast reads; the bot's cache key uses it (a guard before 165 adds unit state)
+8. 337 the engine writes the era's "Opens at…" and one shortfall message (logic out of the UI)
+9. 340 loader tests as tables: the last one-off rejections and the "loads / defaults to" tests as `check_loads` rows
+   (compacts the loader tests before 338 and 339 refactor the loaders; uses 334's shared helpers)
+10. 338 DataLoader's per-type fields from one table, `requires` building-only, the `add-card-field` skill (before 166
+   adds `upgrades_to`)
+11. 339 ConfigLoader split (config_loader.gd is at 680 of 700; before 167 adds content config)
+
+Barbarians and military, continued: 165 veterans, 166 unit upgrades, 167 era units and raids (see the first list).
+
+Coastal cities (fishing stops being a worse Farm, and the coast adds to a territory instead of replacing it):
+1. 364 Fishing Huts cost no food and house people; each adds a Net Fishing; Salt Pans (Pottery); Harbor +1 food
+2. 365 helpful era-1 coastal events and the Lighthouse of Pharos (content only)
+3. 367 `gain_per_tag` learns `per`; Sea Trade (Sailing) and Sailing's insight per 2 ports
+4. 366 the sea slot: one extra slot on coastal territories for port buildings (after 339, which makes room in
+   `config_loader.gd`)
+5. Then a balance item for the coast (per-port payoffs stack: Navigation, the Lighthouse, Sea Trade, the sea slot)

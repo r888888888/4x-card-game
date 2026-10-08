@@ -3,6 +3,7 @@ extends "res://tests/lib/test_case.gd"
 ## Grassland) and a Temple in hand that can go on either. Hooks: main.vellum (a Control: covered_rect(), the part of
 ## the window it covers now; lifted(), the card views drawn above it).
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const WIPE_IN := 0.26
 const WIPE_OUT := 0.20
 const SLACK := 0.06
@@ -21,21 +22,6 @@ func with_two_targets(calm: bool, body: Callable) -> void:
 			targets.assign(e.valid_targets(temple))
 			eq(targets.size(), 2, "precondition: two targets")
 			await body.call(main, temple, targets)))
-
-
-func wait_seconds(s: float) -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
-
-
-## A real press and release of button at point.
-func click_at(main: Node, point: Vector2, button := MOUSE_BUTTON_LEFT) -> void:
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = button
-		event.pressed = pressed
-		event.position = point
-		event.global_position = point
-		main.get_viewport().push_input(event, true)
 
 
 func vellum_shown(main: Node) -> bool:
@@ -65,7 +51,7 @@ func test_targeting_wipes_vellum_in_from_the_left_with_the_targets_above_it() ->
 		for uid in targets + [temple]:
 			check(lifted.has(main.views[uid]), "card %d is above the vellum" % uid)
 		for uid in targets:
-			var box := (main.views[uid] as CardView).get_theme_stylebox("panel") as StyleBoxFlat
+			var box := Looks.frame_of((main.views[uid] as CardView).get_theme_stylebox("panel"))  # its rule (341)
 			eq(box.border_color, Palette.FOCUS, "target %d outlined in FOCUS" % uid)
 			eq(box.border_width_left, 2, "a 2 px outline on %d" % uid)
 		eq(lifted.size(), targets.size() + 1, "nothing else above it")
@@ -101,7 +87,7 @@ func test_a_click_on_a_non_target_card_reaches_only_the_vellum() -> void:
 		main.card_actions.on_double_clicked(main.views[temple])
 		await wait_seconds(WIPE_IN + SLACK)
 		var before := e.zone("hand").cards.size()
-		click_at(main, (main.views[other] as CardView).get_global_rect().get_center())
+		click_point(main, (main.views[other] as CardView).get_global_rect().get_center())
 		await wait_seconds(Anim.DETAILS_CLICK_DELAY + 0.1)
 		eq(e.zone("hand").cards.size(), before, "nothing played")
 		check(main.drag.targeting == null, "the click on the vellum cancelled targeting")
@@ -121,9 +107,9 @@ func test_esc_right_click_or_a_click_on_the_vellum_cancel_and_wipe_it_off() -> v
 				"esc":
 					press_key(main, KEY_ESCAPE)
 				"right":
-					click_at(main, empty, MOUSE_BUTTON_RIGHT)
+					click_point(main, empty, MOUSE_BUTTON_RIGHT)
 				"vellum":
-					click_at(main, empty)
+					click_point(main, empty)
 			await wait_frames()
 			check(main.drag.targeting == null, "%s: targeting ended" % way)
 			check(e.zone("hand").find(temple) != null, "%s: the Temple is back in the hand" % way)

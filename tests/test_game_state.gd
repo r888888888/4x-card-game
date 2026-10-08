@@ -1,6 +1,10 @@
 extends "res://tests/lib/test_case.gd"
 ## GameState (backlog 051): the engine's state copies itself deeply (GameState.copy, GameEngine.fork), and
 ## upkeep_forecast runs on a copy.
+## In detail (from docs/testing.md, 331): `GameState.copy` and `GameEngine.fork`: deep copies, independent RNG, pending
+## choice, no signals or log on the original; the forecast not disturbing the next hand; `sample_fork` (311): the deck,
+## event deck and territory deck reshuffled from a seed, everything visible the same, later shuffles from the seed, the
+## game untouched
 
 const POP_ON := {"population": {"start": 2, "food_upkeep": 1, "vp_per_pop": 1}}
 

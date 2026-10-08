@@ -119,7 +119,7 @@ func test_era_names_validation() -> void:
 # --- 278 AC1: a tech's links in the tree ---
 
 ## Techs a, b (prereq a), c and d (both prereq b), in config order; no other tech is in the research deck.
-func links_engine() -> Object:
+func links_engine() -> GameEngine:
 	var chain := [
 		{"id": "a", "name": "A", "type": "tech", "cost": {"insight": 1}},
 		{"id": "b", "name": "B", "type": "tech", "cost": {"insight": 1}, "prereq": "a"},
@@ -130,19 +130,59 @@ func links_engine() -> Object:
 
 
 func test_tech_links_name_the_prerequisite_and_the_techs_it_opens_in_tree_order() -> void:
-	var e: Object = links_engine()
+	var e := links_engine()
 	var links: Dictionary = e.tech_links("b")
 	eq(links.get("prereq"), "a", "b's prerequisite")
 	eq(links.get("unlocks"), ["c", "d"] as Array[String], "b opens c and d")
 
 
 func test_tech_links_of_a_tech_with_no_prerequisite_have_none() -> void:
-	var links: Dictionary = (links_engine() as Object).tech_links("a")
+	var links: Dictionary = links_engine().tech_links("a")
 	eq(links.get("prereq"), "", "a has no prerequisite")
 	eq(links.get("unlocks"), ["b"] as Array[String], "a opens b")
 
 
 func test_tech_links_of_an_unknown_id_are_empty() -> void:
-	var links: Dictionary = (links_engine() as Object).tech_links("nothing")
+	var links: Dictionary = links_engine().tech_links("nothing")
 	eq(links.get("prereq"), "", "no prerequisite")
 	eq(links.get("unlocks"), [] as Array[String], "opens nothing")
+
+
+# --- Backlog 325: affordable ---
+
+## tree_engine(["writing", "pottery", "iron", "bronze"]) with insight set to n: Writing costs 3, Iron Working is locked.
+func afford_engine(n: int, overrides := {}) -> GameEngine:
+	var e := tree_engine(["writing", "pottery", "iron", "bronze"], overrides)
+	e.resources[GameEngine.INSIGHT] = n
+	return e
+
+
+func test_an_available_tech_the_insight_covers_is_affordable() -> void:
+	var e := afford_engine(3)
+	eq(entry(e, "writing").get("cost"), 3, "precondition: Writing costs 3")
+	eq(entry(e, "writing").get("affordable"), true, "3 insight covers 3")
+
+
+func test_an_available_tech_short_of_insight_isnt_affordable_until_the_insight_comes() -> void:
+	var e := afford_engine(2)
+	eq(entry(e, "writing").get("affordable"), false, "2 insight is short of 3")
+	e.resources[GameEngine.INSIGHT] = 3
+	eq(entry(e, "writing").get("affordable"), true, "one more insight covers it")
+
+
+func test_researched_locked_and_later_era_techs_are_never_affordable() -> void:
+	var e := afford_engine(50)
+	check(e.buy_tech(uid_of(e.zone("research_deck"), "pottery")), "learn Pottery")
+	eq(entry(e, "pottery").get("affordable"), false, "researched")
+	eq(entry(e, "iron").get("state"), GameEngine.TECH_LOCKED, "precondition: Iron Working is locked")
+	eq(entry(e, "iron").get("affordable"), false, "locked")
+	eq(entry(e, "optics").get("state"), GameEngine.TECH_FUTURE, "precondition: Optics is a later era's")
+	eq(entry(e, "optics").get("affordable"), false, "later era")
+
+
+func test_affordable_is_about_insight_only_while_a_choice_is_owed() -> void:
+	var e := afford_engine(3, {"territory_deck": {"hills": 1, "grassland": 1, "jungle": 1}})
+	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
+	eq(e.pending().get("kind", ""), GameEngine.PENDING_EXPLORE, "precondition: an explore choice is owed")
+	eq(entry(e, "writing").get("affordable"), true, "still affordable")
+	check(e.buy_tech_error(uid_of(e.zone("research_deck"), "writing")) != "", "but it can't be bought yet")

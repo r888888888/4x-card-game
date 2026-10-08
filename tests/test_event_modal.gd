@@ -1,6 +1,6 @@
 extends "res://tests/lib/test_case.gd"
 ## The drawn-event modal (backlog 079): the engine reports each drawn event with event_drawn(outcome), and the real
-## main scene pops up a modal showing it. Hook: main.event_modal() is {uid, id, text, lasts, summary}, {} while
+## main scene pops up a modal showing it. Hook: MainProbe.event_modal(main) is {uid, id, text, lasts, summary}, {} while
 ## closed. Fixture events: TEST_EVENTS (Windfall: +2 food; Omen: nothing) plus Toll (−1 wealth), local here.
 
 const TOLL := {"id": "toll", "name": "Toll", "type": "event", "effects": [{"op": "lose", "resource": "wealth", "amount": 1}]}
@@ -108,18 +108,14 @@ func with_modal_main(body: Callable, top_first: Array, event_deck := {"windfall"
 		var main := open_main()
 		main.start_game(1)
 		arrange(Game.engine.zone("event_deck"), top_first)
-		# Guarded so the real engine is put back even before the hooks exist (red phase).
-		if main.has_method("event_modal") and main.has_method("event_modal_ok_button"):
-			body.call(main)
-		else:
-			check(false, "main has no event_modal() / event_modal_ok_button() hooks")
+		body.call(main)
 		close_main(main), event_deck, overrides)
 
 
 func test_ending_the_turn_shows_the_drawn_event() -> void:
 	with_modal_main(func(main: Node):
 		Game.engine.end_turn()
-		var modal: Dictionary = main.event_modal()
+		var modal: Dictionary = MainProbe.event_modal(main)
 		var windfall: CardDef = Game.engine.card_db.windfall
 		eq(modal.get("id", ""), "windfall", "Windfall shown")
 		eq(modal.get("uid", -1), event_uid(Game.engine, "windfall"), "its uid")
@@ -132,8 +128,8 @@ func test_ending_the_turn_shows_the_drawn_event() -> void:
 func test_an_event_with_no_effect_shows_no_immediate_effect() -> void:
 	with_modal_main(func(main: Node):
 		Game.engine.end_turn()
-		eq(main.event_modal().get("id", ""), "omen", "Omen shown")
-		eq(main.event_modal().get("summary", "?"), "No immediate effect", "summary"), ["omen"])
+		eq(MainProbe.event_modal(main).get("id", ""), "omen", "Omen shown")
+		eq(MainProbe.event_modal(main).get("summary", "?"), "No immediate effect", "summary"), ["omen"])
 
 
 # --- 226: the event's flavor ---
@@ -141,32 +137,32 @@ func test_an_event_with_no_effect_shows_no_immediate_effect() -> void:
 func test_the_modal_shows_the_events_flavor() -> void:
 	with_modal_main(func(main: Node):
 		Game.engine.end_turn()
-		eq(main.event_modal().get("flavor", "?"), "A great flood covered the plain.", "Windfall's flavor"), ["windfall"])
+		eq(MainProbe.event_modal(main).get("flavor", "?"), "A great flood covered the plain.", "Windfall's flavor"), ["windfall"])
 
 
 func test_an_event_without_flavor_shows_no_flavor_line() -> void:
 	with_modal_main(func(main: Node):
 		Game.engine.end_turn()
-		eq(main.event_modal().get("flavor", "?"), "", "no flavor"), ["omen"])
+		eq(MainProbe.event_modal(main).get("flavor", "?"), "", "no flavor"), ["omen"])
 
 
 func test_closing_the_modal_clears_the_flavor_too() -> void:
 	with_modal_main(func(main: Node):
 		Game.engine.end_turn()
-		eq(main.event_modal().get("flavor", ""), "A great flood covered the plain.", "shown")
-		main.event_modal_ok_button().pressed.emit()
-		eq(main.event_modal(), {}, "closed, flavor and all"), ["windfall"])
+		eq(MainProbe.event_modal(main).get("flavor", ""), "A great flood covered the plain.", "shown")
+		MainProbe.event_modal_ok_button(main).pressed.emit()
+		eq(MainProbe.event_modal(main), {}, "closed, flavor and all"), ["windfall"])
 
 
 func test_esc_enter_ok_and_a_click_outside_close_the_modal() -> void:
 	with_modal_main(func(main: Node):
 		for way in ["esc", "enter", "ok", "outside"]:
 			Game.engine.end_turn()
-			check(not main.event_modal().is_empty(), "%s: the modal is open" % way)
+			check(not MainProbe.event_modal(main).is_empty(), "%s: the modal is open" % way)
 			match way:
 				"esc": press_key(main, KEY_ESCAPE)
 				"enter": press_key(main, KEY_ENTER)
-				"ok": main.event_modal_ok_button().pressed.emit()
+				"ok": MainProbe.event_modal_ok_button(main).pressed.emit()
 				"outside":
 					var click := InputEventMouseButton.new()
 					click.button_index = MOUSE_BUTTON_LEFT
@@ -175,13 +171,13 @@ func test_esc_enter_ok_and_a_click_outside_close_the_modal() -> void:
 					click.position = main.get_viewport().get_visible_rect().end - Vector2(5, 5)
 					click.global_position = click.position
 					main.get_viewport().push_input(click, true)  # viewport coordinates, not the window's
-			eq(main.event_modal(), {}, "%s closes it" % way), ["windfall"], {"windfall": 1, "omen": 1}, {"turn_limit": 10})
+			eq(MainProbe.event_modal(main), {}, "%s closes it" % way), ["windfall"], {"windfall": 1, "omen": 1}, {"turn_limit": 10})
 
 
 func test_keys_do_not_reach_the_board_while_the_modal_is_open() -> void:
 	with_modal_main(func(main: Node):
 		Game.engine.end_turn()
-		check(not main.event_modal().is_empty(), "the modal is open")
+		check(not MainProbe.event_modal(main).is_empty(), "the modal is open")
 		press_key(main, KEY_E)  # End turn
 		eq(Game.engine.turn, 2, "still turn 2"), ["windfall"])
 
@@ -193,15 +189,24 @@ func test_the_hand_limit_discard_comes_before_the_event_modal() -> void:
 			put_in_hand(Game.engine, "farm")  # hand 8, limit 7
 		Game.engine.end_turn()
 		eq(main.pending_kind(), GameEngine.PENDING_DISCARD, "the discard is owed")
-		eq(main.event_modal(), {}, "no event yet")
+		eq(MainProbe.event_modal(main), {}, "no event yet")
 		Game.engine.discard_card(first_in_hand(Game.engine))
-		eq(main.event_modal().get("id"), "windfall", "the modal shows as turn 2 starts"), ["windfall"])
+		eq(MainProbe.event_modal(main).get("id"), "windfall", "the modal shows as turn 2 starts"), ["windfall"])
 
 
 func test_the_last_turn_shows_game_over_and_no_modal() -> void:
 	with_modal_main(func(main: Node):
 		Game.engine.end_turn()
 		check(Game.engine.is_over, "the game is over")
-		eq(main.event_modal(), {}, "no event modal")
-		check(main.game_over_text() != "", "the game-over overlay shows"), ["windfall"], {"windfall": 1, "omen": 1},
+		eq(MainProbe.event_modal(main), {}, "no event modal")
+		check(MainProbe.game_over_text(main) != "", "the game-over overlay shows"), ["windfall"], {"windfall": 1, "omen": 1},
 		{"turn_limit": 1})
+
+
+# --- 381: the card's art plate ---
+
+func test_the_events_card_has_its_art_plate() -> void:
+	with_modal_main(func(main: Node):
+		Game.engine.end_turn()
+		var card := card_under(main.modals.top())
+		check(card != null and art_plate(card) != null, "the event's card has a plate"), ["windfall"])

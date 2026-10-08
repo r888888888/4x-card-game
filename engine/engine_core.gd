@@ -49,6 +49,9 @@ signal revolted
 signal milestone(kind: StringName)
 ## Emitted when restore_order() buys order (155), before changed; the sim counts them (158).
 signal order_restored
+## Emitted when build() puts a building, unit or upgrade into play from the build menu (357), with its uid, before
+## changed: the board gives it the build ceremony. Not for a card played from the hand or created by an effect.
+signal built(uid: int)
 
 var card_db: Dictionary  # id -> CardDef
 var config: Dictionary  # normalized by DataLoader.parse_config
@@ -178,20 +181,27 @@ func draw(n: int) -> int:
 	var deck := zone("deck")
 	var drawn := 0
 	for i in n:
-		if deck.is_empty():
-			var discard := zone("discard")
-			if discard.is_empty():
-				break
-			for card in discard.take_all():
-				deck.add(card)
-			rng.shuffle(deck.cards)
-			_log("  Reshuffled discard pile into deck (%d cards)." % deck.size())
+		if deck.is_empty() and not reshuffle():
+			break
 		var card := deck.take_top()
 		zone("hand").add(card)
 		if not _outcome.is_empty():
 			_outcome.drawn.append(card.uid)
 		drawn += 1
 	return drawn
+
+
+## Shuffles the discard pile into the deck (371, from draw); false when the discard is empty.
+func reshuffle() -> bool:
+	var discard := zone("discard")
+	if discard.is_empty():
+		return false
+	var deck := zone("deck")
+	for card in discard.take_all():
+		deck.add(card)
+	rng.shuffle(deck.cards)
+	_log("  Reshuffled discard pile into deck (%d cards)." % deck.size())
+	return true
 
 
 ## Adds a new copy of card_id to zone_name. source is the card whose effect made it, or null
@@ -218,6 +228,18 @@ func create_card(card_id: String, zone_name: String, source: CardInstance) -> Ca
 ## straight to the frontier.
 func explore(n: int, source: CardInstance) -> void:
 	Territories.explore(self, n, source)
+
+
+## Offers the discard pile's cards to take one into the hand (370): several owe a take (see GameEngine.take), one
+## goes to the hand at once.
+func recall(source: CardInstance) -> void:
+	Takes.recall(self, source)
+
+
+## Offers the top n cards of the deck, reshuffling the discard in when it runs out, to take one into the hand (371):
+## several owe a take whose other cards go to the discard, one goes to the hand at once.
+func look(n: int, source: CardInstance) -> void:
+	Takes.look(self, n, source)
 
 
 ## Moves frontier territory territory_uid to the tableau and founds a new city_id on it. With population

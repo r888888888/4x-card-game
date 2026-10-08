@@ -15,7 +15,8 @@ Put all of the op's tests in a new `tests/test_<op>.gd` (as 072, 081 and 082 did
 together, so the op's behavior reads in one place.
 
 1. **Loader tests** in `tests/test_<op>.gd`:
-   - a card using the op with valid fields loads with no errors or warnings (a named test);
+   - a card using the op with valid fields (and each optional field left out) loads with no errors or warnings, and
+     its defaults: one `test_<op>_loads` with a `check_loads` row per case (see `test_lose_per_keyword_loads_and_may_trigger_on_upkeep`);
    - each missing or invalid field gives an error that names the card and field
      (e.g. `card 'x': effects[0]: 'amount' must be an integer >= 1`): one `test_<op>_validation` with a
      `check_cases` row per case (see `test_grow_validation`);
@@ -61,7 +62,11 @@ together, so the op's behavior reads in one place.
      - `needs_own_territory()`: true if the op acts on its own card's territory; the loader rejects it on
        techs, events and governments, which have none (and `start` triggers check targets and choices);
      - `play_block_error(engine, card)`: why the card can't be played right now (e.g. nothing to research);
-     - `terms()`: glossary terms the op uses, listed in the card details.
+     - `terms()`: glossary terms the op uses, listed in the card details;
+     - `reads_zones()`: the zones whose cards the op counts when it resolves (336; `gain_per_tag`'s zone). An op
+       that counts a zone's cards overrides it, so the turn forecast (`forecast_zones()`) and the bot's forecast
+       cache read that zone; ops that count only the board needn't. Add a test beside
+       `test_turn_forecast.gd`'s `test_a_gain_per_tag_reads_the_zone_it_counts`.
 4. Register the op in `EffectRegistry.OPS` (`engine/effect_registry.gd`).
 5. Run `scripts/test.sh`. It re-imports automatically, so the new script is picked up.
 

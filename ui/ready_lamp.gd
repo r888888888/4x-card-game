@@ -5,6 +5,7 @@ extends Control
 ## blank of its size, so the key is as wide lit as dark. Lighting is quick and fires the confirmation starburst
 ## (§10.8): six rays wiping out from 9 px off its centre, then fading as they move to 13 px, with ui.confirm; going out
 ## is slower and silent. With Reduce motion the rays are drawn whole for CALM_RAYS, then go.
+## A selectable list's rows carry one too (356, §7.16), lit quietly and shown only on the selected row.
 
 const SIZE := 12  # px across
 const ON_TIME := 0.04  # ease.lamp on

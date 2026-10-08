@@ -10,12 +10,9 @@ const OPTICS := {"id": "optics", "name": "Optics", "type": "tech", "cost": {"ins
 const FIXTURES := [SAGES, SCRIPTORIUM, OPTICS]
 
 
-## Loads a tech 'x' with the given cost next to the fixture cards; returns the loader errors.
-func tech_errors(cost: Dictionary) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	tech_db([{"id": "x", "name": "X", "type": "tech", "cost": cost}], errors, warnings)
-	return errors
+## Loads a tech 'x' with the given cost next to TECHS: {cards, errors, warnings}.
+func tech_load(cost: Dictionary) -> Dictionary:
+	return fixture_load([{"id": "x", "name": "X", "type": "tech", "cost": cost}], [TECHS])
 
 
 ## tech_engine with Pottery then Writing on the research deck (Optics in era 2) and starting resources res;
@@ -32,13 +29,15 @@ func civ_insight_engine(res: Dictionary, civ := "") -> GameEngine:
 # --- AC1: techs cost insight only ---
 
 func test_a_tech_costing_insight_loads() -> void:
-	eq(tech_errors({"insight": 2}), [] as Array[String], "loader errors")
+	check_loads([
+		["insight 2", {"insight": 2}, {}],
+	], tech_load)
 
 
 func test_a_tech_must_cost_insight_only() -> void:
 	var message := "cards.json: card 'x': cost: a tech must cost insight only, at least 1 (like {\"insight\": 2})"
 	for cost in [{"wealth": 2}, {}, {"insight": 0}, {"insight": 2, "wealth": 1}]:
-		eq(tech_errors(cost), [message] as Array[String], "cost %s" % [cost])
+		eq(tech_load(cost).errors, [message] as Array[String], "cost %s" % [cost])
 
 
 # --- AC2: buying spends insight, not wealth ---
@@ -112,10 +111,10 @@ func test_the_top_bar_shows_insight_with_its_forecast_and_rolls_its_change_with_
 	Game.engine.resources["insight"] = 0
 	Game.engine.changed.emit()
 	await wait_frames()
-	var counter: Control = main.counter(GameEngine.INSIGHT)
+	var counter: Control = MainProbe.counter(main, GameEngine.INSIGHT)
 	check(counter != null and counter.is_visible_in_tree(), "an Insight counter in the top bar")
-	eq(main.counter_text(GameEngine.INSIGHT), "0", "insight")
-	eq(forecast(main, GameEngine.INSIGHT), "+1", "its forecast apart (201)")
+	eq(MainProbe.counter_text(main, GameEngine.INSIGHT), "0", "insight")
+	eq(MainProbe.forecast_text(main, GameEngine.INSIGHT), "+1", "its forecast apart (201)")
 	Game.engine.resources["insight"] = 3
 	Game.engine.changed.emit()
 	await wait_frames()
@@ -123,7 +122,3 @@ func test_the_top_bar_shows_insight_with_its_forecast_and_rolls_its_change_with_
 	close_main(main)
 	Game.engine = real
 
-
-## main.forecast_text(key) (201), or "<no hook>" before it exists, so a test fails without crashing its caller.
-func forecast(main: Node, key: String) -> String:
-	return main.forecast_text(key) if main.has_method("forecast_text") else "<no hook>"

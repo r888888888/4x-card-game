@@ -174,3 +174,77 @@ func test_game_ends_at_turn_limit() -> void:
 	e.end_turn()
 	eq(e.turn, 3, "end_turn is a no-op after game over")
 	eq(e.zone("hand").size(), 0, "hand discarded")
+
+
+# --- 364: a unique create adds its card only when the player owns none ---
+
+const UNIQUE_CREATE := {"op": "create", "card": "scout", "zone": "deck", "unique": true}
+
+
+## A game with a deck of Farms and maker in the TEST_CARDS (an action that creates with create_effect), no Scout
+## anywhere, and two Makers in hand.
+func unique_engine(create_effect := UNIQUE_CREATE) -> GameEngine:
+	var maker := {"id": "maker", "name": "Maker", "type": "action", "effects": [create_effect]}
+	var e := make_engine({"farm": 10}, {}, 1, [maker])
+	put_in_hand(e, "maker")
+	put_in_hand(e, "maker")
+	return e
+
+
+## How many Scouts the player owns: in the deck, hand, discard and tableau.
+func owned_scouts(e: GameEngine) -> int:
+	var n := 0
+	for zone_name in ["deck", "hand", "discard", "tableau"]:
+		n += card_ids(e.zone(zone_name)).count("scout")
+	return n
+
+
+## Plays every Maker in the hand.
+func play_makers(e: GameEngine) -> void:
+	while uid_of(e.zone("hand"), "maker") != -1:
+		var uid := uid_of(e.zone("hand"), "maker")
+		check(e.play_card(uid), "play Maker: %s" % e.play_error(uid))
+
+
+func test_a_unique_create_adds_one_copy_however_often_it_resolves() -> void:
+	var e := unique_engine()
+	play_makers(e)
+	eq(owned_scouts(e), 1, "two plays, one Scout")
+	eq(card_ids(e.zone("deck")).count("scout"), 1, "in the deck")
+
+
+func test_a_unique_create_adds_none_when_a_copy_is_owned_anywhere() -> void:
+	for zone_name in ["deck", "hand", "discard", "tableau"]:
+		var e := unique_engine()
+		e.create_card("scout", zone_name, null)
+		play_makers(e)
+		eq(owned_scouts(e), 1, "a Scout already in the %s: none added" % zone_name)
+
+
+func test_a_unique_create_adds_one_again_once_the_copy_is_trashed() -> void:
+	var e := unique_engine()
+	var scout := e.zone("hand").find(put_in_hand(e, "scout"))
+	e.zone("hand").remove(scout)
+	e.zone("trashed").add(scout)
+	play_makers(e)
+	eq(owned_scouts(e), 1, "the trashed Scout doesn't count")
+
+
+func test_without_unique_every_create_adds_a_copy() -> void:
+	var plain := UNIQUE_CREATE.duplicate()
+	plain.erase("unique")
+	var e := unique_engine(plain)
+	play_makers(e)
+	eq(owned_scouts(e), 2, "no unique: two Scouts")
+	var off := UNIQUE_CREATE.merged({"unique": false}, true)
+	e = unique_engine(off)
+	play_makers(e)
+	eq(owned_scouts(e), 2, "unique false: two Scouts")
+
+
+func test_unique_must_be_a_boolean() -> void:
+	var prefix := "cards.json: card 'x': effects[0]: "
+	check_cases([
+		["a string", UNIQUE_CREATE.merged({"unique": "yes"}, true), [prefix, "'unique'"]],
+		["a number", UNIQUE_CREATE.merged({"unique": 1}, true), [prefix, "'unique'"]],
+	], func(effect): return card_load(card_with("action", effect)).errors)

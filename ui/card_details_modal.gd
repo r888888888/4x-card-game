@@ -27,7 +27,8 @@ var _research: Button
 var _tech := -1  # the uid of the tech Research learns; -1 when Research is hidden
 var _move: Button
 var _disband: Button
-var _unit := -1  # the unit in the realm Move… and Disband act on (163); -1 when they are hidden
+var _upgrade: Button  # re-equips the unit as its upgrade (166); hidden unless it has one
+var _unit := -1  # the unit in the realm Move…, Disband and Upgrade act on (163, 166); -1 when they are hidden
 var _contribute: Button
 var _abandon: Button
 var _site := -1  # the wonder site Contribute and Abandon… act on (286); -1 when they are hidden
@@ -36,6 +37,7 @@ var _buy: Button
 var _reason: Label  # why Buy is disabled, on the footer's left (259)
 var _pile: CardView  # the supply pile card Buy buys from; null when Buy is hidden
 var _column: VBoxContainer  # the pile's card, price tag and copies left in the aside; null unless a pile is on show
+var _upgrades: UpgradeList  # the Upgrades section (387): a building's upgrades, built or to build
 var _gives: VBoxContainer  # the Gives row (289): its heading and the cards; hidden when the card gives nothing
 var _gives_row: HBoxContainer  # per given card, a column: its card as a button, its caption under it
 var given_details: CardDetailsModal  # where a Gives card's details open, over this one; built on first use
@@ -66,10 +68,15 @@ func _init(p_stack: ModalStack) -> void:
 	_play = add_footer_button(UIKit.button("Play", _on_play), true)
 	_research = add_footer_button(UIKit.button("Learn", _on_research), true)  # the card called Research has that word
 	_disband = add_footer_button(UIKit.button("Disband", _on_disband))
+	_upgrade = add_footer_button(UIKit.button("Upgrade", _on_upgrade))
 	_move = add_footer_button(UIKit.button("Move…", _on_move), true)
 	_abandon = add_footer_button(UIKit.button("Abandon…", _on_abandon))
 	_contribute = add_footer_button(UIKit.button("Contribute", _on_contribute), true)
 	abandon_modal = AbandonModal.new(p_stack)
+	_upgrades = UpgradeList.new()  # under the card and body, over the Gives row (387)
+	_upgrades.upgrade_pressed.connect(_on_build_upgrade)
+	footer_rule.get_parent().add_child(_upgrades)
+	footer_rule.get_parent().move_child(_upgrades, footer_rule.get_index())
 	_gives = VBoxContainer.new()
 	_gives.add_theme_constant_override("separation", Tokens.SPACE_2)
 	_gives.visible = false
@@ -99,6 +106,11 @@ func research_button() -> Button:
 ## Test hook (163): the Move… and Disband buttons, hidden unless a unit in the realm is on show.
 func unit_buttons() -> Array[Button]:
 	return [_move, _disband]
+
+
+## Test hook (166): the Upgrade button, hidden unless a unit in the realm with an upgrade is on show.
+func upgrade_button() -> Button:
+	return _upgrade
 
 
 ## Test hook (286): the Contribute and Abandon… buttons, hidden unless a wonder site is on show.
@@ -144,6 +156,15 @@ func gives_captions() -> Array[String]:
 func gives_card(i: int) -> Button:
 	var columns := _gives_columns()
 	return columns[i].get_meta("button") if i < columns.size() else null
+
+
+## Test hooks (387): the Upgrades section's rows ({name, rules, status, button}), and whether it shows.
+func upgrade_rows() -> Array[Dictionary]:
+	return _upgrades.rows() if is_open() else [] as Array[Dictionary]
+
+
+func upgrades_shown() -> bool:
+	return is_open() and _upgrades.visible
 
 
 ## Test hook: the body text on show, without markup.
@@ -206,11 +227,17 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 	_unit = uid if e.unit_station(uid) != -1 else -1
 	_move.visible = _unit != -1
 	_disband.visible = _unit != -1
+	var upgrade := e.military.upgrade_line(_unit) if _unit != -1 else ""
+	_upgrade.visible = upgrade != ""
+	if upgrade != "":
+		var refused := e.military.upgrade_error(_unit)
+		_upgrade.disabled = refused != ""
+		_upgrade.tooltip_text = refused if refused != "" else upgrade
 	if _unit != -1:
-		var block := e.unit_move_block(_unit)
+		var block := e.military.move_block(_unit)
 		_move.disabled = block != ""
 		_move.tooltip_text = block if block != "" else "March to another territory (an action)."
-		var no := e.disband_error(_unit)
+		var no := e.military.disband_error(_unit)
 		_disband.disabled = no != ""
 		var gone := "Send it to your discard" if e.disbands_to_discard(_unit) else "Dismiss it"  # 296, 297
 		_disband.tooltip_text = no if no != "" else "%s; its worker is freed." % gone
@@ -256,6 +283,7 @@ func _show(details: Dictionary, card_id: String, hand_view: CardView = null, tec
 		SupplyScreen.show_pile(_column, e, card_id)
 		aside.custom_minimum_size = _column.get_combined_minimum_size()
 		card.attach(_column.get_meta("slot"))
+	_upgrades.show_for(uid)
 	_show_gives(details.get("gives", []))
 	present()  # last among its siblings, so a screen added later (the new game screen) can't take its input (107)
 
@@ -339,8 +367,22 @@ func _on_move() -> void:
 func _on_disband() -> void:
 	var uid := _unit
 	close()
-	if Game.engine.disband_error(uid) == "":
-		Game.engine.disband(uid)
+	if Game.engine.military.disband_error(uid) == "":
+		Game.engine.military.disband(uid)
+
+
+## A row of the Upgrades section was pressed (387): close, then build card_id on base, as the Build modal does.
+func _on_build_upgrade(card_id: String, base: int) -> void:
+	close()
+	if Game.engine.build_error(card_id, base) == "":
+		Game.engine.build(card_id, base)
+
+
+func _on_upgrade() -> void:
+	var uid := _unit
+	close()
+	if Game.engine.military.upgrade_error(uid) == "":
+		Game.engine.military.upgrade(uid)
 
 
 func _on_contribute() -> void:
@@ -387,7 +429,7 @@ static func body_bbcode(details: Dictionary) -> String:
 		parts.append("[b]Now[/b]\n" + "\n".join(PackedStringArray(details["state"])))
 	var terms: PackedStringArray = []
 	for t in details.terms:
-		terms.append("[color=#ffd966]%s[/color]: %s" % [t.term, t.text])
+		terms.append("%s: %s" % [Palette.bbcode(t.term, Palette.EMPHASIS), t.text])
 	if not terms.is_empty():
 		parts.append("[b]How it works[/b]\n" + "\n".join(terms))
 	return "\n\n".join(parts)

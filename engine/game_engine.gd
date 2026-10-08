@@ -8,21 +8,26 @@ extends EngineQueries
 ## The state, its accessors, the signals and the helpers effects call (gain, draw, create_card, …) live in
 ## EngineCore (engine/engine_core.gd, 125), and the read queries in EngineQueries (engine/engine_queries.gd, 249),
 ## which this extends, and the territory ones in TerritoryQueries (engine/territory_queries.gd, 281) under it. The rules live in modules of static functions that the methods here
-## call: TurnLoop, CardPlay, Population, Research, Supply and Territories, and Events. The modules may call the
-## engine's _ helpers (_log, _resolve, _make_card from EngineCore; _blocked_error here).
+## call: TurnLoop, CardPlay, Population, Research, Supply and Territories, Events, and Takes (370). The modules may call the
+## engine's _ helpers (_log, _resolve, _make_card from EngineCore; _blocked_error here). An area (394) is a module the
+## engine holds as an object, which callers use directly: military (Military). Its actions and queries go on the area,
+## never as a forward here (the suite checks).
 
-const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "research_deck", "researched", "future_techs", "event_deck", "future_events", "active_events", "event_discard", "civilization", "government", "governments", "removed", "trashed"]
+const ZONES: Array[String] = ["deck", "hand", "discard", "tableau", "territory_deck", "frontier", "reveal", "offered", "research_deck", "researched", "future_techs", "event_deck", "future_events", "active_events", "event_discard", "civilization", "government", "governments", "removed", "trashed"]
 ## Zones of always-on permanents outside the tableau: every card there resolves upkeep and scores its printed VP.
 const ALWAYS_ON_ZONES: Array[String] = ["researched", "civilization", "government"]
 ## The zones a create effect may put a new card into.
 const CREATE_ZONES: Array[String] = ["tableau", "hand", "discard", "deck"]
-## The kinds of decision pending() can report.
+## The zones of the cards the player owns, which a unique create looks in (364); not the trashed or removed.
+const OWNED_ZONES: Array[String] = ["deck", "hand", "discard", "tableau"]
 const MAX_TERRITORY_NAME := 24  # characters in a territory's name (248)
+## The kinds of decision pending() can report.
 const PENDING_EXPLORE := "explore"
 const PENDING_DISCARD := "discard"
 const PENDING_RENEWAL := "renewal"  # Anarchy asks you to trash cards from the discard (147)
 const PENDING_GOVERNMENT := "government"  # Anarchy has ended: choose a government from the government deck (154)
 const PENDING_EVENT_CHOICE := "event_choice"  # a choice event was drawn: choose one of its options (269)
+const PENDING_TAKE := "take"  # take one of the offered cards into the hand (370)
 ## A tech's state in tech_tree(): bought, learnable now, in the research deck but waiting for its prereq (140), or
 ## in an era not added yet.
 const TECH_RESEARCHED := "researched"
@@ -33,6 +38,15 @@ const TECH_FUTURE := "future"
 const HIDDEN_ZONES: Array[String] = ["deck", "event_deck", "territory_deck"]
 ## The actions still allowed while a discard is owed (see _blocked_error).
 const _DISCARD_ALLOWS: Array[String] = ["discard", "supply", "research"]
+
+## The units' and raids' actions and queries (394): `engine.military.move(uid, t)`. An area holds no state.
+var military: Military
+
+
+func _init(p_card_db: Dictionary, p_config: Dictionary) -> void:
+	super(p_card_db, p_config)
+	military = Military.new(self)
+
 
 ## A new engine on a deep copy of this one's state (GameState.copy). Nothing is connected to its signals and
 ## it logs to its own copy of the log, so playing on it never touches this game.
@@ -97,6 +111,17 @@ func choose_error(uid: int) -> String:
 ## territories at the bottom of the territory deck. False (and no change) if choose_error says no.
 func choose(uid: int) -> bool:
 	return Territories.choose(self, uid)
+
+
+## Why take(uid) would refuse (370): no take is owed, or uid isn't one of its options. "" if it can.
+func take_error(uid: int) -> String:
+	return Takes.take_error(self, uid)
+
+
+## Pays the owed take: offered card uid goes to the hand and the other offered cards to the discard (370). False (and
+## no change) if take_error says no.
+func take(uid: int) -> bool:
+	return Takes.take(self, uid)
 
 
 ## Why tech uid can't be learned right now, or "" if it can: the game is over or a choice is pending, it isn't in the
@@ -314,52 +339,6 @@ func choose_government(uid: int) -> bool:
 	return Anarchy.choose_government(self, uid)
 
 
-## Why move_unit(uid, territory_uid) would refuse (163): game over or a pending decision, no action left, uid not a
-## unit in the tableau, territory_uid not a settled territory, the unit's own station, or the unit moved this turn.
-## "" if it can.
-func move_unit_error(uid: int, territory_uid: int) -> String:
-	return Military.move_error(self, uid, territory_uid)
-
-
-## Stations unit uid on settled territory territory_uid (163); its home and worker stay. Uses an action. False (and no
-## change) if move_unit_error says no.
-func move_unit(uid: int, territory_uid: int) -> bool:
-	return Military.move(self, uid, territory_uid)
-
-
-## The settled territories unit uid can move to now (163), in tableau order; [] when unit_move_block says it can't.
-func move_targets(uid: int) -> Array[int]:
-	return Military.move_targets(self, uid)
-
-
-## Why unit uid can't move anywhere now (163): move_unit_error's reasons that don't depend on the target, or nowhere
-## else to go; "" when move_targets isn't empty.
-func unit_move_block(uid: int) -> String:
-	return Military.move_block(self, uid)
-
-
-## Unit uid's strength (164): printed strength plus the training of working buildings on its station; 0 when idle or
-## not a unit in the tableau.
-func unit_strength(uid: int) -> int:
-	return Military.unit_strength(self, uid)
-
-
-## "Strength 3" for a unit trained by a building on its station (164), for its face; "" for anything else.
-func unit_strength_tag(uid: int) -> String:
-	return Military.strength_tag(self, uid)
-
-
-## The realm's size (257): config territory_value per settled territory plus the total cost of every city, building
-## and unit in the tableau. Raids wait until it reaches config raid_min_size.
-func realm_size() -> int:
-	return Military.realm_size(self)
-
-
-## Event phases until active raid uid strikes (257): 2 on the turn it is drawn, then 1; 0 for anything else.
-func raid_turns_left(uid: int) -> int:
-	return Military.raid_turns_left(self, uid)
-
-
 ## Why contribute(uid, amount) would refuse (286), or "": game over or a pending decision, uid not an unfinished
 ## site, the site idle, or amount below 1, above the wealth held or above contribute_limit.
 func contribute_error(uid: int, amount: int) -> String:
@@ -381,17 +360,6 @@ func abandon_error(uid: int) -> String:
 ## action. False (and no change) if abandon_error says no.
 func abandon(uid: int) -> bool:
 	return Sites.abandon(self, uid)
-
-
-## Why disband(uid) would refuse (163): game over or a pending decision, or uid not a unit in the tableau. "" if it can.
-func disband_error(uid: int) -> String:
-	return Military.disband_error(self, uid)
-
-
-## Unit uid leaves play, freeing its worker on its home (163): to the discard, or gone if it came from the build menu
-## (296). Uses no action. False (and no change) if disband_error says no.
-func disband(uid: int) -> bool:
-	return Military.disband(self, uid)
 
 
 ## Why choose_option(index) would refuse (269): game over, another decision owed, no event choice owed, no such option,
@@ -431,6 +399,8 @@ func _blocked_error(action: String) -> String:
 			return "Choose how to answer %s first." % EventChoices.owed_event(self).def.name
 		PENDING_EXPLORE:
 			return "Choose a territory first."
+		PENDING_TAKE:
+			return "Choose a card to take into your hand first."
 		PENDING_RENEWAL:
 			var n: int = state.pending.count
 			return "Anarchy: trash %d card%s from your hand, deck or discard first." % [n, "" if n == 1 else "s"]

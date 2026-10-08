@@ -4,12 +4,16 @@ Single-player Civilization-inspired card game prototype. Godot 4.7, GDScript.
 Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-process.md](docs/development-process.md).
 
 ## Commands
-- Run all tests: `scripts/test.sh` (exit 0 = green; ~4 s, parallel shards, `TEST_JOBS=1` for serial). Filter:
+- Run all tests: `scripts/test.sh` (exit 0 = green; ~11 s, parallel shards, `TEST_JOBS=1` for serial). Filter:
   `scripts/test.sh <substring of file::method>`
 - Balance suite: `scripts/test.sh --balance` runs only `tests/balance/` (real-data bot games; not in the main suite
-  or the Stop hook). Run it when you change `sim/`.
+  or the Stop hook). It is manual, like every balance run (below): the user runs it, or asks you to.
+- Balance runs (manual, below) come in levels: `scripts/sim.sh --level 1` is one game (seed 1, generic strategy, the
+  starting civ), 2 every strategy, 3 every civ too, 4 ten seeds of all of it; add `--compare <checkout>` to pair with main.
 - Run the game: `godot --path .` (testing: `godot --path . -- --civ sumer --turns 20 --seed 5`)
 - A Stop hook runs the suite when you finish a turn and sends failures back to you.
+- Card art: the `card-art` skill takes `docs/design/card-art.md` to reviewed pictures with `scripts/card_art.py`
+  (`status` is free; `generate` and `fix` cost API calls, so the skill asks first).
 - In a Claude Code cloud session: [docs/cloud.md](docs/cloud.md) (`scripts/cloud-setup.sh` installs Godot).
 
 ## Architecture rules
@@ -22,10 +26,14 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - State that lasts between actions lives in `GameState` or `CardInstance`, never on the engine or a module, and `copy()`
   copies it (the suite checks).
 - Card types and the built-in resources are constants (`CardDef.TERRITORY`, `GameEngine.FOOD`, …); never write
-  their strings in `engine/` or `ui/`. A field only some card types use goes in `DataLoader.TYPE_FIELDS`.
+  their strings in `engine/` or `ui/`. A field only some card types use goes in `DataLoader.TYPE_FIELDS`
+  (new card field: follow the `add-card-field` skill).
 - Actions come with an error query: `foo()` has `foo_error()` returning "" when legal, else the reason
   (`play_card` pairs with `play_error`). The action refuses whenever the query is non-empty, and the UI
   calls the query instead of re-deriving the condition.
+- An area (394) is a rules module held on the engine as an object (`engine.military`): its actions (with their `_error`
+  twins) and queries are called on the area, and a new one goes on the area, never as a forward on `GameEngine` (the
+  suite checks). Bots list an area's action as `"military.move"` and call any entry with `LegalActions.apply`.
 - A decision the player owes is one `PENDING_*` kind in `pending()`; every action's `*_error` starts with
   `_blocked_error`. New decision kind: follow the `add-decision` skill.
 - New effect op: follow the `add-effect` skill. Only ops whose `upkeep_ok()` is true may trigger on `upkeep`: ops that
@@ -35,6 +43,7 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 ## UI design
 - Design tokens, which file holds each, and the style guide's names for the code's: [docs/design/tokens.md](docs/design/tokens.md).
   Read the full guide (`docs/design/mcm-style-guide.md`) only for its section on your task's topic.
+- Flavor text and quotes follow the guide's §18 (voice, length, endings; choosing a quote: §18.5); read it before writing any.
 - Buttons are generally not full width: a `Button` sizes to its text plus padding and doesn't stretch across its
   panel or column. The exception is a stacked column of buttons in a menu or a screen (the menu, the title screen):
   they share one width, the widest button's, with the column centred in its panel (`UIKit.button()` doesn't
@@ -43,16 +52,19 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - Spacing, margins, corner radii and text sizes are `Tokens` steps (`ui/tokens.gd`, the guide's scales), never numbers
   (the suite checks); a repeated text look is a `GameTheme` variation (`Body`, `Caption`, `RichBody`, …).
 - Colours live in `ui/palette.gd` (`Palette`), named for what they're for; no other `ui/` script writes a colour
-  literal (the suite checks). A look the UI repeats is a theme type variation in `ui/game_theme.gd` (`GameTheme`,
-  e.g. `Heading`, `Title`, `Stat`, `DarkPanel`) set with `theme_type_variation`, not per-control overrides.
+  literal, BBCode included: rich text colours with `Palette.bbcode` (the suite checks). A look the UI repeats is a
+  theme type variation set with `theme_type_variation`, not per-control overrides: the label type scale (`Heading`,
+  `Title`, `Stat`, …) in `ui/game_theme.gd` (`GameTheme`), every other look in its section file in `ui/theme/` (a new
+  look: a new section, listed in `GameTheme.SECTIONS`; the suite checks).
 - Focus a control from code with `FocusRing.focus(control)`, never `grab_focus()` (the suite checks): its ring stays
   hidden until the player presses Tab, and a click hides it again (230).
 - A modal extends `Modal` and opens on `main.modals` (`ModalStack`), over any modal already open; only the top one
   takes keys and clicks, and Esc, Close or a click outside its panel closes just that one. Don't write a modal's own
   scrim, key handling or z-order.
 - A screen you navigate to goes on an animated `Navigator` with a title, and carries a `ScreenHeader`: a breadcrumb
-  naming where you are, whose parent title is the link back (118). It enters and leaves with a transition (it grows out of
-  the card it opens, or fades; only a fade with Reduce motion), and counts as closed as soon as it starts leaving.
+  naming where you are, whose parent title is the link back (118). It enters and leaves with a transition (it wipes out of
+  the card it opens and back into it, or fades; only a fade with Reduce motion), and counts as closed as soon as it
+  starts leaving.
 
 ## How work flows
 Every feature or bug is a backlog item in `docs/backlog/` (see its README).
@@ -74,9 +86,12 @@ default; real work is rebuilt test-first on an item branch. Merge a spike only w
 the suite is green, and it changes nothing in `engine/`, `autoload/` or the loader. Details:
 [docs/development-process.md](docs/development-process.md#spikes).
 
-Balance is a separate, later step. A feature, bug or content item doesn't run the `balance` skill or the sim, and
-doesn't tune numbers beyond what its criteria set; note balance worries in the item's Log instead. Balancing happens
-in a dedicated balance item, or when the user asks.
+Balance is a separate, later step, and balance runs are manual: the bot games take too long to run per change. Never
+start `scripts/sim.sh`, `scripts/test.sh --balance` or the `balance` skill unless the user asks for that run in the
+chat. That holds for every item, including one that changes `sim/`, a refactor and a balance item. Where a run would
+tell something, put the command in the item's Manual check for the user, and note balance worries in its Log. A
+feature, bug or content item doesn't tune numbers beyond what its criteria set; balancing happens in a dedicated
+balance item, or when the user asks.
 
 ## TDD rules (non-negotiable)
 - No new or changed behavior in `engine/`, `autoload/`, or the loader without a test that failed first.
@@ -92,7 +107,8 @@ in a dedicated balance item, or when the user asks.
 - Every test must assert something; runtime errors inside a test count as failures.
 - Red-phase tip: when a test calls an engine method that doesn't exist yet, hold the engine in a
   variable typed `Object` (not `GameEngine`) so the file still parses and fails on the missing method.
-- Type engines `Object` only in the red phase; retype them as `GameEngine` once green.
+- Red-phase scaffolding (engines typed `Object`, untyped `load()`s, `has_method` and `== null` guards) is
+  removed in the refactor step (the suite checks).
 
 ## Test conventions
 - Files: `tests/test_<area>.gd`, extending `"res://tests/lib/test_case.gd"`. Helpers and
@@ -108,6 +124,7 @@ in a dedicated balance item, or when the user asks.
   the item's Manual check.
 - Before writing a helper, check `tests/lib/test_case.gd` and `tests/lib/tech_case.gd`. Tests never call
   engine members that start with `_`.
+- A helper a second test file needs moves to `tests/lib/` (the suite checks copies of shared helpers).
 - Assert on state and return values (zones, resources, score, signals), not on log text,
   unless the log text is the behavior.
 - Details: [docs/testing.md](docs/testing.md).

@@ -31,11 +31,9 @@ func spent_band(overrides := {}) -> GameEngine:
 # --- AC1: the government field and its text ---
 
 func test_government_actions_load() -> void:
-	var r := fixture_load([], [TEST_GOVS])
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	eq(gov_db().band.actions, 2, "Band's actions")
-	eq(gov_db().council.actions, 0, "Council sets none")
+	check_loads([
+		["the fixture governments", [], {"cards.band.actions": 2, "cards.council.actions": 0}],
+	], fixture_load.bind([TEST_GOVS]))
 
 
 func test_bad_government_actions_are_load_errors() -> void:
@@ -43,7 +41,7 @@ func test_bad_government_actions_are_load_errors() -> void:
 		["below 1", [{"id": "x", "name": "X", "type": "government", "actions": 0}], ["'x'", "actions"]],
 		["not an int", [{"id": "x", "name": "X", "type": "government", "actions": "two"}], ["'x'", "actions"]],
 		["on an action", [{"id": "x", "name": "X", "type": "action", "actions": 2}], "'actions' only applies to governments", "warning_only"],
-	], func(extra): return fixture_load(extra, [TEST_GOVS]))
+	], fixture_load.bind([TEST_GOVS]))
 
 
 func test_government_actions_text() -> void:
@@ -203,8 +201,8 @@ func test_the_hand_is_headed_in_hand_with_the_how_to_as_its_tooltip() -> void:
 	var main := open_main()
 	main.start_game(1)
 	await wait_frames()
-	var hand: Array = main.section_headings().filter(func(h): return h.text == "In Hand")
-	eq(hand.size(), 1, "an In Hand heading: %s" % [main.section_headings()])
+	var hand: Array = MainProbe.section_headings(main).filter(func(h): return h.text == "In Hand")
+	eq(hand.size(), 1, "an In Hand heading: %s" % [MainProbe.section_headings(main)])
 	if hand.size() == 1:
 		eq(hand[0].tooltip, HOW_TO, "the how-to is its tooltip")
 	close_main(main)

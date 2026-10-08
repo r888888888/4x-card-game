@@ -2,7 +2,7 @@ extends "res://tests/lib/tech_case.gd"
 ## One board row (backlog 137): active events, then frontier territories, then the Realm's own cards share the Realm's
 ## wrapping row (main.tableau.row); there is no Frontier, Known or Events row, and known techs have no view on the
 ## board. Runs the real main scene on a board_engine game through with_main (test_case.gd). Test hooks: main.views_in(row),
-## main.section_headings(), main.relieve_button().
+## MainProbe.section_headings(main), MainProbe.relieve_button(main).
 
 
 ## The uids of the cards in the board row, in order.
@@ -16,7 +16,7 @@ func row_uids(main: Node) -> Array[int]:
 ## Each play-area heading's text ("Realm", "In Hand" since 204).
 func heading_words(main: Node) -> Array[String]:
 	var out: Array[String] = []
-	for h in main.section_headings():
+	for h in MainProbe.section_headings(main):
 		out.append(h.text)
 	return out
 
@@ -124,7 +124,7 @@ func test_relieve_shows_during_a_famine_with_no_events_heading() -> void:
 	var famine: Dictionary = FAMINE.merged({"relief": {"wealth": 5}})
 	await with_main(board_engine({"population": HUNGRY_POP.merged({"famine": famine})}), func(main: Node):
 		var e := Game.engine
-		var relieve: Button = main.relieve_button()
+		var relieve: Button = MainProbe.relieve_button(main)
 		check(not relieve.is_visible_in_tree(), "hidden with no Famine")
 		e.zone("tableau").find(home_uid(e)).pop = 4
 		e.resources.food = 0
@@ -144,3 +144,54 @@ func test_an_event_card_explains_events_in_its_tooltip() -> void:
 		var tip: String = (main.views[winds.uid] as CardView).tooltip_text
 		check(tip.contains("One event is drawn at the start of each turn from turn 2. It stays active until its turns run out."),
 			"event tooltip: '%s'" % tip))
+
+
+# --- Backlog 362: the Realm glides ---
+
+## Runs body(main, grassland's uid) on a board_engine game in a 1280 × 720 window whose Realm holds settled Grassland
+## and then more Shrines than it shows, the cards landed. Use with await.
+func with_tall_realm(body: Callable) -> void:
+	await with_window_size(Vector2i(1280, 720), func(): await with_main(board_engine(), func(main: Node):
+		var e := Game.engine
+		settle(e, ["grassland"])
+		for i in 30:
+			e.create_card("shrine", "tableau", null)
+		e.changed.emit()
+		await wait_frames()
+		await settle_motion()
+		await body.call(main, uid_of(e.zone("tableau"), "grassland"))))
+
+
+## Checks a wheel notch over a Realm card (the first) moves the Realm a step, gliding unless calm (check_wheel_step).
+func check_realm_wheel_step(calm: bool) -> void:
+	await with_reduce_motion(calm, func():
+		await with_tall_realm(func(main: Node, _grass: int):
+			var card: CardView = main.views_in(main.tableau.row)[0]
+			await check_wheel_step(main, main.tableau, "the Realm", card.get_global_rect().get_center())))
+
+
+func test_a_wheel_notch_over_a_card_glides_the_realm_a_step() -> void:
+	await check_realm_wheel_step(false)
+
+
+func test_with_reduce_motion_a_wheel_notch_jumps_the_realm_a_step() -> void:
+	await check_realm_wheel_step(true)
+
+
+func test_a_card_dropped_on_a_scrolled_realm_targets_the_card_under_it() -> void:
+	await with_reduce_motion(true, func():
+		await with_tall_realm(func(main: Node, grass: int):
+			var e := Game.engine
+			var temple := put_in_hand(e, "temple")
+			e.changed.emit()
+			await wait_frames()
+			await settle_motion()
+			wheel_notch(main, main.tableau)
+			await wait_frames()
+			check(main.tableau.scroll_vertical > 0, "the Realm scrolled")
+			var card := (main.views[grass] as CardView).get_global_rect()
+			var at := Vector2(card.get_center().x, card.end.y - 10)  # its lower edge, still in view
+			check(main.tableau.get_global_rect().has_point(at), "Grassland's lower edge is in view")
+			main.drag.begin_drag(main.views[temple], Vector2.ZERO)
+			eq(main.drag.target_at(at), grass, "a drop on Grassland's card targets it")
+			main.drag.end_drag()))

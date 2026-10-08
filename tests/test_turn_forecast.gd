@@ -18,7 +18,7 @@ func raid_turn_3(before_strike := func(_e): pass) -> GameEngine:
 	e.end_turn()
 	before_strike.call(e)
 	e.end_turn()
-	check(e.raid_turns_left(active_uid(e, "raiders")) == 1, "Raiders strike at the next turn's start")
+	check(e.military.raid_turns_left(active_uid(e, "raiders")) == 1, "Raiders strike at the next turn's start")
 	return e
 
 
@@ -55,7 +55,7 @@ func test_a_raid_short_of_defence_counts_its_pillage() -> void:
 	var e := raid_turn_3()
 	if e == null:
 		return
-	var raid: Dictionary = e.raid_forecast()[0]
+	var raid: Dictionary = e.military.raid_forecast()[0]
 	check(raid.defense < raid.strength, "Hills is short: %s" % [raid])
 	var upkeep := e.upkeep_forecast()
 	var f := e.turn_forecast()
@@ -71,7 +71,7 @@ func test_a_raid_meeting_enough_defence_counts_its_repel() -> void:
 		recruit(g, hills_of(g)))
 	if e == null:
 		return
-	var raid: Dictionary = e.raid_forecast()[0]
+	var raid: Dictionary = e.military.raid_forecast()[0]
 	check(raid.defense >= raid.strength, "Hills holds: %s" % [raid])
 	var upkeep := e.upkeep_forecast()
 	var f := e.turn_forecast()
@@ -120,3 +120,45 @@ func test_the_forecast_changes_nothing_in_the_game() -> void:
 func test_no_forecast_on_the_last_turn_or_after_game_over() -> void:
 	eq(make_engine({"farm": 10}, {"turn_limit": 1}).turn_forecast(), {}, "turn 1 of 1")
 	eq(over_engine().turn_forecast(), {}, "game over")
+
+
+# --- 336: what the forecast reads ---
+
+## Tally (building, ⟳ +1 food per farm in the discard) and Scribe (creates a Farm in the discard).
+const TALLY := {"id": "tally", "name": "Tally", "type": "building",
+	"effects": [{"op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "zone": "discard",
+		"trigger": "upkeep"}]}
+const SCRIBE := {"id": "scribe", "name": "Scribe", "type": "action",
+	"effects": [{"op": "create", "card": "farm", "zone": "discard"}]}
+## The zones every turn forecast reads: the board and the always-on zones.
+const BOARD_ZONES: Array[String] = ["tableau", "researched", "civilization", "government", "active_events"]
+
+
+## The first effect of card id in a make_engine game with extra cards.
+func effect_of(id: String, extra := []) -> Effect:
+	return make_engine({"farm": 10}, {}, 1, extra).card_db[id].effects[0]
+
+
+func test_a_gain_per_tag_reads_the_zone_it_counts() -> void:
+	var tally := effect_of("tally", [TALLY])
+	eq(tally.reads_zones(), ["discard"] as Array[String], "Tally counts farms in the discard")
+
+
+func test_a_create_into_the_discard_reads_no_zone() -> void:
+	var scribe := effect_of("scribe", [SCRIBE])
+	eq(scribe.reads_zones(), [] as Array[String], "Scribe puts a card there; it counts none")
+
+
+func test_every_other_op_reads_no_zone() -> void:
+	for op in EffectRegistry.OPS:
+		if op == "gain_per_tag":
+			continue
+		var effect: Effect = EffectRegistry.OPS[op].new()
+		eq(effect.reads_zones(), [] as Array[String], op)
+
+
+func test_the_forecast_reads_the_board_plus_the_zones_effects_count() -> void:
+	var plain := make_engine({"farm": 10}, {}, 1, [SCRIBE])
+	eq(plain.forecast_zones(), BOARD_ZONES, "Scribe's discard isn't read")
+	var counting := make_engine({"farm": 10}, {}, 1, [TALLY])
+	eq(counting.forecast_zones(), BOARD_ZONES + (["discard"] as Array[String]), "Tally's discard is")

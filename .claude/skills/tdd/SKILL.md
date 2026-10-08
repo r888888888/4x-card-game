@@ -25,8 +25,12 @@ Follow the phases in order. The TDD rules in CLAUDE.md apply throughout.
 
 ## 1. Red: write failing tests
 
-1. Read `docs/testing.md` and the test file(s) you'll add to. Pick the file by area, or create
-   `tests/test_<area>.gd` for a new area, and add its row to `docs/testing.md`'s table.
+1. Read `docs/testing.md` (running, conventions, helpers), skim `docs/testing-index.md` (one row per test file), and
+   read the `##` header and tests of the file(s) you'll add to. Pick the file by area, or create `tests/test_<area>.gd`
+   for a new area: open it with a `##` header saying what it covers (the source of truth) and add one short row to
+   `docs/testing-index.md`, in path order (331, 391; the suite checks both).
+   A UI test that reaches a control inside one of main's components reads it through `MainProbe` (`tests/lib/main_probe.gd`);
+   add a function there, never a test hook on `main.gd` (392; the suite checks).
 2. For each acceptance criterion, write one or more tests that express it exactly, named after
    the behavior (`test_bug_<id>_<what>` for bugs). Add any cards you need to `TEST_CARDS`.
    Call the engine API **as you want it to exist**: the tests design the interface.
@@ -37,6 +41,7 @@ Follow the phases in order. The TDD rules in CLAUDE.md apply throughout.
      feature will add. A parse error or typo in the test itself doesn't count; fix it and re-run.
    - Existing tests still pass (unless an approved criterion changes an existing rule; name those
      tests explicitly at the checkpoint).
+     `test_scaffolding` may fail too while the new tests hold engines as `Object`: expected until the refactor step.
 4. Fill in the item's **Test plan** table (AC → test names) and set `status: red-review`.
 5. Commit the red tests on the branch: `<id>: failing tests for <title>`. This is the only commit
    allowed with a red suite, and it stays on the feature branch.
@@ -69,6 +74,8 @@ If they ask for changes, edit the tests, re-run, and present the checkpoint agai
 
 1. Look at the code you touched and at its neighbors: duplication, unclear names, long functions,
    and helpers that belong in `test_case.gd`. Also check that comments and doc comments are still true.
+   Remove red-phase scaffolding from the new tests (engines typed `Object`, untyped `load()`s, `has_method` and
+   `== null` guards): the suite checks (333; a line that needs one says why with `# scaffolding-ok: <reason>`).
    Check `ui/` for any logic you added (a legality check, calculation or derived value): move it into an
    engine query under TDD and have the UI call it.
 2. Refactor in small steps, running `scripts/test.sh` after each. Behavior must not change.
@@ -81,7 +88,8 @@ If they ask for changes, edit the tests, re-run, and present the checkpoint agai
    (seed, clicks, what to look for). You can launch `godot --path .` to confirm it starts without
    errors, but the user runs the checklist.
 3. Update docs affected by the change: `PLAN.md` (layout, data format, milestones), `README.md`,
-   and `docs/testing.md` if you added helpers or test files.
+   a test file's `##` header (and its one-line `docs/testing-index.md` row) when what it covers grew, and
+   `docs/testing.md`'s helper table if you added helpers.
 4. Tick the acceptance criteria. Bugs: fill in **Root cause**. Add anything notable to the **Log**.
 5. Set `status: review` and commit: `<id>: docs and backlog`.
 6. Report to the user: what changed (files, new API), test count before → after, the manual

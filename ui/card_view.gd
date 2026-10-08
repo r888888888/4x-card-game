@@ -30,7 +30,7 @@ static var TYPE_COLORS: Dictionary:  # card type -> its colour, as the palette r
 			CardDef.GOVERNMENT: Palette.GOVERNMENT,
 			CardDef.UNIT: Palette.UNIT,
 		}
-const HAND_SIZE := Vector2(264, 320)
+const HAND_SIZE := Vector2(264, 360)
 const TABLEAU_SIZE := Vector2(245, 175)
 const BOARD_SIZE := Vector2(245, 150)  # every card in the Realm's row (138): one line per field, the rest in details
 # Board faces (138): what a card in the Realm's row is.
@@ -45,16 +45,14 @@ static var WARN_COLOR: Color:
 static var HIGHLIGHT_COLOR: Color:
 	get:
 		return Palette.GAIN
-# A dimmed card (unplayable, or an idle building) greys its background and border, never its text.
-static var DIM_BG: Color:
-	get:
-		return Palette.DIM_BG
+# A dimmed card (unplayable, or an idle building) greys its paper (Surfaces.DIMMED_PAPER) and border, never its text.
 static var DIM_BORDER: Color:
 	get:
 		return Palette.DIM_BORDER
 static var FOCUS_COLOR: Color:  # keyboard focus ring; distinct from gold (target) and red (warning)
 	get:
 		return Palette.FOCUS
+const PIP_DIM := 0.35  # a dim veteran pip's alpha on the unit colour, as the pop meter's (388)
 const FOCUS_RING_GAP := 6.0  # px between the card's edge and its focus ring (outside or inside)
 
 var uid := -1
@@ -64,16 +62,20 @@ var board_kind := ""  # a card in the Realm's row: BOARD_REALM, BOARD_FRONTIER o
 var shown_name := ""  # the name on its face (CardInstance.shown_name): a renamed territory rebuilds it (248)
 var pickable := false  # an option of a pending choice or a target: a click picks it
 var lift_on_hover := false  # lift under the mouse like a hand card (supply cards, which have room)
+var still := false  # a hand face shown on a sheet (the Build modal, 343): its slot keeps no room to lift
+var hoverable := false  # the hover look and tick without being in hand or pickable (the territory view's cards, 342)
 var state := State.REST
 var slot: Control  # where the card rests; laid out by the hand or tableau container
 var fx_scale := Vector2.ONE  # tweened for pop-in and shrink; the card's scale
 
-var _style: StyleBoxFlat
+var _style: SurfaceBox  # the card's paper (341)
+var _frame: StyleBoxFlat  # its rule and soft shadow
 var _color: Color
 var _face: CardFace
 var _hint := ""  # the tooltip's hint after the card text, kept so a new card text can be set under it
 var _motion := CardMotion.new(self)
 var _warning := false
+var _veteran_lit := 0  # the veteran pips lit now (388): set_veteran_pips, then one more per tallied pip
 var _highlight := false
 var _above_vellum := false  # lifted above the targeting vellum (210)
 var _vellum_outline := false  # and ringed in FOCUS: a target
@@ -84,6 +86,8 @@ var _pressed := false
 var _press_pos := Vector2.ZERO
 var _target_size := Vector2.ZERO
 var min_height := 0.0  # a floor under the fitted height: the supply row keeps its cards one height
+var upgrade_chip: Button  # a building's "+ Upgrade" in the territory view (302), or null
+var _ribbons: Array[Dictionary] = []  # its upgrades' ribbons: {uid, name, rules, reason, hatched} (302)
 var _details_click := 0  # counts clicks; a delayed details request only fires if no click came after it
 var _setup_args := []  # the last setup's arguments, and what was shown on the face since (by setter): for restyle
 var _replays := {}
@@ -108,11 +112,11 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 	custom_minimum_size = _target_size
 
 	if _style == null:
-		_style = StyleBoxFlat.new()
-		_style.set_border_width_all(2)
-		_style.set_corner_radius_all(0)  # an index card, cut square (179)
-		_style.set_content_margin_all(Tokens.SPACE_3)
-		_style.anti_aliasing = false  # a hard shadow and a crisp rule
+		_frame = StyleBoxFlat.new()
+		_frame.set_border_width_all(2)
+		_frame.set_corner_radius_all(0)  # an index card, cut square (179)
+		_frame.set_content_margin_all(Tokens.SPACE_3)
+		_style = Surfaces.box(Surfaces.PAPER, _frame)
 		add_theme_stylebox_override("panel", _style)
 		mouse_entered.connect(_set_hover.bind(true))
 		mouse_exited.connect(_set_hover.bind(false))
@@ -124,6 +128,8 @@ func setup(card: CardInstance, card_db: Dictionary, p_in_hand: bool, play_error 
 		_face.queue_free()
 	_face = CardFace.new()
 	add_child(_face)
+	_ribbons.clear()
+	upgrade_chip = null
 	if kind != "":
 		_face.build_board(card, card_db, kind, _color)
 	else:
@@ -155,11 +161,12 @@ func restyle() -> void:
 
 
 ## Updates the playable look of a hand card: tooltip, cursor, dimming, and a strip at the bottom
-## saying why it can't be played.
-func set_play_error(play_error: String) -> void:
-	_replays["play_error"] = set_play_error.bind(play_error)
+## saying why it can't be played. detail (GameEngine.play_error_detail, 347) follows the reason in the tooltip.
+func set_play_error(play_error: String, detail := "") -> void:
+	_replays["play_error"] = set_play_error.bind(play_error, detail)
 	var playable := play_error == ""
-	_set_tip("Drag into the realm (or double-click) to play. Right-click to discard." if playable else play_error)
+	var why := play_error + ("\n" + detail if detail != "" else "")
+	_set_tip("Drag into the realm (or double-click) to play. Right-click to discard." if playable else why)
 	mouse_default_cursor_shape = Control.CURSOR_DRAG if playable else Control.CURSOR_FORBIDDEN
 	_set_dimmed(not playable, "" if playable else "⊘ " + play_error)
 
@@ -216,6 +223,24 @@ func set_unit_strength(tag: String) -> void:
 	_face.replace_info("StrengthInfo", tag)
 
 
+## Shows a unit's veteran pips (388): filled lit of total; total 0 shows none.
+func set_veteran_pips(filled: int, total: int) -> void:
+	_replays["veteran_pips"] = set_veteran_pips.bind(filled, total)
+	_veteran_lit = filled
+	_face.set_veteran_pips(filled, total)
+
+
+## Switches on the next veteran pip (388's tally).
+func light_veteran_pip() -> void:
+	_veteran_lit += 1
+	_face.light_veteran_pips(_veteran_lit)
+
+
+## Test hook (388): each veteran pip's tint, in order; [] with none.
+func veteran_pips() -> Array[Color]:
+	return _face.veteran_pip_tints()
+
+
 ## Shows a wonder site's progress ("4 / 12 wealth", 286) on its info line; "" clears it.
 func set_site_info(tag: String) -> void:
 	_replays["site_info"] = set_site_info.bind(tag)
@@ -257,6 +282,29 @@ func set_idle(idle: bool) -> void:
 	_replays["idle"] = set_idle.bind(idle)
 	_set_dimmed(idle, "⊘ Idle: no worker" if idle else "")
 	_set_tip("Idle: this territory has more buildings than pop, so this one skips upkeep." if idle else "")
+
+
+## Shows a building's upgrades as ribbons at its foot (302), each {uid, name, rules, reason} with reason "" while it
+## works; on_chip, when valid, adds a "+ Upgrade" chip calling it, disabled with chip_reason when that isn't "".
+func set_upgrades(ribbons: Array[Dictionary], on_chip: Callable, chip_reason: String) -> void:
+	_replays["upgrades"] = set_upgrades.bind(ribbons, on_chip, chip_reason)
+	_ribbons.clear()
+	var strips: Array[UpgradeRibbon] = []
+	for r in ribbons:
+		_ribbons.append(r.merged({"hatched": r.reason != ""}))
+		strips.append(UpgradeRibbon.new(r.name, r.rules, r.reason))
+	upgrade_chip = null
+	if on_chip.is_valid():
+		upgrade_chip = UIKit.button("+ Upgrade", on_chip)
+		upgrade_chip.theme_type_variation = &"UpgradeChip"
+		upgrade_chip.disabled = chip_reason != ""
+		upgrade_chip.tooltip_text = chip_reason if chip_reason != "" else "Build an upgrade on this building."
+	_face.set_ribbons(strips, upgrade_chip)
+
+
+## Test hook (302): the ribbons shown, {uid, name, rules, reason, hatched}, in order.
+func ribbons() -> Array[Dictionary]:
+	return _ribbons.duplicate()
 
 
 ## Makes a non-hand card clickable as a choice option or target (or not). tooltip says what a click does.
@@ -326,6 +374,7 @@ func _set_dimmed(on: bool, reason: String) -> void:
 	_dimmed = on
 	_face.set_reason(reason)
 	_face.set_band_color(DIM_BORDER if on else _color)
+	_face.set_art_dimmed(on)
 	_update_border()
 
 
@@ -374,6 +423,23 @@ func begin_drag(layer: Control, grab_offset: Vector2) -> void:
 ## shrinks and fades towards point, calls on_arrival (if valid; not with Reduce motion), then frees itself.
 func leave(layer: Control, point: Vector2, pop: bool, via: Variant = null, on_arrival := Callable()) -> void:
 	_motion.leave(layer, point, pop, via, on_arrival)
+
+
+## Lays the card out at size at now rather than when its containers sort at the end of the frame (361): a card just
+## added to a layer measures its wrapped text at zero width until then, which makes it far too tall to shrink to at.
+## Sorts at the width at, has every part measure itself again (the innermost first), then sorts at the size at.
+func lay_out_now(at: Vector2) -> void:
+	var containers: Array = [self] + find_children("*", "Container", true, false)
+	var controls: Array = [self] + find_children("*", "Control", true, false)
+	controls.reverse()
+	size = at
+	for container: Container in containers:
+		container.notification(Container.NOTIFICATION_SORT_CHILDREN)
+	for control: Control in controls:
+		control.update_minimum_size()
+	size = at
+	for container: Container in containers:
+		container.notification(Container.NOTIFICATION_SORT_CHILDREN)
 
 
 ## Test hook (087): the text on the card's face, lines joined by newlines.
@@ -446,6 +512,11 @@ func _gui_input(event: InputEvent) -> void:
 			drag_requested.emit(self, _press_pos)
 
 
+## Drops a press whose release went elsewhere (327: a click that closed the territory view), so no move drags it.
+func forget_press() -> void:
+	_pressed = false
+
+
 ## Asks for the details once the double-click window passes, unless another click came first.
 func _details_later() -> void:
 	_details_click += 1
@@ -458,7 +529,7 @@ func _on_details_timer(click: int) -> void:
 
 
 func _set_hover(on: bool) -> void:
-	_hover = on and (in_hand or pickable) and state == State.REST
+	_hover = on and (in_hand or pickable or hoverable) and state == State.REST
 	if _hover and Sfx.find(self) != null:
 		Sfx.find(self).hover()
 	if state == State.REST:
@@ -478,30 +549,33 @@ func _draw_frontier() -> void:
 		k += HATCH_STEP
 	var corners := [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]
 	for i in 4:
-		draw_dashed_line(corners[i], corners[(i + 1) % 4], _style.border_color, 4.0 if _highlight else 2.0, DASH)
+		draw_dashed_line(corners[i], corners[(i + 1) % 4], _frame.border_color, 4.0 if _highlight else 2.0, DASH)
 
 
-## An index card (179): one sheet for every type in a thin rule (its type is the band under the name), standing on a
-## hard shadow only while lifted: hovered (4, 4), dragged (8, 8).
+## An index card (179): one sheet of paper for every type (341; dimmed, under DIM_BG) in a thin rule (its type is the
+## band under the name), on a soft shadow that grows as it lifts: at rest, hovered, dragged (341).
 func _update_border() -> void:
-	_style.shadow_color = Palette.SHADOW
-	_style.bg_color = DIM_BG if _dimmed else Palette.RAISED
+	_style.texture = Surfaces.texture(Surfaces.DIMMED_PAPER if _dimmed else Surfaces.PAPER)
+	_frame.draw_center = true  # under the paper; the shadow needs it (Surfaces.box)
+	_frame.bg_color = Palette.RAISED
 	if _warning:
-		_style.border_color = WARN_COLOR
+		_frame.border_color = WARN_COLOR
 	elif _hover or state == State.DRAGGING:
-		_style.border_color = Palette.TEXT
+		_frame.border_color = Palette.TEXT
 	elif _vellum_outline:
-		_style.border_color = FOCUS_COLOR  # a target above the vellum (210)
+		_frame.border_color = FOCUS_COLOR  # a target above the vellum (210)
 	elif _highlight:
-		_style.border_color = HIGHLIGHT_COLOR
+		_frame.border_color = HIGHLIGHT_COLOR
 	else:
-		_style.border_color = DIM_BORDER if _dimmed else Palette.CONTROL_BORDER
+		_frame.border_color = DIM_BORDER if _dimmed else Palette.CONTROL_BORDER
 	var dragged := state == State.DRAGGING
-	_style.shadow_size = 1 if (_hover or dragged) else 0
-	_style.shadow_offset = Vector2(8, 8) if dragged else Vector2(4, 4)
-	_style.set_border_width_all(3 if _highlight and not _vellum_outline else 2)
-	if board_kind == BOARD_FRONTIER:  # its border is dashed, drawn in _draw_frontier
-		_style.bg_color = Palette.FRONTIER_BG
-		_style.set_border_width_all(0)
+	Surfaces.lift(_frame, Surfaces.CARD_DRAG if dragged else Surfaces.CARD_HOVER if _hover else Surfaces.CARD_REST)
+	_frame.set_border_width_all(3 if _highlight and not _vellum_outline else 2)
+	if board_kind == BOARD_FRONTIER:  # no paper or shadow: open land, its border dashed in _draw_frontier
+		_style.texture = null
+		_frame.draw_center = true
+		_frame.bg_color = Palette.FRONTIER_BG
+		_frame.shadow_size = 0
+		_frame.set_border_width_all(0)
 		queue_redraw()
 

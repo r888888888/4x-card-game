@@ -287,7 +287,7 @@ func test_project_loads_on_a_building_with_its_text() -> void:
 	eq([r.errors, r.warnings], [[], []], "[errors, warnings]")
 	var colossus: CardDef = r.cards.colossus
 	eq(colossus.get("project"), true, "project")
-	check(colossus.rules_text(r.cards).contains(BUILT_TEXT), "face: %s" % colossus.rules_text(r.cards))
+	eq(colossus.face(r.cards).fine, PackedStringArray(["Built over turns"]), "face: fine print (382)")
 	check(colossus.rules_tooltip(r.cards).contains(BUILT_TEXT), "tooltip: %s" % colossus.rules_tooltip(r.cards))
 	check(not r.cards.farm.rules_text(r.cards).contains("Built over turns"), "a Farm has no such line")
 
@@ -301,7 +301,7 @@ func test_project_validation() -> void:
 		["a cost with food", [{"id": "x", "name": "X", "type": "building", "cost": {"food": 1, "wealth": 10},
 			"project": true}], ["card 'x'", "project", "cost"]],
 		["no cost", [{"id": "x", "name": "X", "type": "building", "project": true}], ["card 'x'", "project", "cost"]],
-	], func(extra): return fixture_load(extra))
+	], fixture_load)
 
 
 # --- AC7: the bot ---

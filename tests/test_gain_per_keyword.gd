@@ -114,14 +114,11 @@ func test_upkeep_gain_per_keyword_is_forecast_and_given() -> void:
 # --- AC6: loader and card text ---
 
 func test_gain_per_keyword_loads() -> void:
-	var r := load_action(HUNT)
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	var no_amount := load_action(hunt_with("amount", null))
-	eq(no_amount.errors, [] as Array[String], "amount is optional")
-	if no_amount.cards.has("x"):
-		eq(no_amount.cards.x.effects[0].get("amount"), 1, "amount defaults to 1")
-	eq(load_action(hunt_with("keywords", ["gold"])).errors, [] as Array[String], "a resource keyword is known")
+	check_loads([
+		["Hunt", HUNT, {}],
+		["amount is optional and defaults to 1", hunt_with("amount", null), {"cards.x.effects.0.amount": 1}],
+		["a resource keyword is known", hunt_with("keywords", ["gold"]), {}],
+	], load_action)
 
 
 func test_gain_per_keyword_validation() -> void:
@@ -134,7 +131,7 @@ func test_gain_per_keyword_validation() -> void:
 		["missing resource", hunt_with("resource", null), prefix + "missing 'resource'"],
 		["amount 0", hunt_with("amount", 0), prefix + "'amount' must be an integer >= 1"],
 		["amount not an integer", hunt_with("amount", 1.5), prefix + "'amount' must be an integer >= 1"],
-	], func(effect): return load_action(effect).errors)
+	], load_action)
 
 
 func test_gain_per_keyword_may_trigger_on_upkeep() -> void:

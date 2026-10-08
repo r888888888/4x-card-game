@@ -32,7 +32,7 @@ func on_clicked(view: CardView) -> void:
 
 ## Logs the engine's refusal and shows it over view.
 func _refuse(view: CardView, error: String) -> void:
-	_board.log_note("[color=#e88]%s[/color]" % error)
+	_board.log_note(Palette.bbcode(error, Palette.COST))
 	UIKit.show_error(_board.fx, view, error, _board.size.x)
 
 
@@ -65,8 +65,8 @@ func discard(view: CardView) -> void:
 	Game.engine.discard_card(view.uid)
 
 
-## A click on a lit target, or on a card in a choice row: a revealed territory or a government
-## (154). A choice goes through its error query, so a pick on a view left over from an earlier choice is refused.
+## A click on a lit target, or on a card in a choice row: a revealed territory, a government (154) or an offered
+## card (370). A choice goes through its error query, so a pick on a view left over from an earlier choice is refused.
 func on_picked(view: CardView) -> void:
 	if _board.drag.targeting != null:
 		var card := _board.drag.targeting
@@ -80,6 +80,9 @@ func on_picked(view: CardView) -> void:
 		"governments":
 			error = e.choose_government_error
 			action = e.choose_government
+		"offered":
+			error = e.take_error
+			action = e.take
 	var refused: String = error.call(view.uid)
 	if refused != "":
 		_refuse(view, refused)

@@ -160,6 +160,14 @@ func test_the_forecast_counts_size_unrest() -> void:
 	eq(e.upkeep_forecast().get(GameEngine.UNREST), 3, "forecast unrest")
 
 
+
+func test_bug_332_the_forecast_counts_no_size_unrest_after_a_revolt() -> void:
+	var e := size_engine()
+	set_pop_of(e, "hills", 9)
+	eq(e.upkeep_forecast().get(GameEngine.UNREST), 1, "before the revolt: one Town")
+	check(e.revolt(), "revolt: %s" % e.revolt_error())
+	eq(e.upkeep_forecast().get(GameEngine.UNREST), 0, "after the revolt: Elders falls before upkeep, nothing tolerates")
+
 func test_size_unrest_comes_before_calming_upkeep() -> void:
 	var e := ac1_engine()
 	build_on(e, home_uid(e), ["calm"])
@@ -180,10 +188,11 @@ func test_tolerates_loads_and_shows_in_the_government_text() -> void:
 	check(not r.cards.chiefs.rules_text(r.cards).contains("Tolerates"), "Chiefs has no tolerance line")
 
 
-func test_tolerates_only_applies_to_governments() -> void:
-	var r := size_load([{"id": "x", "name": "X", "type": "building", "tolerates": "village"}])
-	eq(r.errors, [] as Array[String], "errors")
-	has_msg(r.warnings, "'tolerates' only applies to governments (ignored)")
+func test_tolerates_on_the_wrong_type_is_a_load_warning() -> void:
+	check_cases([
+		["on a building", [{"id": "x", "name": "X", "type": "building", "tolerates": "village"}],
+			"'tolerates' only applies to governments (ignored)", "warning_only"],
+	], size_load)
 
 
 func test_tolerates_must_be_a_tier_id() -> void:

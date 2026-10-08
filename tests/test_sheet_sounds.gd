@@ -13,15 +13,6 @@ func records(main: Node, token: StringName, from := 0) -> Array:
 	return main.sfx.played().slice(from).filter(func(r): return r.token == token)
 
 
-## Main with seed 1 started and its sound clock at 0.
-func open_game() -> Node:
-	var main := open_main()
-	main.start_game(1)
-	await wait_frames()
-	main.sfx.set_clock(0.0)
-	return main
-
-
 func first_card_id() -> String:
 	return Game.engine.zone("hand").cards[0].def.id
 
@@ -29,7 +20,7 @@ func first_card_id() -> String:
 # --- AC1: modals ---
 
 func test_a_modal_lays_a_sheet_down_and_a_stacked_one_is_quieter() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(false, true)
 	main.details.open_def(first_card_id())
 	main.identity_modal.open()  # the tech tree is a screen since 208
 	var opens := records(main, Sfx.SHEET_OPEN)
@@ -38,7 +29,7 @@ func test_a_modal_lays_a_sheet_down_and_a_stacked_one_is_quieter() -> void:
 
 
 func test_closing_the_top_modal_lifts_its_sheet_once() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(false, true)
 	main.details.open_def(first_card_id())
 	main.identity_modal.open()
 	var before: int = main.sfx.played().size()
@@ -48,7 +39,7 @@ func test_closing_the_top_modal_lifts_its_sheet_once() -> void:
 
 
 func test_close_all_lifts_once_however_many_are_open() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(false, true)
 	main.details.open_def(first_card_id())
 	main.identity_modal.open()
 	main.open_menu()
@@ -84,7 +75,7 @@ func test_a_screen_runs_in_and_back_and_the_root_and_clear_are_silent() -> void:
 # --- AC3: notices ---
 
 func test_each_notice_rings_once_400_ms_apart_and_hints_are_silent() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(false, true)
 	var before: int = main.sfx.played().size()
 	for message in ["One.", "Two.", "Three.", "Four."]:
 		main.toasts.notice(message)
@@ -100,7 +91,7 @@ func test_each_notice_rings_once_400_ms_apart_and_hints_are_silent() -> void:
 # --- AC4: the bell leads ---
 
 func test_a_modal_opened_with_a_notice_is_3_db_quieter() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(false, true)
 	main.toasts.notice("A new event.")
 	main.details.open_def(first_card_id())
 	eq(records(main, Sfx.SHEET_OPEN).map(func(r): return r.db), [-3.0], "the sheet under the bell")
@@ -114,7 +105,7 @@ func test_a_modal_opened_with_a_notice_is_3_db_quieter() -> void:
 # --- AC5: the player's input; Reduce motion ---
 
 func test_a_sheet_the_player_opens_or_closes_is_their_input() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(false, true)
 	main.identity_modal.open()
 	eq(records(main, Sfx.SHEET_OPEN).map(func(r): return r.input), [false], "opened by the game: a system sound")
 	main.modals.close_all()

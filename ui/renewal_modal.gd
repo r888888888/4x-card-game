@@ -35,7 +35,7 @@ func _init(p_stack: ModalStack) -> void:
 	body.add_child(columns)
 	var well := PanelContainer.new()
 	well.theme_type_variation = &"ListWell"
-	var scroll := ScrollContainer.new()
+	var scroll := SmoothScroll.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.custom_minimum_size = Vector2(Tokens.SPACE_9 * 3, Tokens.SPACE_9 * 4)
 	well.add_child(scroll)

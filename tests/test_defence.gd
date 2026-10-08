@@ -57,12 +57,9 @@ func fortify_hills(e: GameEngine) -> int:
 # --- AC1: loading ---
 
 func test_defense_loads_on_buildings_and_cities() -> void:
-	var r := defence_load()
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	if r.cards.has("palisade"):
-		eq(r.cards.palisade.defense, 2, "Palisade")
-		eq(r.cards.town.defense, 1, "Town")
+	check_loads([
+		["Palisade and Town", [], {"cards.palisade.defense": 2, "cards.town.defense": 1}],
+	], defence_load)
 
 
 func test_bad_defense_is_a_load_error() -> void:
@@ -92,8 +89,8 @@ func test_defense_adds_units_buildings_cities_and_terrain() -> void:
 	if e == null:
 		return
 	var hills := fortify_hills(e)
-	eq(e.defense(hills), 6, "defense")
-	eq(e.defense_parts(hills), {"units": 2, "buildings": 2, "cities": 1, "terrain": 1, "total": 6}, "parts")
+	eq(e.military.defense(hills), 6, "defense")
+	eq(e.military.defense_parts(hills), {"units": 2, "buildings": 2, "cities": 1, "terrain": 1, "total": 6}, "parts")
 
 
 # --- AC3: idle cards add nothing ---
@@ -105,7 +102,7 @@ func test_idle_walls_and_units_add_no_defense() -> void:
 	var hills := fortify_hills(e)
 	e.zone("tableau").find(hills).pop = 0
 	check(e.is_idle(uid_of(e.zone("tableau"), "palisade")) and e.is_idle(uid_of(e.zone("tableau"), "levy")), "both idle")
-	eq(e.defense(hills), 2, "the Town and the mountain")
+	eq(e.military.defense(hills), 2, "the Town and the mountain")
 
 
 # --- AC4: a unit counts where it is stationed ---
@@ -116,11 +113,11 @@ func test_unit_counts_on_its_station_not_its_home() -> void:
 		return
 	var hills := fortify_hills(e)
 	var home := home_uid(e)
-	var before: int = e.defense(home)
+	var before: int = e.military.defense(home)
 	e.zone("tableau").find(uid_of(e.zone("tableau"), "levy")).station_uid = home
-	eq(e.defense(hills), 4, "Hills without the Levy")
-	eq(e.defense(home) - before, 2, "Homeland with it")
-	eq(e.defense_parts(home).units, 2, "Homeland's units")
+	eq(e.military.defense(hills), 4, "Hills without the Levy")
+	eq(e.military.defense(home) - before, 2, "Homeland with it")
+	eq(e.military.defense_parts(home).units, 2, "Homeland's units")
 
 
 # --- AC5: terrain and edges ---
@@ -134,8 +131,8 @@ func test_terrain_sums_every_matching_keyword_rolled_ones_included() -> void:
 	var river := uid_of(e.zone("tableau"), "river")
 	var hills: CardInstance = e.zone("tableau").find(uid_of(e.zone("tableau"), "hills"))
 	hills.keywords.append("gold")
-	eq(e.defense_parts(river).terrain, 3, "fresh water 1 + flood plain 2")
-	eq(e.defense_parts(hills.uid).terrain, 4, "mountain 1 + rolled gold 3")
+	eq(e.military.defense_parts(river).terrain, 3, "fresh water 1 + flood plain 2")
+	eq(e.military.defense_parts(hills.uid).terrain, 4, "mountain 1 + rolled gold 3")
 
 
 func test_no_terrain_defense_without_the_config() -> void:
@@ -144,8 +141,8 @@ func test_no_terrain_defense_without_the_config() -> void:
 		return
 	settle(e, ["hills"])
 	var hills := uid_of(e.zone("tableau"), "hills")
-	eq(e.defense_parts(hills).terrain, 0, "terrain")
-	eq(e.defense(hills), 0, "nothing on Hills")
+	eq(e.military.defense_parts(hills).terrain, 0, "terrain")
+	eq(e.military.defense(hills), 0, "nothing on Hills")
 
 
 func test_defense_is_0_for_anything_but_a_settled_territory() -> void:
@@ -154,8 +151,8 @@ func test_defense_is_0_for_anything_but_a_settled_territory() -> void:
 		return
 	to_frontier(e, ["hills"])
 	for uid in [uid_of(e.zone("frontier"), "hills"), uid_of(e.zone("tableau"), "capital"), first_in_hand(e), 9999]:
-		eq(e.defense(uid), 0, "defense of %d" % uid)
-		eq(e.defense_parts(uid), {}, "parts of %d" % uid)
+		eq(e.military.defense(uid), 0, "defense of %d" % uid)
+		eq(e.military.defense_parts(uid), {}, "parts of %d" % uid)
 
 
 # --- AC7: the territory's tooltip ---

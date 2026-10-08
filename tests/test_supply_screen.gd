@@ -2,6 +2,11 @@ extends "res://tests/lib/tech_case.gd"
 ## The supply screen's pile cards (232): each shows its play cost after discounts in its title row, like a hand card,
 ## and its buy price on a tag below the card ("Buy", the wealth glyph, the price) with the copies left under it.
 ## Local fixtures: civilization Builders (wonders −3 wealth) and building Obelisk (12 wealth, wonder).
+## In detail (from docs/testing.md, 331): The Supply screen's pile cards in the real `main.tscn` (232): the play cost
+## after discounts in the title row, the buy price on a tag below the card (`price_tag`), the copies left under it
+## (`copies_left`), the tag dimming with an unbuyable pile; a click or Enter opening the pile's details, whose Buy
+## (`main.details.buy_button()`, `buy_reason()`, `pile_tag()`, `pile_left()`) buys through `supply.buy` (259),
+## flying a copy the pile card's size from the pile card to the Discard counter (361)
 
 const BUILDERS := {"id": "builders", "name": "Builders", "type": "civilization", "discounts": [{"tag": "wonder", "wealth": 3}]}
 const OBELISK := {"id": "obelisk", "name": "Obelisk", "type": "building", "cost": {"wealth": 12}, "tags": ["wonder"]}
@@ -103,17 +108,6 @@ func test_pile_cards_share_the_height_of_the_tallest() -> void:
 
 # --- 258: a click outside the panel closes the screen ---
 
-## A left click (press and release) at viewport position at in main.
-func click_at(main: Node, at: Vector2) -> void:
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = MOUSE_BUTTON_LEFT
-		event.position = at
-		event.global_position = at
-		event.pressed = pressed
-		main.get_viewport().push_input(event, true)  # viewport coordinates, not the window's
-
-
 ## The far corner of main's viewport, outside any panel.
 func corner(main: Node) -> Vector2:
 	return main.get_viewport().get_visible_rect().end - Vector2(5, 5)
@@ -123,14 +117,14 @@ func test_a_click_outside_the_panel_closes_the_supply() -> void:
 	await with_supply(supply_game(10), func(main: Node, _views: Array[CardView]):
 		var closed := [false]
 		main.supply.closed.connect(func(): closed[0] = true)
-		click_at(main, corner(main))
+		click_point(main, corner(main))
 		check(not main.supply.is_open(), "the screen is closed")
 		check(closed[0], "closed is emitted"))
 
 
 func test_a_click_inside_the_panel_keeps_the_supply_open() -> void:
 	await with_supply(supply_game(10), func(main: Node, _views: Array[CardView]):
-		click_at(main, main.supply.counter(GameEngine.WEALTH).get_global_rect().get_center())
+		click_point(main, main.supply.counter(GameEngine.WEALTH).get_global_rect().get_center())
 		check(main.supply.is_open(), "a click on the panel's Wealth counter leaves it open"))
 
 
@@ -139,7 +133,7 @@ func test_a_click_outside_a_details_modal_closes_only_the_modal() -> void:
 		main.details.open(views[0])
 		await wait_frames()
 		check(not main.details.shown().is_empty(), "the details modal is open")
-		click_at(main, corner(main))
+		click_point(main, corner(main))
 		check(main.details.shown().is_empty(), "the details modal closes")
 		check(main.supply.is_open(), "the supply stays open"))
 
@@ -155,7 +149,7 @@ func discarded(id: String) -> int:
 func test_a_click_on_a_pile_opens_its_details_and_buys_nothing() -> void:
 	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
 		var before := discarded("obelisk")
-		click_at(main, views[0].get_global_rect().get_center())
+		click_point(main, views[0].get_global_rect().get_center())
 		await wait_frames()
 		eq(main.details.shown().get("name", ""), "Obelisk", "the pile's details are on show")
 		eq(Game.engine.resources[GameEngine.WEALTH], 10, "no wealth spent")
@@ -224,6 +218,46 @@ func test_buy_flies_a_copy_to_the_discard_counter() -> void:
 		eq(flying.size(), 1, "one copy in flight to the Discard counter"))
 
 
+## The copy in flight to the Discard counter after Buy on view's details (361), or null.
+func bought_copy(main: Node, view: CardView) -> CardView:
+	main.supply.pick(view)
+	await wait_frames()
+	main.details.buy_button().pressed.emit()
+	var flying: Array = main.find_children("*", "CardView", true, false).filter(func(v: CardView): return v.uid == -100)
+	check(flying.size() == 1, "one copy in flight")
+	return flying[0] if flying.size() == 1 else null
+
+
+func test_bug_361_the_bought_copy_keeps_the_pile_cards_size_as_it_flies() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		var pile: CardView = views[1]  # Scout
+		var copy := await bought_copy(main, pile)
+		var tallest := 0.0
+		var frames := 0
+		while is_instance_valid(copy) and frames < 120:
+			tallest = maxf(tallest, copy.size.y)
+			check(absf(copy.size.x - pile.size.x) <= 1.0, "frame %d: the copy is the pile card's width" % frames)
+			await wait_frames(1)
+			frames += 1
+		check(tallest <= pile.size.y + 1.0, "the copy is never taller than the pile card (%d): %d" % [pile.size.y, tallest]))
+
+
+func test_bug_361_the_bought_copy_starts_on_the_pile_card() -> void:
+	await with_supply(supply_game(10), func(main: Node, views: Array[CardView]):
+		var pile: CardView = views[1]  # Scout
+		await wait_screen_transition()  # the pile cards have popped in
+		main.supply.pick(pile)
+		await wait_frames()
+		var centre := pile.get_global_rect().get_center()
+		main.details.buy_button().pressed.emit()
+		var flying: Array = main.find_children("*", "CardView", true, false).filter(func(v: CardView): return v.uid == -100)
+		eq(flying.size(), 1, "one copy in flight")
+		if flying.size() != 1:
+			return
+		var at: Vector2 = (flying[0] as CardView).get_global_rect().get_center()
+		check(at.distance_to(centre) <= 1.0, "the copy starts centred on the pile card %s: %s" % [centre, at]))
+
+
 func test_an_unaffordable_piles_buy_is_disabled_with_the_reason_on_the_footer() -> void:
 	await with_supply(supply_game(2), func(main: Node, views: Array[CardView]):
 		main.supply.pick(views[0])
@@ -270,3 +304,12 @@ func test_esc_or_close_on_a_piles_details_buys_nothing() -> void:
 		check(main.supply.is_open(), "the supply stays open after Close")
 		eq(Game.engine.supply_left("obelisk"), 6, "nothing bought")
 		eq(Game.engine.resources[GameEngine.WEALTH], 10, "no wealth spent"))
+
+
+# --- 381: pile cards are tableau size, with no art ---
+
+func test_a_pile_card_has_no_art_plate() -> void:
+	await with_supply(supply_game(10), func(_main: Node, views: Array[CardView]):
+		check(not views.is_empty(), "piles shown")
+		for view in views:
+			eq(art_plate(view), null, "%s's pile card has no plate" % view.card_id))

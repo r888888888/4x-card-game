@@ -5,6 +5,11 @@ extends RefCounted
 ## methods call them.
 
 
+## The zones whose cards every turn forecast reads: the board and the always-on zones (336; forecast_zones adds the
+## zones effects count).
+const FORECAST_ZONES: Array[String] = ["tableau", "researched", "civilization", "government", "active_events"]
+
+
 ## Sets up a game with seed p_seed played as civilization civ_id ("" for none) and starts turn 1.
 static func new_game(e: GameEngine, p_seed: int, civ_id: String) -> void:
 	e._setting_up = true  # whatever eras or cities the setup adds, they are no milestones (191)
@@ -141,7 +146,7 @@ static func start_turn(e: GameEngine) -> void:
 	e.draw(maxi(0, e.hand_size() - e.zone("hand").size()))
 	Anarchy.start_renewal(e)
 	if e.turn >= 2:  # the turn's event, last, so it is active all turn (237); raids drawn earlier strike first (162)
-		Military.strike_raids(e)
+		e.military.strike_raids()
 		Events.draw(e)
 
 
@@ -155,10 +160,22 @@ static func forecast(e: GameEngine) -> Dictionary:
 	_begin(f)
 	var starve := _settle_in(f)
 	if f.turn >= 2:
-		Military.strike_raids(f)
+		f.military.strike_raids()
 	var out := {"score": f.score() - e.score(), "pop": f.total_pop() - e.total_pop(), "starve": starve}
 	for r in e.resources:
 		out[r] = f.resources.get(r, 0) - e.resources[r]
+	return out
+
+
+## The zones a turn forecast of e reads (336): FORECAST_ZONES plus every zone an effect in the card db counts
+## (Effect.reads_zones), in that order.
+static func forecast_zones(e: GameEngine) -> Array[String]:
+	var out: Array[String] = FORECAST_ZONES.duplicate()
+	for id in e.card_db:
+		for effect: Effect in e.card_db[id].effects:
+			for z in effect.reads_zones():
+				if not out.has(z):
+					out.append(z)
 	return out
 
 

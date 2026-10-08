@@ -1,6 +1,6 @@
 # Testing
 
-Dependency-free runner: no addon, just Godot headless.
+Dependency-free runner: Godot headless, no addon.
 
 ## Running
 
@@ -12,28 +12,31 @@ scripts/test.sh --balance    # only tests/balance/ (filter as above)
 ```
 
 **The balance suite** (`tests/balance/`): tests that play GenericBot games on the real data (`data/*.json`): the
-sim's report, its options and the parallel run. They grow with every bot change, so the main suite and the Stop hook
-leave them out; run `scripts/test.sh --balance` when touching `sim/`. Bot rules and `SimStats` stay in the main suite,
+sim's report, its options and the parallel run. The main suite and the Stop hook leave them out; only the user runs
+it (or asks for a run). Bot rules and `SimStats` stay in the main suite,
 tested on fixture games of a few turns.
+
+**The Python tools' tests** (`scripts/tests/`, stdlib `unittest`): `scripts/test.sh` runs them after the Godot shards
+(not with `--balance`), passes the filter as `-k`, and adds them to the count. `test_card_art.py` covers
+`scripts/card_art.py` against a temporary art folder and a fake image API (397).
 
 The script re-imports the project first when a `.gd` file changed, so a new `class_name` resolves
 in the same run. Output is quiet: one `FAIL` line per problem, then `N tests, M failures`.
 Exit code 0 means green.
 
-**Speed (223).** The whole suite takes ~4 s. Three settings make it fast:
-- The test files run in parallel shards: one Godot process per CPU (`TEST_JOBS=n scripts/test.sh` to change it;
-  `TEST_JOBS=1` runs serially, ~17 s). Shard i of n gets every n-th file (`tests/lib/test_shards.gd`, set through
-  the `TEST_SHARD=i/n` environment variable) and the script sums the counts. Each shard has its own empty `HOME`, so
-  no two share `user://` and a run never touches the player's settings. Tests must not depend on which other files
-  ran before them in the same process.
+**Speed (223).** The suite takes ~11 s on a 12-core Mac (~40 s serial). Godot's start costs ~3 s per shard; the
+slowest file, `test_generic_bot_cache.gd`, plays its 6 bot games once and shares them (335). Three settings help:
+- The test files run in parallel shards, one Godot process per CPU (`TEST_JOBS=n` to change it; 1 runs serially).
+  The slow files (`TestShards.SLOW`) go first, then shard i of n gets every n-th file (`TEST_SHARD=i/n`). Each
+  shard has its own empty `HOME` (no `//` in its path, 330), so no two share `user://` and a run never touches the
+  player's settings. Tests must not depend on which files ran before them.
 - The runner turns off headless Godot's frame sleep (6.9 ms a frame), and the script passes `--fixed-fps 120`: every
   frame advances 1/120 s of game time however long it really took. Timers and tweens finish after a fixed number of
   frames, so a test that waits for an animation (`create_timer`, `wait_screen_transition`) is quick and deterministic.
-  A test that checks an animation part-way through should wait frames or game seconds, never wall-clock time.
+  A test checking an animation part-way should wait frames or game seconds, never wall-clock time.
   `Sfx.clock()` is the wall clock, so a test that checks when a sound is due freezes it first (`main.sfx.set_clock`),
   then compares against that time (236).
-- The engine isn't the cost: profiling found a `make_engine` game 0.5 ms to build and a 20-turn bot game on the real
-  data 20 ms. Most of the time left is building and freeing the main scene (~18 ms per UI test).
+- The engine isn't the cost (a `make_engine` game builds in 0.5 ms); the main scene is (~18 ms per UI test).
 
 A test fails when:
 - an assertion fails (`eq`, `check`, `has_msg`);
@@ -45,193 +48,11 @@ and the whole run fails if a test file doesn't parse or the filter matches nothi
 
 ## Writing tests
 
-Put tests in `tests/test_<area>.gd`. Current areas:
+Put tests in `tests/test_<area>.gd`. Each file opens with a `##` header saying what it covers (the suite checks):
+that header is the source. [testing-index.md](testing-index.md) gives each file one short row; a new test file adds
+its row there (the suite checks it lists every file, in rows of at most 160 characters).
 
-| File | Covers |
-|---|---|
-| `tests/test_content.gd` | The real data: invariants over the whole data set, never a single card (every keyword used, every cost has a source, every building's requires met in play, eras reachable with 2+ techs, techs and supply consistent). No many-seed bot sweeps: real games over seeds are sim runs (`scripts/sim.sh`), not tests (145) |
-| `tests/test_ui_smoke.gd` | The real `main.tscn` follows a whole game played by `play_first_legal` (314): no script errors, hand views match the hand, game-over text; uses main's test hooks (`start_game`, `hand_view_count`, `game_over_text`) |
-| `tests/test_event_modal.gd` | `event_drawn`, `outcome_summary`, and the drawn-event modal in the real `main.tscn` (079): what it shows, closing it, hand-limit and last-turn order |
-| `tests/test_event_panel.gd` | The active events in the real `main.tscn` (in the Realm's row since 137): event views match `active_events`, turns left, none without an event deck; runs main on fixture data with `with_event_engine` and the `event_panel()` hook |
-| `tests/test_board_row.gd` | One board row (137) in the real `main.tscn` on a TEST_CARDS + TEST_EVENTS game (`with_main`, `board_engine`): events, then frontier, then the Realm in `main.tableau.row`; only Realm and Hand headings; no view for a known tech; a settled frontier card keeps its view and moves into the Realm; drops on frontier cards; the frontier and event explanations in their cards' tooltips; Relieve (`relieve_button()`) during a Famine |
-| `tests/test_board_faces.gd` | Board card faces (138) in the real `main.tscn` on a `board_engine` game: every card in the Realm's row at `CardView.BOARD_SIZE`; the frontier face (badge, name, keywords, "▢N ⌂N"), the event face (badge, turns left or a Famine's counters, name, first rules line, no "Lasts"), settling switches to the settled face, the details name clipped keywords, hand cards unchanged; read with `face_text()` |
-| `tests/test_ui_structure.gd` | The shape of `ui/`: one script per component (and `CardView`'s content and motion in `CardFace` and `CardMotion`), no engine internals (`state`, the RNG, the log lines; 175: the config) read in `ui/`; 175: one `ActionButton`, `main.gd` asks `hand_input_error()`; 176: `BoardViews` and `BoardLayout`, `main.gd` within 500 lines, `zone_of` in the UI; 183: no `const` holds a Palette colour; 316: the card handlers in `CardActions`, not `main.gd`, which has room under 450 lines |
-| `tests/test_board_labels.gd` | The board's game words in the real `main.tscn`: no "tableau" on screen, no seed in the top bar, Buy Cards, Knowledge; uses the `section_headings()` hook |
-| `tests/test_card_slots.gd` | Card slots in the real `main.tscn` start at the height their card rests at (frontier cards while still flying, at `BOARD_SIZE`; hand slots) |
-| `tests/test_start_screen.gd` | The title, new game and settings screens in the real `main.tscn` (063, 099): the title screen on launch with no game started and three buttons, New game → Start with a seed or a random one, Settings with the shared Reduce motion setting (saved to a temp file), Back and Esc to the title, Exit, the menu's New game to the new game screen, Restart and Replay skipping the screens, keyboard focus and wrapping; the civilization cards (064: listed, preselected, selecting saves, Restart keeps, named in the menu and at game over); uses `main.start_screen`, `main.new_game_screen`, `main.settings_screen` and `main.board_shown()` |
-| `tests/test_title_screen.gd` | The title screen as a ledger (213) in the real `main.tscn` at 1920×1080: the ledger left (kicker, the title on two lines, subtitle, three `BigButton`s flush left in one width) and an empty `Art` half right behind a 1 px rule; a `BigButton`'s caps label, caption, › and lamp edge; the `BigButton` / `BigButtonPrimary` / `BigLabel` variations (plinth, pressed travel); its key sounds; Day mode |
-| `tests/test_sunrise_art.gd` | The title screen's art (214): `SunriseArt`'s design space and slice scale, the sun's five gaps, `warmth(height)` and what it does to the sun, the bands and the hill; the entrance (the sun rising, the hill coming up, then still), New game's day and Exit's sunset on a damped spring, Reduce motion at rest and jumping; its Palette roles in Night and Day, repainted. Time on the art's own clock (`use_manual_clock()`, `advance(s)`) |
-| `tests/test_settings_modal.gd` | The Settings modal (206) in the real `main.tscn`: the menu down to Restart, New game, Settings (Close, Exit in its footer); `main.settings_modal` over the menu with the keys, sliders and a Game section (seed field, Restart with seed: whole numbers only, Enter too); the menu's Restart on this seed; over the title screen without the Game section (no settings screen); a setting applies at once and Esc closes only it. `open_settings_modal(main)` in test_case.gd opens it from the menu |
-| `tests/test_legend_key.gd` | The toggle key (182; the window bar since 219) in the real `main.tscn`: a square key with no text whose lamp is lit when latched and dark when up (also after `set_pressed_no_signal`), the theme's key boxes with no room kept for a strip, `state_text()`, each Settings modal toggle row with its state label right after the key, the row at the column's width with the label at its right and the key still as the word changes, Tab and Space |
-| `tests/test_sound_rows.gd` | The sound rows (185) in the real `main.tscn`: the settings screen's Interface sounds key and Master, Game and Interface sliders under Day mode (`settings_screen.sound_toggle`, `sliders`, `figures` by bus), showing and setting the settings (Right on a slider), the menu's key (`main.menu_sound_toggle()`) at the column's width and mirroring, the focus loops and the sliders' tooltips; a temp settings file |
-| `tests/test_button_widths.gd` | Button widths in the real `main.tscn` at 1920×1080 (100): buttons fit their text; the title, settings, new game, menu and game-over buttons share one width in a centred column; tech tiles and seed fields still fill (the top bar: `test_board_layout`) |
-| `tests/test_territory_view.gd` | The territory view in the real `main.tscn` (101) on a TEST_CARDS game: a click on a territory opens it in place of the Realm (a city's click still shows details), stats, Back / Esc / new game / game over close it, drops and double-clicks play onto it, targeting wins over opening, ↑/↓ and Enter from the hand; uses `main.territory_view` (`is_open`, `uid`, `card_uids`, `stats_text`, `target_at`, `back_button`); 105: the territory as the framed box (its name and info as the title, stats above the cards, its card left in the Realm), free-slot outlines after the cards, no pop-in or fly-off when opening or closing (`frame`, `title_text()`, `outlines()`, `free_slot_count()`) |
-| `tests/test_generic_bot.gd` | The generic bot (313) on fixture games (Lone: 1 action, unrest limit 5; no supply or research): Temple over Shrine with turns left, Shrine on the last turn, nothing when nothing helps, a draw first when it draws better, exploring when a settler gains a target, the better event option, clear of the unrest limit, only legal actions and no side effects while valuing, the same game from the same seed, SimStats playing `generic`; expansion costs (321): unrest coming in costs, wide's land weight stops at the admin cap, settling stops past it |
-| `tests/test_generic_bot_cache.gd` | The bot's forecast cache (315): the same games with it on and off, every cached forecast equal to a fresh one (check mode), fewer computed than looked up, which zones the key reads (only a `gain_per_tag`'s, never a `create`'s), nothing carried between games |
-| `tests/test_generic_rollouts.gd` | The generic bot's rollouts (314, porting 159): the government choice by rollout (ties to deck order, one option without), revolting every `REVOLT_EVERY` turns when a revolution values more (not in the last `ROLLOUT_TURNS` ÷ 2), a rollout leaving the game untouched, playing its turns and stopping at the end, `lookahead_turns`. Fixtures Glory, Dull, Plain, Twin |
-| `tests/test_generic_raids.gd` | The generic bot meets raids (314, superseding 168) through `turn_forecast`: a unit moved onto a short target, kept on one it holds. Raid games from `tests/lib/raid_case.gd` |
-| `tests/test_legal_actions.gd` | `legal_actions` (312): every action allowed now as `[action, args…]` in a fixed order (plays per target, build, buy, tech, contribute at the limit, moves, discards, the argument-free ones, end turn), each legal by its error query; an owed decision's options (renewal as one choose-count entry; a discard keeps research); `[]` after game over; the coverage table: a row per action with an error query, and its game lists it. Anarchy games with a Levy and a Colossus |
-| `tests/test_would_target.gd` | `would_need_target` / `would_target` (310): what a card in any zone would target if it were in the hand (a deck Farm, a discarded Pioneer before and after exploring), the hand's answers unchanged, a card needing none, no card or game over, nothing changed |
-| `tests/test_turn_forecast.gd` | `turn_forecast` (309): what starting the next turn changes (upkeep's resources and score, pop starved, raids that strike, as pillage or repel), nothing changed in the game, `{}` with no next turn; an arriving era's unrest is in `test_anarchy.gd`. Raid games from `tests/lib/raid_case.gd` |
-| `tests/test_raids.gd` | Barbarian raids (162): loading `raid` and the `repel` / `pillage` triggers, the raid's text, its target when drawn (`raid_target`), striking two event phases later (`raid_resolved`, 257), repelled and pillaged, `raid_forecast`, the final turn and forks, the strike's line (`raid_outcome_text`, logged not noticed, 271) |
-| `tests/test_choice_events.gd` | Choice events (269): loading `choices` (2–3 options, one free, no triggers, no targets or choices, known cost resources, events only, no raids), `PENDING_EVENT_CHOICE` owed after the event's own effects, `choose_option` / `choose_option_error`, `option_chosen`, a renewal or government choice first, copies, the card text and `option_text`, the sim bot answering it and playing a game of them; fixtures `choice_engine` in `tests/lib/anarchy_case.gd` |
-| `tests/test_choice_modal.gd` | The event modal for a choice event (269) in the real `main.tscn`: option buttons in place of OK (`main.event_option_buttons()`), not dismissable, a refused option disabled with its reason, choosing closes it with a notice, under Anarchy after the renewal |
-| `tests/test_raid_modal.gd` | The raid modal (271) in the real main scene: a raid that strikes shows its card and result above the turn's event, waits for the era sheet, and plays `ui.milestone.pillaged` or `ui.milestone.repelled` |
-| `tests/test_raid_pacing.gd` | Raid pacing (257): config `territory_value` / `raid_min_size` / `raid_gap`, `realm_size`, raids deferred to the event deck's bottom (too small, too soon, one already active), `raid_turns_left` and the "in 2 turns" text |
-| `tests/test_territory_names.gd` | Territory names (248): the civilization's `city_names` in order from the home, then with numerals; the card's name without a list and on the frontier; `rename_territory` / `rename_territory_error` (trimmed, 24 characters, settled only, blocked, no action, the next default unchanged); names in a state copy; loading `city_names` |
-| `tests/test_rename_modal.gd` | Names on screen and the naming modal (248) in the real `main.tscn` (seed 5, Egypt): the territory view's title and Realm card show the city name over the land's; `territory_view.rename_button` opens `main.rename_modal` (`field`, `rename_button`, `cancel_button`) prefilled; an invalid name disables Rename with the engine's reason; Enter / Rename rename and close; Cancel / Esc close unchanged |
-| `tests/test_grow_meter.gd` | The territory view's pop meter (124) in the real `main.tscn` on a TEST_CARDS game: a plain pip per housing with pop filled (`PipFilled`), above the actions row (`territory_view.actions`, 227; Grow went in 260); `main.territory_view.pips()` |
-| `tests/test_day_mode.gd` | Day mode (183) in the real `main.tscn`: the palette's Day and Night values and the guide's contrast in both, a game at turn 3 switched to Day and back (theme, background, card panels and bands, glyphs, figures, log) with the game untouched, open modals and screens switching and staying open, the Day mode keys under Reduce motion (mirrored, in the focus loops); a temp settings file, back on the player's palette after |
-| `tests/test_sfx.gd` | The sound player (186): every token of the guide's §14.1 tables is an `Sfx` constant with its level (read from the guide), its files under `assets/sounds/` (16-bit, 48 kHz, mono, uncompressed), the streams (Level 1 randomized), `play()` and `played()`, the tick, notification, voice and Level 3 rules, `Anim.contact`, `Sfx.lead` and `at_contact`; the clock set by hand |
-| `tests/test_key_sounds.gd` | Key sounds (187) in the real `main.tscn` at 1920×1080 (`main.sfx`'s clock frozen; mouse presses pushed at a button's centre): every button's press and release at their contacts (mouse, Space, Enter, a modal's), hover and focus silent, a press dragged off, a disabled key's dead tap and `main.locked_tip()`, End turn's press, relay and drum (and a plain release when a discard is owed; a dead tap while disabled), the legend key's latch sounds, interface sounds off still heard (`Settings.set_interface_sounds(off, mute_after)`), Reduce motion |
-| `tests/test_hover_sound.gd` | Hover sound (245) in the real `main.tscn`: an enabled button or actionable card ticks once on entry; disabled keys, display-only cards, a held mouse, a repeat inside the gap and a Level 3 event are silent; late-added buttons tick |
-| `tests/test_build_menu.gd` | The build menu (295): config `build_menu` ({card_id: {locked, once}}) and its loader checks; `build` / `build_error` (an action and the discounted cost, a fresh copy on a territory, `card_played`, each refusal), `build_menu`, `build_targets`; the `unlock` op opening an entry ("… can now be built."); `once` entries; copies; `build_preview` (299: cost and before → after lines, only what changes, untouched game). Band rules, so actions run out |
-| `tests/test_recruit.gd` | Recruiting units from the build menu (296) on the raid fixtures: `build` on a unit entry (homed and stationed, a worker but no slot, its strength defends), where a unit entry can go, a recruited unit disbanded or pillaged leaving play, "… can now be recruited." |
-| `tests/test_build_modal.gd` | Building from a territory's view (297) in the real `main.tscn` on a fixture build menu: Build… (B) and the "+ Build" free-slot buttons (`territory_view.build_button`, `slot_button(i)`) open `main.build_modal` ("Build on <territory>"): the list by Buildings and Units (`list`, `headings()`, `row_text`, `row_reason`, `row_dimmed`), the selection and the sheet (`shown_card()`, `preview_lines()`, `refusal_text()`), the Build / Recruit key and Enter, Esc and Cancel, blocked and empty menus; the Buy screen on the real data sells action cards; a recruited unit's Disband says "Dismiss it" |
-| `tests/test_end_turn_returns.gd` | Ending the turn returns to the Realm (290) in the real `main.tscn`: the End turn key or E closes the Knowledge screen and a territory view (and both stacked), leaving the Realm alone on `territory_view.nav`; a refused end turn, the Realm already shown and a refresh within the turn change nothing |
-| `tests/test_tech_gives_modal.gd` | A tech's details' Gives row (289) in the real `main.tscn`: a compact card per given card with its caption (`main.details.gives_ids()`, `gives_captions()`, `gives_card(i)`), none for a card that gives nothing; a click, Enter or I opens the given card's details on `main.details.given_details`, on top with no footer action, and Esc returns to the tech |
-| `tests/test_ready_lamps.gd` | Ready lamps (288): `ready_techs` / `ready_supply` (learnable or buyable now, in order; nothing while blocked, sold out or locked), `tech_lamp` / `supply_lamp` lit for an id not in the seen set, `see_techs` / `see_supply`, the seen sets in a state copy and empty in a new game |
-| `tests/test_ready_lamp_keys.gd` | The ready lamps on Knowledge and Buy Cards (288) in the real `main.tscn`: lit with the engine (`TopBar.knowledge_lamp_lit()`, `supply_lamp_lit()`), opening and closing either screen sees what's on offer |
-| `tests/test_counter_and_card_sounds.gd` | Counter and card sounds (188) in the real `main.tscn`, `main.sfx`'s clock frozen: an `Odometer`'s ticks (each a dB quieter) and its gain or loss, a long roll ticking only its shown steps, the top bar's counters rolling one after another (one tick stream, gains in order), silent new games, no-op refreshes and the Supply screen's close, Reduce motion's lone registration; a card's lift, a played building's pat (onto its territory's card, or in the open territory view), a refusal's double tap, click-to-target's tick |
-| `tests/test_sheet_sounds.gd` | Sheet, screen and notice sounds (189) in the real `main.tscn`, `main.sfx`'s clock frozen: `ModalStack` lays a sheet down (stacked 1 dB quieter, 3 dB under a notice's bell in the same frame) and lifts it once (also for `close_all`), `Navigator` runs screens in and back (root and clear silent), `Toasts` rings each notice 0.4 s apart (hints silent), the player's key or click makes it their input (`Sfx.player_acted()`), Reduce motion |
-| `tests/test_notice_priorities.gd` | Notice priorities (190): the three `GameEngine.NOTICE_*`; in the real `main.tscn` each priority's bell pattern at one volume, its hue bar (`Toasts.priorities()`, `bar_role()`), the engine's `noticed` reaching the toast with its priority. Each notice's priority is checked beside its scenario: `check_noticed(recorded, fragment, priority)` |
-| `tests/test_notification_flags.gd` | Notification flags (250, guide §15.9) in the real `main.tscn`: a flag sliding out of the rail and resting against it, clipped at its edge, widening for a long line, fading with Reduce motion; the `Flag` sheet strip open on the rail side; each priority's glyph and hue bar, left to right with the ×; the hint's text-only flag; info and caution going after `TOAST_TIME`, urgent staying until its × is pressed, sliding back in; the stack newest at the bottom, `SPACE_2` apart, at most 3; only the × taking the mouse, nothing the focus; a new game clearing them. Uses `main.toasts` (`shown()`, `glyph()`, `close_button()`, `bar()`) |
-| `tests/test_era_sheet.gd` | The era ceremony (211) in the real `main.tscn` on a TEST_CARDS + TEST_EVENTS game whose eras unlock at 50 wealth: `main.era_sheet` covers the window with "A NEW ERA", the era's name at display XL and the turn; the wipe, three rings and the letter-by-letter name (a fade with Reduce motion); a click or key skips, the next closes; one sheet for two eras; none at setup; the turn's event waits for it |
-| `tests/test_milestones.gd` | Milestones (191): `milestone(kind)` for a tech learned, a territory settled, each era added (once), before `changed`; none for a failed buy or during a new game's setup (era_unlocks at turn 1) |
-| `tests/test_event_sounds.gd` | Event sounds (191) in the real `main.tscn`: the breakthrough, city and era sounds on the Game bus (only the era when a tech adds one), the game-over sheet's victory once, the action's notices and counters giving way, a press still clicking, the Game bus ignoring the Interface sounds key but not the Game volume |
-| `tests/test_sound_settings.gd` | Sound settings and the audio buses (184): the `[sound]` section's defaults, round trip and bad values; `Settings.set_volume` / `volume` / `set_interface_sounds`; the bus layout (Game and Interface into Master, limiters, the Interface filters); bus volumes and mutes following the settings, Interface sounds off, and the window in the background; temp settings files |
-| `tests/test_palette_roles.gd` | Palette roles (192): `UIKit.stat` takes a role name and follows a Day mode switch, every all-caps StringName in `ui/` is a Palette role, `NIGHT` and `DAY` name exactly Palette's colours |
-| `tests/test_spacing_tokens.gd` | Spacing and radius tokens (193): `Tokens` holds the guide's space and radius scales; on the board and every screen and modal (`each_screen`), container spacings and resting styleboxes' radii and content margins are on the scales; zones, hints and slot outlines are square; no spacing or radius literal in `ui/` |
-| `tests/test_type_tokens.gd` | Text sizes (194): `Tokens.TYPE_*` hold the guide's type scale; the theme's Display, Title, Heading (capitals, tracked), Body, BodySmall, Caption, Stat and RichBody variations; every text size on every screen (`each_screen`) and card face is on the scale; no literal size in `ui/` |
-| `tests/test_focus_ring.gd` | The focus ring waits for Tab (230): code focus (modals, Navigator screens) is hidden in pointer mode, Tab/Shift+Tab switch to keyboard mode where it rings, a click switches back; every `ui/` focus goes through `FocusRing`; a card focus the code places (the explore choice) follows the mode too (234) |
-| `tests/test_select_list.gd` | The selectable list (217): `UIKit.select_list()`, a well of `ListRow` rows (no box until selected; the selected one a sheet strip pulled 8 px out on a plinth), the signal `IndexTab` on the selected row only, a click or Up/Down choosing (`chosen`), focus (the ring) kept apart from selection |
-| `tests/test_theme.gd` | The UI theme (106): the look recorded through the real `main.tscn` (labels, panels, buttons in every state, the field, the focus ring, card type colours; a guard, last set on purpose by 178: the Night shift palette, the guide's typefaces with tabular figures, buttons on a hard shadow that sink when pressed, the accent only on End turn, square panels), no colour literals in `ui/` outside `palette.gd`, the palette's names, `GameTheme.build()`'s controls and variations, UIKit labels and overlay panels using them |
-| `tests/test_navigator.gd` | `Navigator` (103) on plain Controls: push hides the screen below, back and Esc return to it (never past the root), focus given and given back, `set_root` / `clear`, one `changed` per step; the title, new game and settings screens on `main.nav`; 104: titles, `ScreenHeader`, and an animated navigator's transitions (grow from a rect, fade, Reduce motion, back reverses with the screen below live at once, a new step finishes the running one) |
-| `tests/test_screen_header.gd` | The header on the new game and settings screens and the territory view in the real `main.tscn` (104; 118: the parent title is the only button, a link back), and a territory's view growing out of its card and shrinking back; uses `with_reduce_motion` and `wait_screen_transition` |
-| `tests/test_resource_tokens.gd` | Counter changes in the real `main.tscn` (114, 126, 181, 218): every change to Food, Wealth, Score or Pop rolls that counter's odometer with no "+N" tag, whatever caused it (cards, upkeep), and no counter strays from where it settles at any step of the roll (`assert_steady`, `counter_tag` in test_case.gd); none for a new game or behind the Supply screen, whose own wealth rolls with no tag; nothing floats; steps tweens by hand |
-| `tests/test_odometer.gd` | `Odometer` (181) in the real `main.tscn`: rolling up and down one value per `Anim.ODOMETER_STEP`, only the last `Anim.ODOMETER_MAX_STEPS` of a long change, a change mid-roll carrying on, Reduce motion jumping; tweens stepped by hand |
-| `tests/test_counters.gd` | The top bar's and the Supply screen's counters by name (177): `main.counter(key)` / `counter_text(key)` for each resource, `TopBar.SCORE`, `POP` and `TURN`, hidden when off, `main.supply.counter`; UI tests find counters this way, never by their text (`test_ui_structure` guards it) |
-| `tests/test_cabinet_doors.gd` | The government choice behind cabinet doors (209) in the real `main.tscn` on an `anarchy_case` game: the doors (`main.doors`: `left`, `right`, `moving()`) close, hold and part on the choice with `CABINET_CLOSE` / `CABINET_PART` at those moments, block keys and clicks while moving, close and part again after a choice, only a fade with Reduce motion, once per choice |
-| `tests/test_sidebar.gd` | The right sidebar (202) in the real `main.tscn`: the civilization's name and government link (`main.sidebar`: `heading`, `name_button`, `government_button`), at the right edge under the top strip with the Realm and hand to its left (1280×720, 1920×1080), opening the civilization modal (click, Enter), following Anarchy, no top-bar button, in the focus order after the strip, hidden on the start screens; the mock's frame (221): the top bar on a full-bleed ruled `Strip`, the open `Rail` with a hairline, the government as a `CapsLink`, the Realm heading level with the rail's rule |
-| `tests/test_end_turn_key.gd` | End turn as the specimen's key (203) at the sidebar's foot in the real `main.tscn` at 1920×1080: `main.sidebar.end_turn` (`lamp_lit()`, `lamp_color()`, `label_text()`, `plate_text()`, `caption_text()`, `busy()`): its box, the lamp (ochre with actions left and no caption since 221, sage when ready or unlimited, brick and disabled with the reason when a discard is owed or the game is over), busy "UPKEEP…" after a press, the plate flapping to the new turn, the pressed travel, the rail's width × 80 in the window's corner (221); `with_key_game` restores the engine whatever happens |
-| `tests/test_revolt_modal.gd` | Revolt from the civilization modal (205) in the real `main.tscn` on the real data (seed 5, Sumer): `identity_modal.revolt_button` ("Revolt…", disabled with `revolt_error`), the confirmation `main.revolt_modal` (title, context, the Anarchy flavor and quote, `revolt_summary()`, Keep / Revolt), revolting once, Keep / Esc / a click outside changing nothing; no Revolt on the board |
-| `tests/test_board_layout.gd` | The board without a sidebar in the real `main.tscn` at 1920×1080 (115): no `SidePanel` or `TurnBox`, the Realm and the hand reach the right edge, the top bar's order and fit, End turn in the top bar between Log and Menu (E, the discard text, disabled with its reason; 120), keys in the tooltips, the bar fitting with its longest texts |
-| `tests/test_log_drawer.gd` | The log drawer in the real `main.tscn` (115): closed at the start, L / the Log button open it sliding in from the right (fading with Reduce motion), L / Esc / the button / a click outside close it, lines append while closed, a new game clears it; the deck and discard counts in it, cards dealt from the Log button and its pulse (121); uses `main.log_drawer` (`is_open()`, `text()`) |
-| `tests/test_toasts.gd` | Toasts and the unread marker in the real `main.tscn` (116): a notice's flag for `Anim.TOAST_TIME`, at most 3 newest at the bottom, fading in place with Reduce motion, the targeting hint until targeting ends, refusals not toasted, "Log •" for unseen lines, toasts hiding under the menu and Knowledge; uses `main.toasts` (`shown()`, `texts()`). Engine notices are tested beside each scenario with `record_messages` / `check_noticed` (test_case.gd) |
-| `tests/test_resource_glyphs.gd` | Resource glyphs (180) in the real `main.tscn`: each top-bar counter's glyph (`assets/icons/`) in its hue at its left, figures in ink (food `WARN` when pop would starve), glyphs hiding with their counters, figures without words; a hand card's cost at the right of its name as glyph + figure entries, in food, wealth, insight order, red where `play_shortfall` names the resource; the food counter's sprout |
-| `tests/test_card_faces.gd` | Index-card faces and card motion (179): every card a `RAISED` sheet in a `CONTROL_BORDER` rule, the type as a `Band` under the name (none on a frontier card), hover / drag / warning / target borders, a hard shadow only when lifted, a hover lift of 8 px with no growth, at most 3° of tilt, no squash; CardViews in a plain Control tree |
-| `tests/test_card_landing.gd` | How a card lands (117): a dealt card settles with no squash but still flies and fades in; since 179 no flight squashes; a rejected card still shakes. CardViews in a plain Control tree, stepped by frames |
-| `tests/test_menu.gd` | The menu in the real `main.tscn`: Exit is last, pressing it or Enter on it calls `quit_hook` once, Tab wraps through it, no Exit at game over; uses the `menu_buttons()` / `game_over_buttons()` hooks |
-| `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`): no script in `engine/` or `ui/` over 700 lines; each one over 500 prints a `WARN` line in `scripts/test.sh` output |
-| `tests/test_test_runner.gd` | The runner itself (223): no frame sleep, a fixed 1/120 s step per frame even when a frame is slow, and the shard split (`tests/lib/test_shards.gd`): every n-th file, disjoint, one shard takes all; the warning when the player's settings file changes during a run (196, `tests/lib/settings_watch.gd`); a `test_*` method with arguments reported as a failure, not called (284, `tests/lib/test_methods.gd`, fixture `tests/lib/fixtures/runner_fixture.gd`) |
-| `tests/test_engine_scaling.gd` | How engine queries scale with the tableau (150): which buildings work (interleaved territories, population off) and `modifier()` linear in the tableau, a met eureka check not growing with it; `time_ratio` of two timings in alternating runs (test_case.gd, 236), never absolute times |
-| `tests/test_engine_structure.gd` | GameEngine's split (249, 281): `EngineCore` → `TerritoryQueries` (the territory queries) → `EngineQueries` (the other read queries) → `GameEngine` (fork, actions and their error queries, internals); every method still on a `GameEngine`; each file under 500 lines |
-| `tests/test_sim.gd` | The simulator on fixtures: the sim bot plays a game to its end, `SimStats.run` metrics, `run_files`' loader errors |
-| `tests/test_sim_stall.gd` | A parallel run's stalled or dead worker (318): `read_workers`' messages for a game a worker claimed and never finished, the progress file, `SIM_STALL_SEC` (`stall_sec_from_env`), the progress line (the runs that spawn workers: `tests/balance/test_parallel_sim.gd`) |
-| `tests/test_sim_anarchy.gd` | Sim metrics for Anarchy, governments and famine (158): the metric names, fixture games with known counts, the `revolted` / `order_restored` signals (the real-data parallel run: `tests/balance/test_sim_anarchy_report.gd`) |
-| `tests/balance/test_sim_reports.gd` | Balance suite: `SimStats.run_files` on the real data (what `scripts/sim.sh` prints: a line per metric, every strategy and civilization, `--civ` / `--turns`) |
-| `tests/balance/test_parallel_sim.gd` | Balance suite: The sim on several processes (152): `run_files`' `procs` gives the same report on 1, 2 and 4 processes (all strategies, or one), never more processes than games, in-process by default; a game with no result named (`play_claimed` / `read_workers`); no results directory left behind; 291: workers claim games from one queue (`play_claimed`, `games_per_proc`), the lock (`lock_path`: fail fast while held, a dead run's taken over, released after, ignored in-process); 318: a worker's progress file, a stalled worker stopped and named, a run within the stall limit finishes |
-| `tests/test_sim_procs.gd` | How many processes a sim run uses (291): `SimStats.procs_from_env` (SIM_PROCS, else the performance cores but one, else every core but one) |
-| `tests/test_sim_cache.gd` | The sim cache's code hash (292): `SimStats.source_hash` over `engine/`, `sim/` and `autoload/` scripts on temp trees |
-| `tests/balance/test_sim_cache_runs.gd` | Balance suite: the sim's result cache (292): a second run reads every game, the key (turns, civ, strategy, seed, the data's bytes), a parallel run plays only uncached games, bad entries replayed, the cache off. Temp trees go with `remove_tree` (test_case.gd) |
-| `tests/test_sim_compare.gd` | Comparing two checkouts (293): `SimStats.cell_done` (95% interval within ±5% of main, at least 1 point, or the seed maximum) and `cell_line` (the `!` past 10%) |
-| `tests/balance/test_sim_compare_runs.gd` | Balance suite: `SimStats.compare` on the real data (293): identical sides stop at 5 seeds, a changed side paired by seed, a block per strategy with metric lines only for metrics that moved, a side that isn't a checkout or doesn't load, the cache |
-| `tests/test_launch_options.gd` | Command-line options (135): `LaunchOptions` parse, apply, starts_game (the sim's options on real data: `tests/balance/`) |
-| `tests/test_sim_strategies.gd` | `SimStats` per strategy and civilization (134; the strategies themselves: `test_generic_bot.gd`) |
-| `tests/test_card_details.gd` | `def_details` / `card_details`: rules, live state (pop, slots, idle, tech price now), terms and generated keyword terms; a tech's `gives` and its rules without the given lines (289) |
-| `tests/test_modal_sheets.gd` | Modals as drafting sheets (207) in the real `main.tscn` at 1920×1080: each modal's sheet (RAISED, 2 px TEXT rule, 8,8 hard shadow), title block (4 px bar, title, context caps), body at most 640 px, footer under a 1 px rule (primary rightmost); the menu and game over on `main.modals` (game over stays); the rise, the stacked +8,+8, the drop, Reduce motion fades; hooks `sheet_offset()`, `sheet_alpha()`, `scrim_alpha()` |
-| `tests/test_modal_stack.gd` | The modal stack in the real `main.tscn` (153) on a seed-1 game with the tech tree and a tech's details over it: Esc, a click outside and the close keys close only the top modal, keys reach only the top, closing or reopening the tree closes the details above, the cascade, each modal on `main.modals`, a new game or the title screen closing them all; uses `main.modals` (`depth()`, `top()`) and a modal's `panel` |
-| `tests/test_details_modal.gd` | The details modal in the real `main.tscn`: I opens it for the focused card, Esc closes it, board keys blocked, supply piles, Play on a hand card's details (225), no Learn outside the Knowledge screen (229), no Buy outside a supply pile (259); uses `main.details.shown()`, `play_button()` and `research_button()` (Move… and Disband, 163, are in `test_unit_moves.gd`: `unit_buttons()`, `main.move_modal.target_buttons()`) |
-| `tests/test_tech_tree.gd` | `tech_tree()` (states, cost now, `gives`) and `era_name` / config `era_names` |
-| `tests/test_knowledge_screen.gd` | The Knowledge screen (208; the tech tree modal before it, 059, 140) in the real `main.tscn`: T and the Knowledge button push it on the play area's navigator (`main.knowledge`: `shown()`, `header`, `context_text()`, `era_heading(i)`, `slide_offset()`, `realm_shift()`), a row per era (caps heading, a future era dimmed with its unlocks), compact tiles (222: `tile(name)`, `tile_texts(name)`, `era_tiles(i)`, `era_vellum(i)`, `vellum_text(i)`) whose click, Enter, right-click or I opens the details, whose Learn button researches (229), a future era under vellum, back by Back / Esc / T / the link, the slide and the Realm's shift (a fade with Reduce motion), over a territory view |
-| `tests/test_card_text.gd` | Card text: short `rules_text` (⟳, merged keyword bonuses) and full `rules_tooltip` |
-| `tests/test_data_loader.gd` | JSON parsing, validation errors and warnings |
-| `tests/test_action_errors.gd` | `discard_error`, `choose_error`, and the main scene showing their reasons (093) |
-| `tests/test_changed.gd` | The `changed` signal: once per successful action, none when refused |
-| `tests/test_ui_queries.gd` | Engine queries the UI relies on: `playable_error`, `end_turn_error`, `supply_error`, `upcoming_era_unlocks`, `territory_groups`, `territory_summary`, `needs_target_choice`, `tech_eras`, `open_supply_piles` (094); `hand_limit`, `research_on` (175); `zone_of` (176); `play_shortfall` (180) |
-| `tests/test_pending.gd` | `pending()` for each decision kind (explore, discard, renewal, government) and the one blocking rule every action follows; 172: one `GameState.pending`, `pending()` a copy |
-| `tests/test_state_copy.gd` | Guards (171): `GameState.copy()` and `CardInstance.copy()` carry every script variable (read from the property list) and share nothing that can change |
-| `tests/test_blocking.gd` | Guards (171): while each decision is owed (explore, discard, renewal, government) and after game over, every other action refuses with a reason and changes nothing; the table of actions is checked against `GameEngine`'s methods with an error query; 172: each decision action's message order, every action under `# --- Actions ---` beside its query |
-| `tests/test_game_state.gd` | `GameState.copy` and `GameEngine.fork`: deep copies, independent RNG, pending choice, no signals or log on the original; the forecast not disturbing the next hand; `sample_fork` (311): the deck, event deck and territory deck reshuffled from a seed, everything visible the same, later shuffles from the seed, the game untouched |
-| `tests/test_rules.gd` | `GameEngine`: setup, actions, turn loop, scoring, game end |
-| `tests/test_keywords.gd` | Keywords: building `requires`, keyword-conditioned effects, validation, card text |
-| `tests/test_play_outcome.gd` | `GameEngine.card_played`: the outcome reported for each play |
-| `tests/test_explore.gd` | The `explore` op: loading, reveal, the explore `pending()`, `choose`, blocking play and end turn |
-| `tests/test_settle.gd` | The `settle` op (loading and play) and card targets: `valid_targets`, `needs_target`, target checks, outcome `target` |
-| `tests/test_slots.gd` | Building slots: `total_slots`, `free_slots`, city slot bonus, building targets and placement |
-| `tests/test_food_upkeep.gd` | Pop eating food at upkeep, and a first shortfall's one death |
-| `tests/test_famine.gd` | The Famine (083): arrives, escalates to max_counters, one at a time, ends when fed and leaves the game, blocks growth, guards, forecast, `event_counters`, config |
-| `tests/test_famine_relief.gd` | Relieving a Famine (084): `relieve_famine` and its error, the notice, a new Famine after relief, the forecast, `population.famine.relief` validation and price |
-| `tests/test_famine_guard.gd` | Building `housing` and `famine_guard` (060): loading, housing cap, saving starving pop, forecast, card text; uses the Silo fixture and `build_on` |
-| `tests/test_forecast.gd` | `upkeep_forecast`: next upkeep's net food and wealth, idle buildings, upkeep growth, `starve` |
-| `tests/test_gain_per_keyword.gd` | The `gain_per_keyword` op (081): count per settled territory with any keyword (once each, frontier excluded, rolled keywords), `count_territories_with`, upkeep and forecast, loading, card text |
-| `tests/test_identity_lines.gd` | The civilization and government in the real `main.tscn` (088, 115, 119): one top-bar button naming both, the modal showing the civilization then the government (rules, then flavor; the quote only in details since 231; "No bonus."), Esc / Close, above the log drawer, one or neither, a new government, no empty lines; End turn on screen at 1920×1080; uses `identity_button()` and `identity_modal` (`shown()`, `body_text()`, `close_button`) |
-| `tests/test_identity_cards.gd` | The civilization modal as two cards (231): civilization and government side by side (name, band, type line, rules, live state, flavor), a click opening details on top, Revolt… on the government card, the government deck as tabs, the bands' Palette colours; hooks `cards()`, `card_lines(i)`, `band_color(i)`, `deck_text()`, `deck_tabs()`; uses `anarchy_case.gd` |
-| `tests/test_territory_cards.gd` | Territories as plain cards in the Realm (102) on a TEST_CARDS game: one card per territory then cards on no territory (`main.tableau.row`), no city or building card outside the territory view, the live line (123: name, keywords, "▢ F   ⌂ P/H   ⚒ W   ⛨ D", 161; Frontier unchanged), drag targets (`drag.target_at`) and targeting, no collapse or Grow in the Realm, a settled territory's card, many cards wrap (078) |
-| `tests/test_harmful_ops.gd` | The `lose` and `lose_pop` ops (072): never below 0, the largest territory (ties in tableau order), a drawn event, upkeep and forecast, loading, card text, log |
-| `tests/test_lose_pct.gd` | The `lose_pct` op (268): a share of the store rounded up, an empty store, `lost`, upkeep and forecast, loading, card text |
-| `tests/test_lose_per_keyword.gd` | The `lose_per_keyword` op (268): per settled territory with a keyword (printed or rolled), never below 0, none matching, upkeep and forecast, loading, card text |
-| `tests/test_tiers.gd` | Settlement tiers (281): `tier` / `tier_name` / `next_tier_pop` from pop, tier slots, buildings past the slots idle, tier notices, loading `population.tiers`, status and tooltip |
-| `tests/test_size_unrest.gd` | Size unrest (282): a government's `tolerates` tier, +1 unrest per tier above it at upkeep, its limit, forecast, loader and text |
-| `tests/test_admin_unrest.gd` | Admin unrest (319): a government's `administers` cap and the `administers` modifier, k unrest for the k-th territory past it at upkeep, its limit, forecast, loader and text |
-| `tests/test_cost_per_territory.gd` | Cost per territory (320): a card's `cost_per_territory` grows its play cost per settled territory, before discounts; paying, the supply price, loader and text |
-| `tests/test_wonder_sites.gd` | Wonders built over turns (286): `project` buildings placed as sites, `contribute` / `contribute_limit`, completion, `abandon`, the loader and text |
-| `tests/test_trash.gd` | The `trash` op (082): hand targets (never the card played), errors, auto-pick, `trashed` never reshuffled, fork, loading, card text |
-| `tests/test_vellum.gd` | Targeting under vellum (210) in the real `main.tscn` on a TEST_CARDS game with a Temple and two territories: `main.vellum` (`covered_rect()`, `lifted()`) wipes in from the left over the Realm and hand with the card and its targets above it (2 px FOCUS outlines), off to the right after a play or a cancel (Esc, right-click, a click on it, a click on a card under it); a fade with Reduce motion; none while dragging |
-| `tests/test_trash_targeting.gd` | Trash targeting in the real `main.tscn`: a double-clicked trash card lights the other hand cards as pickable; picking one trashes it; uses `main.drag` and `main.views` |
-| `tests/test_trade.gd` | The `trade` op: loading, the `min_cities` block, √cities + pop payout, card text |
-| `tests/test_growth_cards.gd` | The `grow` op: loading, Granary (`here`), Festival (`each`), housing cap; 261: `best` (idle buildings, then smallest pop) and `each` with `count` (fixture `GROW_CARDS`); 262: no automatic growth, `growth_surplus` unknown, manual Grow gone |
-| `tests/test_population.gd` | Population: territory `housing`, the config `population` block, starting and settled pop, pop VP |
-| `tests/test_workers.gd` | Workers: `free_workers`, placement needing a worker, idle buildings at upkeep |
-| `tests/test_unit_moves.gd` | Moving and disbanding units (163): `move_unit` (station only, once a turn, an action), `disband` (to the discard, worker freed), their error queries, `move_targets` / `unit_move_block` / `unit_origin`, the details modal's Move… and Disband on the real main scene; a local `MOVE_UNITS` fixture (Levy) and `move_engine` (optionally under a TEST_GOVS government) |
-| `tests/test_units.gd` | Unit cards (160): the `unit` type and `strength` (loading, fixed-land errors, decks), recruiting onto a home (`unit_station`), units using a worker but no slot, targets, idle units after earlier buildings, card text and score; a local `TEST_UNITS` fixture (Levy) and `unit_engine` |
-| `tests/test_defence.gd` | Territory defence (161): `defense` on buildings and cities, config `terrain_defense`, `defense` / `defense_parts` (units on their station, working walls, cities, terrain keywords rolled ones included), idle cards, card text, the territory tooltip's breakdown; a local `TEST_DEFENCE` fixture (Levy, Palisade, Town) and `defence_engine` |
-| `tests/test_training.gd` | Training (164): `training` on buildings (loading), `unit_strength` (working training buildings on the unit's station, idle ones and idle units, non-units) and defence summing it, card text; a local `TEST_TRAINING` fixture (Levy, Drill Yard, Sparring Ring) and `training_engine` |
-| `tests/test_settings.gd` | `SettingsStore`: saving and loading `reduce_motion`, `day_mode` (183) and `civilization`, `Settings.set_day_mode`, `civilization_in` fallback, bad or missing files |
-| `tests/test_wealth.gd` | Wealth, the second resource: mixed costs, gaining wealth, carry over, wealth never used as food |
-| `tests/test_hand_limit.gd` | Keeping the hand, draw up to `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, voluntary discards |
-| `tests/test_hand_size.gd` | Hand size as a modifier (109): the `hand_size` modifier key, past the hand limit a config error, the opening hand and refills, the same deal order |
-| `tests/test_events.gd` | The event deck: the `event` type and `discard`, `event_deck` config, one draw per turn start from turn 2, active events' upkeep and discard, reshuffling |
-| `tests/test_events_at_turn_start.gd` | When the turn's event is drawn (237): last in the turn start from turn 2, never in `end_turn`; how long it lasts, its modifiers, and its order against the Anarchy check, drain, renewal and the government choice |
-| `tests/test_event_eras.gd` | Event decks by era (074): an event's `era`, later-era events in `future_events`, shuffled in once when their era is added, the notice, the event tooltip |
-| `tests/test_civilization.gd` | Civilization cards (062): the type, the `start` trigger, `starting.civilization`, setup, upkeep, forecast, score, fork, card text; uses `TEST_CIVS` / `civ_engine` |
-| `tests/test_civ_flavor.gd` | Civilization `flavor` and `quote` (107): loading and validation, optional, in `def_details` / `card_details` |
-| `tests/test_tech_event_flavor.gd` | Tech `flavor` and `quote`, event `flavor` (215): loading and validation, in the details, never on a card face |
-| `tests/test_civ_home.gd` | A civilization's `home` territory (111): loading and validation, population start fitting each home, card text, the home settled at new game, the same decks with or without a home, its roll |
-| `tests/test_civ_start_building.gd` | A civilization's start building (133): a start `create` into the tableau puts the building on the home, works from turn 1, must be a building fitting the home's keywords and slots |
-| `tests/test_discounts.gd` | Civilization `discounts` (108): loading and validation, card text, type and tag discounts on `play_cost` and `tech_cost`, supply discounts on `buy_price`, floors; `supply_play_cost` (232) |
-| `tests/test_government.gd` | Government cards (065): the type, `starting.government`, `government()`, playing one to replace the ruling one (to `removed`), upkeep, forecast, score, the same-government error, fork; uses `TEST_GOVS` / `gov_engine` |
-| `tests/test_government_deck.gd` | The government deck (154): created and fallen governments in `governments`, the government choice owed when Anarchy ends (`PENDING_GOVERNMENT`, `choose_government` and its error), unrest halved, the Government overlay, the identity modal's deck tabs (231), the bot's choice; uses `anarchy_case.gd` |
-| `tests/test_actions.gd` | Actions per turn (127): the government's `actions`, unlimited without one, each play using one, what needs none, the reset each turn; uses `TEST_GOVS` |
-| `tests/test_gain_actions.gd` | The `gain_actions` op (128): loading, the default amount, +N actions this turn, none carried over, nothing with unlimited actions, card text |
-| `tests/test_modifiers.gd` | Standing `modifiers` (129): loading and validation, `modifier(key)` over working cards, always-on zones and active events, the `actions` key, card text |
-| `tests/test_housing_modifier.gd` | The `housing` modifier key (110): added to every settled territory, never below 1, the growth cap, idle buildings, population start against printed housing, card text |
-| `tests/test_choose_civilization.gd` | Choosing a civilization (064): config `civilizations`, `civilizations()`, `new_game(seed, civ_id)`, `new_game_error`, the same seed dealing the same game for any civilization |
-| `tests/test_research.gd` | Techs: the `tech` card type and `prereq`, `research_deck` config, learning from the open tree (140: `buy_tech` / `buy_tech_error`, locked techs, the next era), the reveal gone, `research_card_name` |
-| `tests/test_diffusion.gd` | Diffusion (142): 1 insight off per later era, none in a tech's own era, stacking with discounts and eurekas, the details |
-| `tests/test_eurekas.gd` | Eurekas (141): loading `eureka`, the tableau count (card and tag forms, idle cards), the floor, `tech_tree`'s `eureka`, card text, details and the tree's line |
-| `tests/test_unrest.gd` | Unrest (144): the government's `unrest_limit` and the modifier, `unrest_limit()` / `at_unrest_limit()` / `unrest_on()`, gain capped at the limit, unrest can't be paid (cost, discount, relief, trade), the forecast and the top bar's Unrest counter |
-| `tests/test_anarchy.gd` | Anarchy (145): the config `unrest` block, falling at the limit, what it locks, its upkeep and burning out, era unrest |
-| `tests/test_anarchy_length.gd` | Anarchy's length (155): counters by the unrest share of the fallen limit, calming lowers them for good, one off at the end of each Anarchy turn |
-| `tests/test_anarchy_drain.gd` | Anarchy's drain (156): config `unrest.drain_pct`, food and wealth lost each Anarchy turn, the forecast |
-| `tests/test_anarchy_event.gd` | Anarchy as an event (253): in the active events with its counters, the government slot empty, not counted down by upkeep, its action, the loader wants an event |
-| `tests/test_default_government.gd` | The government choice's default (254): the starting government first and focused, else the deck's first |
-| `tests/test_renewal_modal.gd` | The Renewal modal (255): a row per option, chosen up to the count, Trash pays in one call, not dismissable, its sounds |
-| `tests/test_leaving_anarchy.gd` | Restoring order (146, 155): the c × (c + 1) price, `restore_order` and its error, the Restore order button, the bot paying |
-| `tests/test_renewal.gd` | Renewal (147): what's owed after the draw under Anarchy, `renew` and its error, the block on other actions, the `renewal` modifier, the Renewal overlay, the bot's pick |
-| `tests/test_revolution.gd` | Revolution (148, 155): revolting at any time, Anarchy next turn, `revolt` and its error, `revolt_forecast`, the Revolt button, the bot's revolt |
-| `tests/test_insight_per_gain.gd` | The `insight_per_gain` modifier (157): each insight gain lowered (play, upkeep, per-count ops, trade), modifiers add up, the forecast, its text |
-| `tests/test_insight.gd` | Insight (139): techs cost insight only, buying spends it, civilization tech discounts, tree and details prices in insight, the forecast and the top bar's Insight counter |
-| `tests/test_tech_eras.gd` | `era`, the `add_era` and `research` ops, `future_techs`, the empty deck adding the next era, era techs never lost, Library |
-| `tests/test_prices.gd` | Prices and unrest in one place (173): `can_pay` / `pay` / `price_error`, `Fields.amounts_text`, `set_unrest` stopping at the limit; only EngineCore lowers resources or writes unrest |
-| `tests/test_supply.gd` | The card supply: `supply` config, `supply` / `supply_left` / `buy_price` / `buy_error` / `buy`, blocking; locked piles, `supply_locked` and the `unlock` op (057) |
-| `tests/test_supply_screen.gd` | The Supply screen's pile cards in the real `main.tscn` (232): the play cost after discounts in the title row, the buy price on a tag below the card (`price_tag`), the copies left under it (`copies_left`), the tag dimming with an unbuyable pile; a click or Enter opening the pile's details, whose Buy (`main.details.buy_button()`, `buy_reason()`, `pile_tag()`, `pile_left()`) buys through `supply.buy` (259) |
-| `tests/test_terrains.gd` | Terrain keywords (130): config `terrains`, exactly one terrain per territory, terrain-keyed roll tables, terrain/feature keyword details |
-| `tests/test_territory_resources.gd` | Rolled resource keywords: `resource_keywords` / `territory_resources` config, rolling per copy, `territory_keywords` |
-| `tests/test_territories.gd` | Territory cards, `keywords` / `territory_deck` / `starting.territory` config, territory setup |
-
-Add a new file when an area grows past ~300 lines or is a separate concern
-(e.g. `test_effects.gd`, `test_market.gd`).
+Add a new file when an area grows past ~300 lines or is a separate concern.
 
 ```gdscript
 extends "res://tests/lib/test_case.gd"
@@ -253,63 +74,72 @@ The runner creates a fresh instance for every `test_*` method, so tests don't sh
 before the first test so the `Game` and `Settings` autoloads are in the tree and ready. Otherwise no frames run unless
 a test awaits them, so UI tests see structure (views, labels, overlays), never finished animations. The runner
 awaits every test: a UI test that measures laid-out sizes or positions calls `await wait_frames()` first (088).
-Minimum sizes before a layout pass are meaningless. After each test the runner frees anything the test left in the
+After each test the runner frees anything the test left in the
 tree (a UI test that crashed before `close_main`), so one crash doesn't fail every later UI test (087).
-Before the first test the runner swaps the `Settings` store for a fresh one (`user://test_run_settings.cfg`, Day mode
-and Reduce motion off), so the player's own settings never change a result; after the run it prints a `WARN` line (not a
-failure) if the player's `user://settings.cfg` changed (195, 196: `tests/lib/settings_watch.gd`), since a game running
-beside the suite may have saved it. A test that needs a setting on uses `with_temp_settings` or `with_reduce_motion`.
+Before the first test the runner swaps the `Settings` store for a fresh one (`user://test_run_settings.cfg`, its
+defaults), so the player's settings never change a result; it prints a `WARN` line if the player's
+`user://settings.cfg` changed during the run (195, 196: `tests/lib/settings_watch.gd`). A test that needs a setting on
+uses `with_temp_settings` or `with_reduce_motion`.
 
 ### Available in every test (`tests/lib/test_case.gd`)
+
+Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 
 | Name | Use |
 |---|---|
 | `eq(actual, expected, what)` | Equality. Always pass `what` so failures say which value was wrong |
 | `check(cond, message)` | Boolean assertion |
 | `has_msg(messages, fragment)` | Some loader error/warning contains `fragment` |
-| `check_noticed(recorded, fragment, priority)` | A notice follows its log line in `record_messages`' recording; given a priority, it was noticed with it (190) |
-| `expect_error(fragment)` | An error containing `fragment` must be logged (`push_error`) during the test; it doesn't fail it (186) |
-| `make_engine(deck, overrides, seed, extra_cards)` | New game from `TEST_CARDS` (plus `extra_cards`, raw card dicts a single file needs); `deck` is `{id: count}`; `overrides` replace config keys. The Capital starts on `homeland` (5 slots) |
-| `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`). Add cards here when a test needs a new shape |
-| `tests/lib/tech_case.gd` | Base class for tech tests: fixture `TECHS`, `tech_db`, `tech_engine` (a `GameEngine` with 20 wealth and 20 insight) |
-| `tests/lib/raid_case.gd` | Base class for raid tests: fixture `RAID_CARDS`, `raid_load`, `raid_engine` (Homeland and Hills settled, raids on top of the event deck), `record_raids` |
-| `tests/lib/anarchy_case.gd` | Base class for Anarchy tests (145–148): fixture governments and cards, `anarchy_raw` / `anarchy_engine` (the unrest block, no renewal; extra cards optional), `fallen_engine` (in Anarchy), `revolted_engine` (a revolution's Anarchy), `second_turn_engine` (Anarchy's second turn), `ruling`, `raw_config_errors` (a raw config's errors) |
+| `check_noticed(recorded, fragment, priority)` | A notice follows its log line in `record_messages`' recording |
+| `expect_error(fragment)` | An error containing `fragment` must be logged (`push_error`) during the test |
+| `make_engine(deck, overrides, seed, extra_cards)` | New game from `TEST_CARDS` (+ `extra_cards`) |
+| `TEST_CARDS` | Small, stable card set (includes territories `grassland` and `hills`) |
+| `tests/lib/tech_case.gd` | Base class for tech tests: `TECHS`, `tech_db`, `tech_engine` |
+| `tests/lib/raid_case.gd` | Base class for raid tests: `RAID_CARDS`, `raid_load`, `raid_engine` |
+| `tests/lib/anarchy_case.gd` | Anarchy tests' base (145–148): fixture governments, `anarchy_engine` |
 | `keywords()` | Keyword ids the `TEST_CARDS` territories use; pass to `parse_cards` |
 | `raw_config(deck, overrides)` | Config dictionary for loader tests |
-| `fixture_load(extra, sets, resource_list, resource_keywords)` | `TEST_CARDS`, then each fixture set in `sets` (`[TEST_GOVS, TEST_CIVS]`, `[TECHS]`, …), then `extra`, parsed: `{cards, errors, warnings}`; for loader tests (170) |
+| `fixture_load(extra, sets, resource_list, resource_keywords)` | `TEST_CARDS`, fixture sets, then `extra`, parsed |
 | `fixture_db(extra, sets, resource_list)` | `fixture_load`'s cards, failing the test on a load error (170) |
-| `cards_of(r, errors, warnings)` | A `fixture_load` result's cards, appending its errors and warnings to the out arrays (the `*_db` helpers) |
-| `config_errors_for(cards, overrides, deck)` | The errors from parsing a config against the parsed card db `cards`; `overrides` replace keys after `raw_config`'s defaults (a `population` block is used as given) |
-| `config_errors(overrides, sets, deck)` | `config_errors_for` on `fixture_db([], sets)`; the only `config_errors` (170: per-file variants are named for what they take, e.g. `population_errors`, `raw_config_errors`) |
-| `explore_engine()` / `over_engine()` | A `make_engine` game with an explore choice open (Hills and Grassland revealed, Jungle below); a finished game (turn_limit 1) |
-| `card_with(type, effect)` / `set_home_pop(engine, n)` / `capital_land(engine)` | A card "x" with one effect; the home territory's pop; the territory the Capital stands on |
-| `card_ids(zone)` / `first_in_hand(engine)` / `home_uid(engine)` | Inspection helpers; `home_uid` is the config's starting territory (fixed in 087: it used to find only `homeland`) |
-| `uid_of(zone, id)` / `sorted(array)` | First uid with that id (or -1); a sorted copy for order-free comparisons |
+| `cards_of(r, errors, warnings)` | A `fixture_load` result's cards; its messages appended to the out arrays |
+| `config_errors_for(cards, o, deck)` / `config_errors(o, sets, deck)` | A config's errors on `cards` / `fixture_db([], sets)` |
+| `card_load(card, sets)` / `config_load(o, sets)` / `config_load_on(r, o)` | One card's `fixture_load`; a config on one (340) |
+| `explore_engine()` / `over_engine()` | A game with an explore choice open; a finished game |
+| `card_with(type, effect)` / `set_home_pop(engine, n)` / `capital_land(engine)` | Card "x" with one effect; home pop; Capital's land |
+| `card_ids(zone)` / `first_in_hand(engine)` / `home_uid(engine)` | Inspection; `home_uid`: the starting territory |
+| `uid_of(zone, id)` / `sorted(array)` | First uid with that id (or -1); a sorted copy |
 | `arrange(zone, ids_top_first)` | Puts those cards on top of the zone, top first; the rest stay below |
-| `settle(engine, ids)` / `to_frontier(engine, ids)` | Moves those territory copies from `territory_deck` to the tableau / frontier |
-| `wait_frames(n)` | `await wait_frames()` lets containers lay out before a UI test measures sizes or positions (088); headless starts at 1920×1920, so set the window size first if the test depends on it |
+| `settle(engine, ids)` / `to_frontier(engine, ids)` | Moves territories from the deck to the tableau / frontier |
+| `wait_frames(n)` / `settle_motion()` | Containers lay out (088); cards land |
+| `check_wheel_step(main, scroll, what)` / `with_window_size(size, body)` | UI: a notch's scroll (362) |
 | `put_in_hand(engine, id)` | Puts a new copy in the hand (via `create_card`) and returns its uid |
-| `put_in(engine, id, zone)` | Same, into any zone; a government is placed directly, as `create_card` sends it to the government deck (154) |
-| `build_on(engine, territory_uid, ids)` | Puts new copies of those buildings straight on a territory, in order (no cost or slot check; the last go idle first) |
-| `check_cases(cases, load)` | Table-driven loader validation: rows `[label, input, fragment(s), kind]`, kind `errors` / `one_error` / `warnings` / `warning_only` |
-| `TEST_CIVS` / `civ_db()` / `civ_engine(civ, deck, overrides)` | Fixture civilizations (Tribe, Nomads; backlog 062), kept out of `TEST_CARDS`; `civ_engine` starts a game with `starting.civilization` civ (`""` for none) |
-| `TEST_GOVS` / `gov_db()` / `gov_engine(gov, deck, overrides)` | Fixture governments (Council, Kingdom; backlog 065), kept out of `TEST_CARDS`; `gov_engine` starts a game with `starting.government` gov (`""` for none) |
-| `TEST_EVENTS` / `event_db()` | Fixture events (Windfall, Trade Winds, Omen, Harvest; backlog 039), kept out of `TEST_CARDS`; `event_db` parses both |
-| `with_event_engine(body, event_deck, overrides)` | UI tests: runs `body` with `Game.engine` swapped for a game on `TEST_CARDS` + `TEST_EVENTS`, then puts the real engine back (moved from `test_event_panel` in 079) |
-| `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI tests: add and free the real main scene; play seed 1 to the end with `play_first_legal` (the first legal action each step, 314), calling `after_turn(main)` each turn. A real-data game is cut to `SEED_1_TURNS` (20) turns, and `close_main` restores the limit (066: 100 turns through the UI is too slow). A fixture main deck must not loop the bot (TEST_CARDS' `scout` only draws) |
-| `with_temp_settings(body, path)` | Runs `body` with the Settings autoload saving to a temp file (Day mode and Reduce motion off), then puts the player's settings and palette back; `Settings.store.path` is the temp file inside `body` |
-| `shown_state(key)` | The state a toggle key shows beside it, "ON" or "OFF" (its `state_label`'s text, 219), or "" if it has none |
-| `close_event(main)` | UI tests: closes the drawn-event modal if one is up, whichever event the seed drew (a choice event's first open option, else OK), so real-data tests don't depend on the event deck (274) |
-| `mid_game()` / `each_screen(visit)` / `visible_controls(root)` | UI tests: main on a seed-1 game at turn 3; `visit(main, name)` on the board and every screen and modal (193, 194); the visible controls under a node |
-| `with_main(engine, body)` / `with_territories_main(body, deck, overrides)` / `with_game(calm, body)` | UI tests: run `body(main)` on the real main scene started on seed 1: on `engine`; on a `make_engine` game with Grassland and Hills to explore; on the real game with Reduce motion `calm` |
-| `state_dump(v)` / `state_equal(a, b)` / `state_diff(a, b)` | Deep state as text (script objects by their variables, a CardDef by id, an RNG by seed and state), equality on it, and the variables of two objects that differ (171) |
-| `script_vars(o)` / `shared_refs(a, b)` / `scribble(v)` | An object's script variables; the paths where a value and its copy share an array, dictionary or object; change everything reachable in place (171) |
-| `accent_footer(modal)` | UI tests: the texts of a modal's visible footer buttons in the primary look (`AccentButton`, 251) |
-| `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport, as the keyboard would |
+| `put_in(engine, id, zone)` | Same, into any zone (a government placed directly) |
+| `build_on(engine, territory_uid, ids)` | Puts new copies of those buildings straight on a territory, in order |
+| `check_cases(cases, load)` / `check_loads(rows, load)` | Loader tables: rejected input / accepted input (340) |
+| `TEST_CIVS` / `civ_db()` / `civ_engine(civ, deck, overrides)` | Fixture civilizations and a game as one (062) |
+| `TEST_GOVS` / `gov_db()` / `gov_engine(gov, deck, overrides)` | Fixture governments and a game under one (065) |
+| `TEST_EVENTS` / `event_db()` | Fixture events (039) and their card db |
+| `with_event_engine(body, event_deck, overrides)` | UI tests: `body` with `Game.engine` on `TEST_CARDS` + `TEST_EVENTS` |
+| `open_main()` / `close_main(main)` / `play_seed_1(main, after_turn)` | UI: add / free main; play seed 1 out |
+| `with_temp_settings(body, path)` | Runs `body` with the settings saved to a temp file, then restores them |
+| `shown_state(key)` | The state a toggle key shows, "ON" or "OFF" (219) |
+| `close_event(main)` | UI tests: closes the drawn-event modal if one is up |
+| `mid_game()` / `each_screen(visit)` / `visible_controls(root)` | UI: seed 1 turn 3; each screen and modal; visible controls |
+| `with_main(engine, body)` / `with_territories_main(body, deck, overrides)` / `with_game(calm, body)` | UI: `body(main)` on main, seed 1 |
+| `state_dump(v)` / `state_equal(a, b)` / `state_diff(a, b)` | Deep state as text, equality on it, and what differs |
+| `script_vars(o)` / `shared_refs(a, b)` / `scribble(v)` | Script variables; shared references; change all in place |
+| `accent_footer(modal)` | UI tests: a modal's footer buttons in the primary look (251) |
+| `press_key(main, keycode)` | UI tests: presses and releases a key through main's viewport |
+| `open_game(big, freeze_sfx)` / `close_game(main)` | UI: main on seed 1 (1920 × 1080, sound frozen if asked) (334) |
+| `click_control` / `click_point` / `move_mouse` / `away` / `centre` / `hovers` / `open_details` | UI: real clicks, moves, hovers |
+| `shown_button(root, prefix)` / `wait_seconds(s)` / `hills_of(engine)` | Button by text; seconds; Hills' uid |
+| `MainProbe` (`tests/lib/main_probe.gd`) | UI: controls and readings inside main's components, `MainProbe.event_modal(main)` (392) |
 
-Add a helper to `test_case.gd` once two test files need it, and check there (and in `tech_case.gd`) before
-writing one. Helpers take and return `GameEngine`; a test types an engine `Object` only in its red phase. Two files'
-helpers with the same name must do the same thing. Tests never call engine members that start with `_`: if setup needs one, add a public method.
+A helper a second test file needs moves to `tests/lib/` (the suite checks copies, 334); look there before writing one.
+A UI test that needs a control inside one of main's components adds a `MainProbe` function, never a method on
+`main.gd` (the suite fails on a test hook there, 392).
+Helpers take and return `GameEngine` (the suite fails on an engine typed `Object`, 333). Tests never call engine
+members that start with `_`: if setup needs one, add a public method.
 
 ### Guidelines
 
@@ -320,15 +150,15 @@ helpers with the same name must do the same thing. Tests never call engine membe
   that game's seed.
 - **Test through the public API** (`play_card`, `end_turn`, `play_error`, `score`, zones,
   signals). Setting state directly (`e.resources.food = 1`) is fine for setup.
-- **Balance** is not tested, and not checked per change: it's a separate step (a balance item, or when the user
-  asks), using `scripts/sim.sh` / the `balance` skill.
+- **Balance** is not tested, and not checked per change: it's a separate, manual step (only when the user asks),
+  using `scripts/sim.sh` / the `balance` skill.
 - **Helper names** must not start with `test_`: the runner calls every `test_*` method with no arguments.
 - **Real data** is only checked by `test_real_data_loads` and `tests/test_content.gd` (invariants and a
   smoke test). Don't assert exact numbers from `data/` (slots, costs, deck sizes): a balance edit must not
   break a test. Warnings in the real data are checked once, in `test_real_data_loads_without_warnings`.
 - **Signals**: connect a lambda that appends to an array, then assert on the array
   (see `test_game_ends_at_turn_limit`).
-- **Loader errors**: assert the message names the file, card and field, since that is the
-  user-facing contract. Put the cases for one config block or card field in one table test,
-  `test_<area>_validation`, with `check_cases([[label, input, fragment, kind?], ...], load)`: adding a rule is
-  a row, and a failing row names its label. Valid input that loads and normalizes stays a named test.
+- **Loader tests** are tables, a case per row (a failing row names its label). Rejected input:
+  `check_cases([[label, input, fragment, kind?], ...], load)`; messages name file, card and field. Accepted input:
+  `check_loads([[label, input, {"cards.x.era": 2}], ...], load)`: no messages, each path equal (340). Bind `load`
+  (`fixture_load.bind([TEST_GOVS])`) rather than wrap it.

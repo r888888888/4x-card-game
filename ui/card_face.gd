@@ -19,6 +19,7 @@ const BADGES := {
 	CardView.BOARD_EVENT: TYPE_MARKS[CardDef.EVENT] + " Event",
 }
 const BAND := 5.0  # the type band's height, under the name (179)
+const STAMP_TILT := -0.07  # radians: an upgrade's tier stamp, set down by hand (302)
 
 var rules_tip := ""  # the full card text; CardView starts every tooltip with it
 var board := false  # a board face (build_board, 138): one line per field, the rest in the details
@@ -46,11 +47,19 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	if in_hand and Game.engine != null:
 		show_shortfall(Game.engine.play_shortfall(card.uid))
 	_add_band(color)
+	if in_hand:  # a hand-size face carries the card's art plate under its band (381); smaller faces don't
+		var art := CardArt.new()
+		art.name = "Art"
+		art.setup(def.id, color)
+		add_child(art)
 
 	var type_row := HBoxContainer.new()
 	type_row.name = "TypeRow"
 	type_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var subtitle: String = TYPE_MARKS.get(def.type, "") + " " + def.type.capitalize()
+	var e := Game.engine
+	var base_name := e.upgrade_base_name(def.id) if e != null else ""  # an upgrade's face names its base (302)
+	var subtitle: String = TYPE_MARKS.get(def.type, "") + " " + (def.type.capitalize() if base_name == "" else
+		"Upgrade · " + base_name)
 	var shown_tags := def.tags.filter(func(t): return t != def.type)
 	if not shown_tags.is_empty():
 		subtitle += " · " + ", ".join(PackedStringArray(shown_tags))
@@ -60,9 +69,15 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	add_child(type_row)
 
 	_set_rules_tip(card, card_db)
-	var rules_text := def.rules_text(card_db)
-	if rules_text != "":  # territories have none; an empty label would still take a line
-		var rules := rich_label(rules_text, Tokens.TYPE_BODY)
+	var face := def.face(card_db)  # the ledger, the rules and the fine print (382)
+	if not face.ledger.is_empty():
+		add_child(_ledger(face.ledger))
+	var lines := Array(face.rules)
+	if base_name != "":  # an upgrade adds: each line led by "Also" (302)
+		lines = lines.map(func(line: String): return "Also " + line)
+	if not lines.is_empty():  # territories have none; an empty label would still take a line
+		var rules := rich_label("\n".join(PackedStringArray(lines)), Tokens.TYPE_BODY)
+		rules.name = "Rules"
 		rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		add_child(rules)
 
@@ -73,8 +88,80 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		add_child(info_label)
 
+	if in_hand and not face.fine.is_empty():  # the gates, at the foot of a hand-size face only, above the VP (382)
+		_add_fine_print(face.fine)
 	if def.vp > 0:
 		add_child(label("%d VP" % def.vp, Tokens.TYPE_BODY, Palette.GAIN))
+	var tier := e.card_tier_name(def.id) if base_name != "" else ""
+	if tier != "":  # the tier an upgrade needs, as a stamp (302)
+		var stamp := Label.new()
+		stamp.name = "TierStamp"
+		stamp.text = tier
+		stamp.uppercase = true
+		stamp.theme_type_variation = &"TierStamp"
+		stamp.size_flags_horizontal = Control.SIZE_SHRINK_END
+		stamp.rotation = STAMP_TILT
+		add_child(stamp)
+
+
+## A two-column grid of a card's figures (382): each label in caps, then its figure.
+func _ledger(rows: Array) -> GridContainer:
+	var grid := GridContainer.new()
+	grid.name = "Ledger"
+	grid.columns = 2
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grid.add_theme_constant_override("h_separation", Tokens.SPACE_3)
+	grid.add_theme_constant_override("v_separation", Tokens.SPACE_0)
+	for row: Array in rows:
+		var name_label := Label.new()
+		name_label.text = row[0]
+		name_label.uppercase = true
+		name_label.theme_type_variation = &"LedgerLabel"
+		name_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		grid.add_child(name_label)
+		var figure := Label.new()
+		figure.text = row[1]
+		figure.theme_type_variation = &"LedgerFigure"
+		grid.add_child(figure)
+	return grid
+
+
+## The card's gates as one line of fine print under a hairline (382).
+func _add_fine_print(gates: PackedStringArray) -> void:
+	var rule := ColorRect.new()
+	rule.color = Palette.HAIRLINE
+	rule.custom_minimum_size.y = 1
+	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(rule)
+	var fine := Label.new()
+	fine.name = "FinePrint"
+	fine.text = " · ".join(gates)
+	fine.uppercase = true
+	fine.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	fine.theme_type_variation = &"FinePrint"
+	fine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(fine)
+
+
+## Shows ribbons (UpgradeRibbon per upgrade, 302) at the foot of the card, then chip if any; replaces those shown.
+func set_ribbons(ribbons: Array[UpgradeRibbon], chip: Button) -> void:
+	var old := get_node_or_null("Ribbons")
+	if old != null:
+		remove_child(old)
+		old.queue_free()
+	if ribbons.is_empty() and chip == null:
+		return
+	var foot := VBoxContainer.new()
+	foot.name = "Ribbons"
+	foot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	foot.add_theme_constant_override("separation", Tokens.SPACE_0)
+	foot.size_flags_vertical = Control.SIZE_EXPAND | Control.SIZE_SHRINK_END  # along the card's foot
+	for ribbon in ribbons:
+		foot.add_child(ribbon)
+	if chip != null:
+		chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		foot.add_child(chip)
+	add_child(foot)
 
 
 ## Builds the fixed-height face of a card in the Realm's row (138) for kind (CardView.BOARD_*), in color. A frontier
@@ -111,7 +198,7 @@ func build_board(card: CardInstance, card_db: Dictionary, kind: String, color: C
 			printed.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 			add_child(printed)
 		return
-	var rules := Array(def.rules_text(card_db).split("\n")).filter(func(line: String):
+	var rules := Array(def.face(card_db).rules).filter(func(line: String):
 		return line != "" and line != def.lasts_text())
 	if not rules.is_empty():
 		add_child(one_line(rich_label(rules[0], Tokens.TYPE_BODY_S)))
@@ -134,6 +221,13 @@ func set_band_color(color: Color) -> void:
 	var band := get_node_or_null("Band") as ColorRect
 	if band != null:
 		band.color = color
+
+
+## Dims the art plate with its card (381); nothing on a face without one.
+func set_art_dimmed(on: bool) -> void:
+	var art := get_node_or_null("Art") as CardArt
+	if art != null:
+		art.set_dimmed(on)
 
 
 ## A small pill in color naming what a board card is (138).
@@ -230,6 +324,52 @@ func text() -> String:
 		elif child is RichTextLabel:
 			lines.append(child.get_meta("source", child.get_parsed_text()))
 	return "\n".join(lines)
+
+
+## Shows a unit's veteran pips (388): total discs, the first filled lit in the unit colour, the rest dim; none at
+## total 0. Replaces any row shown.
+func set_veteran_pips(filled: int, total: int) -> void:
+	var old := get_node_or_null("VeteranPips")
+	if old != null:
+		remove_child(old)
+		old.queue_free()
+	if total <= 0:
+		return
+	var row := HBoxContainer.new()
+	row.name = "VeteranPips"
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", Tokens.SPACE_1)
+	for i in total:
+		var pip := Panel.new()
+		pip.custom_minimum_size = Vector2(Tokens.SPACE_2, Tokens.SPACE_2)
+		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var disc := StyleBoxFlat.new()
+		disc.set_corner_radius_all(Tokens.RADIUS_FULL)
+		pip.add_theme_stylebox_override("panel", disc)
+		row.add_child(pip)
+	add_child(row)
+	light_veteran_pips(filled)
+
+
+## Lights the first filled veteran pips and dims the rest (388); nothing without a row.
+func light_veteran_pips(filled: int) -> void:
+	var row := get_node_or_null("VeteranPips")
+	if row == null:
+		return
+	var dim := Palette.UNIT
+	dim.a = CardView.PIP_DIM
+	for i in row.get_child_count():
+		(row.get_child(i).get_theme_stylebox("panel") as StyleBoxFlat).bg_color = Palette.UNIT if i < filled else dim
+
+
+## Each veteran pip's tint, in order ([] with no row).
+func veteran_pip_tints() -> Array[Color]:
+	var out: Array[Color] = []
+	var row := get_node_or_null("VeteranPips")
+	if row != null:
+		for pip in row.get_children():
+			out.append((pip.get_theme_stylebox("panel") as StyleBoxFlat).bg_color)
+	return out
 
 
 ## Replaces the gold info line called label_name at the bottom of the card with text; "" removes it.

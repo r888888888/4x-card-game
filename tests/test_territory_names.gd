@@ -9,14 +9,18 @@ const NAMED_CIVS := [
 ]
 
 
-## TEST_CARDS + TEST_CIVS + NAMED_CIVS + extra, parsed.
+## TEST_CARDS + TEST_CIVS + NAMED_CIVS + extra, loaded (fixture_load).
+func names_load(extra := []) -> Dictionary:
+	return fixture_load(NAMED_CIVS + extra, [TEST_CIVS])
+
+
+## names_load's cards, after appending its errors and warnings.
 func names_db(extra: Array = [], errors: Array[String] = [], warnings: Array[String] = []) -> Dictionary:
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_CIVS + NAMED_CIVS + extra}, resources(), "cards.json",
-		errors, warnings, keywords())
+	return cards_of(names_load(extra), errors, warnings)
 
 
 ## A game as civilization civ ("" for none) with a hand of Pioneers and 3 of each of Hills, Grassland and River to settle.
-func names_engine(civ: String) -> Object:
+func names_engine(civ: String) -> GameEngine:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := names_db([], errors, warnings)
@@ -42,7 +46,7 @@ func settle_one(e: GameEngine, id: String) -> int:
 # --- AC1: the civilization's names, in order ---
 
 func test_settled_territories_take_the_civilizations_names_in_order() -> void:
-	var e: Object = names_engine("founders")
+	var e := names_engine("founders")
 	eq(e.territory_name(home_uid(e)), "Alpha", "the starting territory")
 	eq(e.territory_name(settle_one(e, "hills")), "Beta", "the first settled")
 	eq(e.territory_name(settle_one(e, "grassland")), "Gamma", "the second settled")
@@ -51,7 +55,7 @@ func test_settled_territories_take_the_civilizations_names_in_order() -> void:
 # --- AC2: the list again with numerals ---
 
 func test_names_repeat_with_numerals_when_the_list_runs_out() -> void:
-	var e: Object = names_engine("founders")
+	var e := names_engine("founders")
 	var names: Array[String] = []
 	for id in ["hills", "grassland", "river", "hills", "grassland", "river"]:
 		names.append(e.territory_name(settle_one(e, id)))
@@ -61,15 +65,15 @@ func test_names_repeat_with_numerals_when_the_list_runs_out() -> void:
 # --- AC3: no list, and the frontier ---
 
 func test_without_city_names_a_territory_keeps_its_card_name() -> void:
-	var tribe: Object = names_engine("tribe")
+	var tribe := names_engine("tribe")
 	eq(tribe.territory_name(home_uid(tribe)), "Homeland", "Tribe's starting territory")
 	eq(tribe.territory_name(settle_one(tribe, "hills")), "Hills", "Tribe settles Hills")
-	var none: Object = names_engine("")
+	var none := names_engine("")
 	eq(none.territory_name(settle_one(none, "river")), "River", "no civilization")
 
 
 func test_a_frontier_territory_has_its_card_name() -> void:
-	var e: Object = names_engine("founders")
+	var e := names_engine("founders")
 	to_frontier(e, ["hills"])
 	eq(e.territory_name(uid_of(e.zone("frontier"), "hills")), "Hills", "frontier Hills")
 	eq(e.territory_name(settle_one(e, "grassland")), "Beta", "the frontier didn't use a name")
@@ -78,7 +82,7 @@ func test_a_frontier_territory_has_its_card_name() -> void:
 # --- AC4: renaming ---
 
 func test_rename_trims_the_name_and_spends_nothing() -> void:
-	var e: Object = names_engine("founders")
+	var e := names_engine("founders")
 	var home := home_uid(e)
 	var resources_before: Dictionary = e.resources.duplicate()
 	var actions_before: int = e.state.actions_used
@@ -90,10 +94,10 @@ func test_rename_trims_the_name_and_spends_nothing() -> void:
 
 
 func test_renaming_does_not_shift_the_next_default_name() -> void:
-	var e: Object = names_engine("founders")
+	var e := names_engine("founders")
 	e.rename_territory(home_uid(e), "Alpha Prime")
 	eq(e.territory_name(settle_one(e, "hills")), "Beta", "the next name is still Beta")
-	var tribe: Object = names_engine("tribe")
+	var tribe := names_engine("tribe")
 	check(tribe.rename_territory(home_uid(tribe), "Camp"), "a territory with no list can be renamed")
 	eq(tribe.territory_name(home_uid(tribe)), "Camp", "Tribe's renamed home")
 
@@ -101,7 +105,7 @@ func test_renaming_does_not_shift_the_next_default_name() -> void:
 # --- AC5: refusals ---
 
 func test_rename_territory_error_refuses_bad_names_and_targets() -> void:
-	var e: Object = names_engine("founders")
+	var e := names_engine("founders")
 	var home := home_uid(e)
 	var beta := settle_one(e, "hills")
 	to_frontier(e, ["river"])
@@ -131,7 +135,7 @@ func test_rename_is_refused_while_a_decision_is_owed_or_the_game_is_over() -> vo
 # --- AC6: names are game state ---
 
 func test_names_survive_a_state_copy() -> void:
-	var e: Object = names_engine("founders")
+	var e := names_engine("founders")
 	var beta := settle_one(e, "hills")
 	e.rename_territory(beta, "Delta")
 	var fork: Object = e.fork()
@@ -143,11 +147,10 @@ func test_names_survive_a_state_copy() -> void:
 # --- AC7: loading city_names ---
 
 func test_city_names_load_on_a_civilization() -> void:
-	var errors: Array[String] = []
-	var cards := names_db([], errors)
-	eq(errors, [] as Array[String], "no errors")
-	eq(cards.founders.get("city_names"), ["Alpha", "Beta", "Gamma"] as Array[String], "Founders' names")
-	eq(cards.tribe.get("city_names"), [] as Array[String], "no names by default")
+	check_loads([
+		["Founders' names, none by default", [], {"cards.founders.city_names": ["Alpha", "Beta", "Gamma"] as Array[String],
+			"cards.tribe.city_names": [] as Array[String]}],
+	], names_load)
 
 
 func test_city_names_validation() -> void:

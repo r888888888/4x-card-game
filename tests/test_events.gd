@@ -57,19 +57,12 @@ func load_config(overrides: Dictionary, deck := {"farm": 1}) -> Dictionary:
 
 # --- AC1: event cards load ---
 
-func test_event_loads_with_discard_turns() -> void:
-	var r := load_x("event", {"discard": {"turns": 2}})
-	eq(r.errors, [] as Array[String], "loader errors")
-	if r.cards.has("x"):
-		eq(r.cards.x.type, "event", "type")
-		eq(r.cards.x.discard_turns, 2, "discard_turns")
-
-
-func test_event_discard_defaults_to_one_turn() -> void:
-	var r := load_x("event")
-	eq(r.errors, [] as Array[String], "loader errors")
-	if r.cards.has("x"):
-		eq(r.cards.x.discard_turns, 1, "discard_turns default")
+func test_events_load() -> void:
+	check_loads([
+		["discard turns", ["event", {"discard": {"turns": 2}}], {"cards.x.type": "event", "cards.x.discard_turns": 2}],
+		["discard defaults to one turn", ["event"], {"cards.x.discard_turns": 1}],
+		["grow each on an event", ["event", {"effects": [{"op": "grow", "amount": 1, "where": "each"}]}], {}],
+	], load_x.callv)
 
 
 func test_event_card_validation() -> void:
@@ -98,12 +91,7 @@ func test_grow_here_on_a_card_with_no_territory_is_a_load_error() -> void:
 			"cards.json: card 'x': effects[0]"],
 		["tech, where here", ["tech", {"cost": {"wealth": 2}, "effects": [{"op": "grow", "amount": 1, "where": "here"}]}],
 			"cards.json: card 'x': effects[0]"],
-	], func(args): return load_x(args[0], args[1]).errors)
-
-
-func test_grow_each_on_an_event_loads() -> void:
-	var r := load_x("event", {"effects": [{"op": "grow", "amount": 1, "where": "each"}]})
-	eq(r.errors, [] as Array[String], "loader errors")
+	], load_x.callv)
 
 
 func test_discard_on_a_non_event_is_a_warning() -> void:
@@ -136,16 +124,11 @@ func test_card_text_replaces_the_duration_on_an_event() -> void:
 
 # --- AC2: event_deck config ---
 
-func test_event_deck_is_normalized() -> void:
-	var r := load_config({"event_deck": {"windfall": 2.0, "omen": 1}})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.config.get("event_deck"), {"windfall": 2, "omen": 1}, "event_deck")
-
-
-func test_event_deck_defaults_to_empty() -> void:
-	var r := load_config({})
-	eq(r.config.get("event_deck"), {}, "event_deck default")
-	eq(r.warnings, [] as Array[String], "no warnings")
+func test_event_deck_loads() -> void:
+	check_loads([
+		["normalized", {"event_deck": {"windfall": 2.0, "omen": 1}}, {"config.event_deck": {"windfall": 2, "omen": 1}}],
+		["defaults to empty", {}, {"config.event_deck": {}}],
+	], load_config)
 
 
 func test_event_deck_validation() -> void:
@@ -155,7 +138,7 @@ func test_event_deck_validation() -> void:
 		["count 0", [{"event_deck": {"omen": 0}}, {"farm": 1}], "config.json: event_deck: count for 'omen'"],
 		["event in the main deck", [{}, {"farm": 1, "omen": 1}], "config.json: deck: 'omen'"],
 		["event in the supply", [{"supply": {"omen": {"price": 1, "count": 1}}}, {"farm": 1}], "config.json: supply: 'omen'"],
-	], func(args): return load_config(args[0], args[1]).errors)
+	], load_config.callv)
 
 
 # --- AC3: setup ---

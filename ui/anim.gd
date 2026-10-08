@@ -25,6 +25,7 @@ const DISCARD_POP_TIME := 0.12
 const DISCARD_FLY_TIME := 0.45
 const TARGET_FLY_TIME := 0.3  # a played action flying to its target before it is discarded
 const DEAL_STAGGER := 0.06  # delay between cards dealt into the hand
+const TALLY_STEP := 0.06  # between the pips a tally switches on (§10.3; veteran pips, 388)
 const ODOMETER_STEP := 0.07  # a counter's digits roll one value this often (181)
 const ODOMETER_MAX_STEPS := 8  # a longer change jumps, then rolls only its last steps
 const PULSE_SCALE := 1.18
@@ -34,9 +35,26 @@ const TOAST_TIME := 3.0  # an info or caution notice's flag shows this long befo
 const HIGHLIGHT_PULSE_TIME := 0.7
 const BREATH_TIME := 2.2  # one slow breath of a counter's glyph, out and back: Anarchy a turn away (228)
 const BREATH_ALPHA := 0.45  # the glyph's opacity at the bottom of a breath; it never fades out
-const SCREEN_TIME := 0.22  # a navigated screen growing out of its card, or fading, in and out (104)
+const SCREEN_TIME := 0.22  # a navigated screen fading in and out (104)
+# The build ceremony (357, guide §9.4, §10.8): it starts once the Build sheet has closed, BUILD_DELAY after the press.
+const BUILD_DELAY := 0.16
+const BUILD_RING_TIME := 0.45  # the lamp ring blooming off the card's edge and fading
+const BUILD_RAYS_TIME := 0.4  # the rays drawing out (first half), then fading
+const BUILD_TAG_DELAY := 0.12  # the tag lands this long after the ring
+const BUILD_TAG_IN := 0.09
+const BUILD_TAG_HOLD := 0.9
+const BUILD_TAG_OUT := 0.14
+const BUILD_CEREMONY_TIME := BUILD_DELAY + BUILD_TAG_DELAY + BUILD_TAG_IN + BUILD_TAG_HOLD + BUILD_TAG_OUT
+const BUILD_CALM_HOLD := 1.5  # with Reduce motion it shows whole at once and holds this long (§9.5)
 # Reduce motion: cards jump to where they are going and fade in over this time instead.
 const CALM_FADE_TIME := 0.15
+
+# A scroll area that glides (356, guide §7.17): a wheel notch pushes the content SCROLL_STEP px, its speed decaying by
+# SCROLL_FRICTION per second, so it eases and coasts to rest; a keyboard follow eases over SCROLL_FOLLOW_TIME.
+const SCROLL_STEP := 120.0
+const SCROLL_FRICTION := 8.0
+const SCROLL_REST := 0.5  # px of travel left at which the glide lands
+const SCROLL_FOLLOW_TIME := 0.2
 
 # A key's travel (§9.4, §15.1), for timing its sounds (187): down on SNAP, back up on MACHINED.
 const KEY_PRESS_TIME := 0.07

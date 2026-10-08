@@ -105,3 +105,33 @@ func test_the_renewal_sheet_opens_and_closes_with_the_sheet_sounds() -> void:
 		modal.trash_button.pressed.emit()
 		await wait_frames()
 		check(tokens(main).has(Sfx.SHEET_CLOSE), "ui.sheet.close as it closes"))
+
+
+# --- Backlog 362: the ledger glides ---
+
+## Opens the renewal modal with more ledger rows than its column shows and checks a wheel notch over the ledger moves
+## it a step, gliding unless calm (check_wheel_step).
+func check_ledger_wheel_step(calm: bool) -> void:
+	var discard := []
+	discard.resize(24)
+	discard.fill("scout")
+	await with_reduce_motion(calm, func():
+		await with_renewal({"renewal": 1}, discard, func(main: Node, modal: RenewalModal):
+			await wait_frames()
+			await check_wheel_step(main, scroll_around(modal.rows()[0]), "the ledger")))
+
+
+func test_a_wheel_notch_glides_the_ledger_a_step() -> void:
+	await check_ledger_wheel_step(false)
+
+
+func test_with_reduce_motion_a_wheel_notch_jumps_the_ledger_a_step() -> void:
+	await check_ledger_wheel_step(true)
+
+
+# --- 381: the shown card's art plate ---
+
+func test_the_shown_card_has_its_art_plate() -> void:
+	await with_renewal({"renewal": 1}, ["scout", "kings"], func(_main: Node, modal: RenewalModal):
+		var card := card_under(modal)
+		check(card != null and art_plate(card) != null, "the shown card has a plate"))

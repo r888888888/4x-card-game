@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 270" width="960" height="540">
+  <!-- Placeholder (389): replace with the final drawing of a repelled raid. -->
+  <rect width="480" height="270" fill="#d9cfb8"/>
+  <path d="M0 210 Q120 180 240 200 T480 195 V270 H0 Z" fill="#a9a37f"/>
+  <g stroke="#2b2a26" stroke-width="5" stroke-linecap="round">
+    <line x1="170" y1="70" x2="310" y2="210"/>
+    <line x1="310" y1="70" x2="170" y2="210"/>
+  </g>
+  <path d="M240 60 L300 82 V138 Q300 188 240 214 Q180 188 180 138 V82 Z" fill="#6f7f5a" stroke="#2b2a26" stroke-width="4"/>
+  <path d="M240 82 V192 M204 128 H276" stroke="#d9cfb8" stroke-width="6"/>
+  <rect x="8" y="8" width="464" height="254" fill="none" stroke="#2b2a26" stroke-width="2" stroke-dasharray="8 6"/>
+</svg>

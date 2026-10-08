@@ -11,10 +11,6 @@ const BOTH_ERAS := {"era_unlocks": {"2": {"wealth": 50}, "3": {"wealth": 50}}}
 const ERA_2 := {"era_unlocks": {"2": {"wealth": 50}}}
 
 
-func wait_seconds(s: float) -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
-
-
 ## Runs body(main, e) on the event game with overrides, Reduce motion calm or not; main open and started on seed 1.
 func with_era_game(calm: bool, overrides: Dictionary, body: Callable) -> void:
 	await with_reduce_motion(calm, func():
@@ -29,8 +25,8 @@ func with_era_game(calm: bool, overrides: Dictionary, body: Callable) -> void:
 		var main := open_main()
 		main.start_game(1)
 		await wait_frames()
-		while not main.event_modal().is_empty():
-			main.event_modal_ok_button().pressed.emit()
+		while not MainProbe.event_modal(main).is_empty():
+			MainProbe.event_modal_ok_button(main).pressed.emit()
 		await body.call(main, Game.engine)
 		close_main(main)
 		Game.engine = real)
@@ -40,16 +36,6 @@ func with_era_game(calm: bool, overrides: Dictionary, body: Callable) -> void:
 func reach_new_era(e: GameEngine) -> void:
 	e.resources[GameEngine.WEALTH] = 50
 	e.end_turn()
-
-
-func click(main: Node, at := Vector2(20, 20)) -> void:
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = MOUSE_BUTTON_LEFT
-		event.pressed = pressed
-		event.position = at
-		event.global_position = at
-		main.get_viewport().push_input(event, true)
 
 
 # --- AC1: the sheet ---
@@ -107,12 +93,12 @@ func test_a_click_skips_to_the_end_and_a_second_closes_it() -> void:
 	await with_era_game(false, ERA_2, func(main: Node, e: GameEngine):
 		reach_new_era(e)
 		await wait_frames()
-		click(main)
+		click_point(main, Vector2(20, 20))
 		await wait_frames()
 		check(main.era_sheet.finished(), "skipped to its end")
 		eq(main.era_sheet.era_text(), e.era_name(e.era()), "the whole name")
 		check(main.era_sheet.is_open(), "still open")
-		click(main)
+		click_point(main, Vector2(20, 20))
 		await wait_frames()
 		check(not main.era_sheet.is_open(), "closing")
 		await wait_seconds(0.16 + SLACK)
@@ -131,8 +117,8 @@ func test_a_key_skips_and_closes_and_nothing_else_takes_keys() -> void:
 		check(main.knowledge.shown().is_empty(), "T opens nothing under it")
 		check(not main.era_sheet.is_open(), "the second key closes it")
 		await wait_seconds(0.16 + SLACK)
-		while not main.event_modal().is_empty():  # the turn's event, which waited for the sheet (AC6)
-			main.event_modal_ok_button().pressed.emit()
+		while not MainProbe.event_modal(main).is_empty():  # the turn's event, which waited for the sheet (AC6)
+			MainProbe.event_modal_ok_button(main).pressed.emit()
 		press_key(main, KEY_E)
 		eq(e.turn, turn + 1, "then E ends the turn again"))
 
@@ -172,7 +158,7 @@ func test_an_event_drawn_the_same_turn_opens_after_the_sheet_closes() -> void:
 		await wait_frames()
 		check(not drawn.is_empty(), "precondition: an event drawn this turn")
 		check(main.era_sheet.is_open(), "the sheet first")
-		check(main.event_modal().is_empty(), "the event waits")
+		check(MainProbe.event_modal(main).is_empty(), "the event waits")
 		press_key(main, KEY_ENTER)
 		await wait_seconds(0.16 + SLACK)
-		check(not main.event_modal().is_empty(), "then the event opens"))
+		check(not MainProbe.event_modal(main).is_empty(), "then the event opens"))

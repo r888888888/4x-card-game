@@ -6,14 +6,6 @@ extends "res://tests/lib/test_case.gd"
 const PRIORITIES := [[&"info", &"INSIGHT"], [&"caution", &"WEALTH"], [&"urgent", &"WARN"]]
 
 
-func open_game() -> Node:
-	var main := open_main()
-	main.start_game(1)
-	await wait_frames()
-	main.sfx.set_clock(0.0)
-	return main
-
-
 # --- AC1 ---
 
 func test_there_are_three_priorities() -> void:
@@ -24,7 +16,7 @@ func test_there_are_three_priorities() -> void:
 # --- AC5: heard and seen ---
 
 func test_each_priority_rings_its_own_pattern() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(false, true)
 	main.toasts.notice("Pottery can now be bought.", GameEngine.NOTICE_INFO)
 	main.toasts.notice("A new era stirs the people: +2 unrest.", GameEngine.NOTICE_CAUTION)
 	main.toasts.notice("Famine! Pop went hungry.", GameEngine.NOTICE_URGENT)
@@ -36,7 +28,7 @@ func test_each_priority_rings_its_own_pattern() -> void:
 
 
 func test_each_toast_carries_its_priority_as_a_hue_bar() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(false, true)
 	for p in PRIORITIES:
 		main.toasts.notice("A %s notice." % p[0], p[0])
 	eq(main.toasts.priorities(), [GameEngine.NOTICE_INFO, GameEngine.NOTICE_CAUTION, GameEngine.NOTICE_URGENT],
@@ -50,7 +42,7 @@ func test_each_toast_carries_its_priority_as_a_hue_bar() -> void:
 
 
 func test_the_engines_notice_reaches_the_toast_with_its_priority() -> void:
-	var main: Node = await open_game()
+	var main: Node = await open_game(false, true)
 	Game.engine.noticed.emit("Famine! Pop went hungry.", GameEngine.NOTICE_URGENT)
 	eq(main.toasts.priorities(), [GameEngine.NOTICE_URGENT], "urgent")
 	check(main.sfx.played().any(func(r): return r.token == Sfx.NOTIFICATION_URGENT), "the urgent bell")

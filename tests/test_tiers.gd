@@ -172,9 +172,9 @@ func test_a_building_idle_from_slots_skips_its_modifiers_and_defence() -> void:
 	var wg := grassland_uid(walls)
 	set_pop(walls, wg, 3)
 	build_on(walls, wg, ["guildhall", "guildhall", "rampart"])
-	var low: int = walls.defense_parts(wg).buildings
+	var low: int = walls.military.defense_parts(wg).buildings
 	set_pop(walls, wg, 4)
-	eq([low, walls.defense_parts(wg).buildings], [0, 2], "the Rampart defends only in its slot")
+	eq([low, walls.military.defense_parts(wg).buildings], [0, 2], "the Rampart defends only in its slot")
 
 
 func test_a_building_idle_from_slots_guards_no_pop_from_famine() -> void:
@@ -257,13 +257,12 @@ func test_settling_at_pop_1_is_no_notice() -> void:
 
 # --- AC6: the loader ---
 
+## TEST_CARDS and a config whose population block has tiers (none when null): {cards, config, errors, warnings}.
 func tier_messages(tiers: Variant) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards}, resources(), "cards.json", errors, warnings, keywords())
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"population": {"start": 2, "food_upkeep": 0,
-		"vp_per_pop": 0, "tiers": tiers}}), resources(), cards, "config.json", errors, warnings)
-	return {"config": config, "errors": errors, "warnings": warnings}
+	var population := {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}
+	if tiers != null:
+		population["tiers"] = tiers
+	return config_load_on(fixture_load(), {"population": population.merged({"famine": FAMINE})})
 
 
 func has_error(messages: Array, parts: Array) -> bool:
@@ -271,16 +270,10 @@ func has_error(messages: Array, parts: Array) -> bool:
 
 
 func test_tiers_load_and_are_optional() -> void:
-	var r := tier_messages(TIERS)
-	eq([r.errors, r.warnings], [[], []], "the fixture tiers load cleanly")
-	eq(r.config.population.get("tiers"), TIERS, "the normalized block holds the tiers")
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards({"cards": TEST_CARDS.cards}, resources(), "cards.json", errors, warnings, keywords())
-	var config := DataLoader.parse_config(raw_config({"farm": 1}, {"population": {"start": 2, "food_upkeep": 0,
-		"vp_per_pop": 0}}), resources(), cards, "config.json", errors, warnings)
-	eq(errors, [] as Array[String], "no tiers: no errors")
-	eq(config.population.get("tiers"), [], "no tiers: []")
+	check_loads([
+		["the fixture tiers, in the normalized block", TIERS, {"config.population.tiers": TIERS}],
+		["no tiers: []", null, {"config.population.tiers": []}],
+	], tier_messages)
 
 
 func test_tiers_must_be_a_non_empty_array_of_objects() -> void:
@@ -353,6 +346,35 @@ func test_the_territory_tooltip_has_no_tier_line_without_tiers() -> void:
 	set_pop(e, g, 4)
 	var tooltip: String = e.territory_tooltip(g)
 	check(not TIERS.any(func(t): return tooltip.contains(t.name)), "no tier line: %s" % tooltip)
+
+
+# --- 346: the tier line ---
+
+func test_the_tier_line_names_the_tier_and_the_next_one() -> void:
+	var e := tier_engine()
+	var g := grassland_uid(e)
+	set_pop(e, g, 5)
+	eq(e.tier_line(g), "Village: a Town at 8 pop", "a Village at pop 5")
+
+
+func test_the_tier_line_at_the_top_tier_is_its_name() -> void:
+	var e := tier_engine()
+	var g := grassland_uid(e)
+	set_pop(e, g, 13)
+	eq(e.tier_line(g), "Metropolis", "the top tier")
+
+
+func test_no_tier_line_without_tiers_or_population_or_for_other_cards() -> void:
+	var off := tier_engine({"farm": 10}, null)
+	eq(off.tier_line(grassland_uid(off)), "", "no population.tiers")
+	var no_pop: GameEngine = make_engine({"farm": 10}, {"territory_deck": {"grassland": 2}}, 1, TIER_CARDS)
+	settle(no_pop, ["grassland"])
+	eq(no_pop.tier_line(grassland_uid(no_pop)), "", "population off")
+	var e := tier_engine()
+	var capital := uid_of(e.zone("tableau"), "capital")
+	var frontier := uid_of(e.zone("territory_deck"), "grassland")
+	for uid in [capital, frontier, first_in_hand(e), 9999]:
+		eq(e.tier_line(uid), "", "not a settled territory: %d" % uid)
 
 
 func test_the_glossary_says_buildings_past_the_slots_are_idle() -> void:

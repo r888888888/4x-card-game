@@ -138,9 +138,9 @@ func test_fork_copies_the_trashed_zone() -> void:
 # --- AC6: loader and text ---
 
 func test_trash_loads() -> void:
-	var r := fixture_load([PURGE])
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
+	check_loads([
+		["Purge", [PURGE], {}],
+	], fixture_load)
 
 
 func test_trash_validation() -> void:
@@ -150,7 +150,7 @@ func test_trash_validation() -> void:
 			prefix + "'trash' only works on play (got trigger 'upkeep')"],
 		["on a tech", [card_with("tech", {"op": "trash"})], prefix + "a tech effect can't need a target"],
 		["on an event", [card_with("event", {"op": "trash"})], prefix + "an event effect can't need a target"],
-	], func(extra): return fixture_load(extra).errors)
+	], fixture_load)
 	has_msg(fixture_load([card_with("action", {"op": "trash", "amount": 2})]).warnings, "unknown field 'amount' in 'trash' effect")
 
 

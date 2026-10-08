@@ -4,10 +4,11 @@ extends VBoxContainer
 ## area's navigator (the Realm at its root, 101), its header a teal bar ("◂ Realm", "Knowledge", 241) with the turn and era at its right.
 ## Drawn as the mock's drafting sheet (222, guide §11.3): one band per era from GameEngine.tech_eras, top to bottom,
 ## its title block in a left column and its techs as index-card tiles of one size, each showing its name and a marker
-## for its state (✓, its cost now, "needs <prerequisite>") and filled by state; an era not reached lies under a vellum
-## printed with how it opens. A click, Enter, a right click or I on a tile shows the tech's details, whose Research
+## for its state (✓, its cost now, "needs <prerequisite>") and filled by state, an available one the insight doesn't
+## cover with muted text (325); an era not reached lies under a vellum printed with how it opens. A click, Enter, a right click or I on a tile shows the tech's details, whose Research
 ## button learns it (229). It slides in from the right over the Realm (or a territory view) and back; T, Esc or the header's link go
-## back. It is an opaque sheet (224), so nothing under it shows through as it slides.
+## back, and so does a left click outside it, which does nothing else (326) unless it is on End turn (348). It is an opaque sheet (224), so nothing
+## under it shows through as it slides.
 
 ## The screen opened or closed (288): what is learnable then counts as seen.
 signal looked
@@ -28,6 +29,8 @@ const TITLE_WIDTH := Tokens.SPACE_9 + Tokens.SPACE_4  # an era's title block, th
 var header: ScreenHeader
 
 var _nav: Navigator
+var _modals: ModalStack  # a modal over the screen takes the clicks outside it
+var click_through: Control  # End turn: a click on it closes the screen and still reaches it (348)
 var _place: Control  # the Realm section, whose place the screen takes
 var _open_tech: Callable  # opens a tech's details over the screen
 var _context: Label
@@ -44,9 +47,10 @@ var _was_open := false  # is_open() at the navigator's last change, for looked
 
 
 ## Builds the screen beside place (the Realm section) for nav, hidden. Its techs open their details with
-## open_tech(card_id, uid), uid the tech to learn or -1 for one researched or of a later era.
-func _init(nav: Navigator, place: Control, open_tech: Callable) -> void:
+## open_tech(card_id, uid), uid the tech to learn or -1 for one researched or of a later era; modals is main's stack.
+func _init(nav: Navigator, place: Control, open_tech: Callable, modals: ModalStack) -> void:
 	_nav = nav
+	_modals = modals
 	_place = place
 	_open_tech = open_tech
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -57,7 +61,7 @@ func _init(nav: Navigator, place: Control, open_tech: Callable) -> void:
 	header.add_context(_context)
 	_insight = UIKit.heading("")
 	add_child(_insight)
-	var scroll := ScrollContainer.new()
+	var scroll := SmoothScroll.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
@@ -147,7 +151,7 @@ func open() -> void:
 	get_parent().move_child(self, at.get_index() + 1)
 	global_position = at.global_position  # where its container will put it: the place of the screen it covers
 	size = at.size
-	_nav.push(self, null, "Knowledge", Rect2(), true)
+	_nav.push(self, null, "Knowledge", true)
 
 
 func _on_nav_changed() -> void:
@@ -177,6 +181,17 @@ func handle_key(event: InputEvent) -> bool:
 		close()
 		return true
 	return false
+
+
+## While open with no modal over it, a left click outside the screen closes it and does nothing else (326), except
+## that a click on click_through still reaches it (348).
+func _input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if click != null and click.pressed and click.button_index == MOUSE_BUTTON_LEFT and is_open() and _nav.top() == self \
+			and not _modals.is_open() and not get_global_rect().has_point(click.global_position):
+		close()
+		if click_through == null or not click_through.get_global_rect().has_point(click.global_position):
+			get_viewport().set_input_as_handled()
 
 
 ## Shows engine e again while open (a tech learned, insight gained).
@@ -246,25 +261,12 @@ func _vellum(band: MarginContainer, era: Dictionary) -> PanelContainer:
 	var vellum := PanelContainer.new()
 	vellum.theme_type_variation = &"EraVellum"
 	vellum.mouse_filter = Control.MOUSE_FILTER_STOP
-	var label := UIKit.heading("%s · %s" % [era.name, _opens(era)])
+	var label := UIKit.heading("%s · %s" % [era.name, era.opens])
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	vellum.add_child(label)
 	band.add_child(vellum)
 	return vellum
-
-
-## "Opens at 8 pop or 15 wealth" (from its unlocks), or "Opens through a tech". era is a tech_eras() entry.
-static func _opens(era: Dictionary) -> String:
-	var need: Dictionary = era.unlocks
-	var parts: PackedStringArray = []
-	if need.has("pop"):
-		parts.append("%d pop" % need.pop)
-	if need.has(GameEngine.WEALTH):
-		parts.append("%d wealth" % need.wealth)
-	if parts.is_empty():
-		return "Opens through a tech"
-	return "Opens at %s" % " or ".join(parts)
 
 
 ## Marks the tiles called names as linked to the hovered tech, or clears the mark (278).
@@ -286,6 +288,8 @@ func _tile(e: GameEngine, tech: Dictionary) -> Button:
 	b.custom_minimum_size = TILE_SIZE
 	b.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	b.theme_type_variation = TILE_LOOK.get(state, &"TechTile")
+	if state == GameEngine.TECH_AVAILABLE and not tech.affordable:  # the insight doesn't cover it yet (325)
+		b.theme_type_variation = &"TechTileShort"
 	b.tooltip_text = _tooltip(e, tech)
 	var text := StringName(String(b.theme_type_variation).replace("TechTile", "TechTileText"))
 	var box := VBoxContainer.new()

@@ -194,8 +194,9 @@ func test_no_discard_on_the_last_turn() -> void:
 # --- AC9: config ---
 
 func test_hand_limit_defaults_to_7() -> void:
-	var e := make_engine({"farm": 10})
-	eq(e.config.hand_limit, 7, "default")
+	check_loads([
+		["default", {}, {"config.hand_limit": 7}],
+	], config_load)
 
 
 func test_hand_limit_is_read_from_config() -> void:
@@ -208,16 +209,8 @@ func test_hand_limit_is_read_from_config() -> void:
 	eq(e.play_error(first_in_hand(e)), "Discard down to 6 cards first.", "message uses the limit")
 
 
-func parse_with(overrides: Dictionary) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := DataLoader.parse_cards(TEST_CARDS, resources(), "t", errors, warnings, keywords())
-	DataLoader.parse_config(raw_config({"farm": 1}, overrides), resources(), cards, "config.json", errors, warnings)
-	return errors
-
-
 func test_hand_limit_validation() -> void:
 	check_cases([
 		["below hand_size", {"hand_limit": 4}, ["config.json", "hand_limit"]],
 		["not an integer", {"hand_limit": "many"}, ["config.json", "hand_limit"]],
-	], parse_with)
+	], config_load)

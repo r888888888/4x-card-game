@@ -2,6 +2,10 @@ extends "res://tests/lib/test_case.gd"
 ## The real game data (data/*.json): territory content coverage and a scripted smoke test (backlog 006).
 ## These are the only tests besides test_real_data_loads that read the real data. They check shape and
 ## that games run, not balance numbers.
+## In detail (from docs/testing.md, 331): The real data: invariants over the whole data set, never a single card (every
+## keyword used, every cost has a source, every building's requires met in play, eras reachable with 2+ techs, techs
+## and supply consistent). No many-seed bot sweeps: real games over seeds are sim runs (`scripts/sim.sh`), not tests
+## (145)
 
 
 func load_real() -> Dictionary:
@@ -108,6 +112,45 @@ func test_real_deck_has_growth_cards() -> void:
 	check(growth >= 4, "at least 4 growth or famine guard cards in the deck, supply and event deck (got %d)" % growth)
 
 
+## Backlog 369: no op is dead code; every op in EffectRegistry is used by some real card (a choice event's options
+## included).
+func test_every_effect_op_is_used_by_a_real_card() -> void:
+	var r := load_real()
+	var used := {}
+	for id in r.cards:
+		for effect in event_effects(r.cards[id]):
+			used[effect.op] = true
+	var unused: Array[String] = []
+	for op in EffectRegistry.OPS:
+		if not used.has(op):
+			unused.append(op)
+	eq(unused, [] as Array[String], "effect ops no real card uses")
+
+
+## Backlog 369: a player in Anarchy always owns a card they can play: the starting deck holds an allowed_tag card.
+func test_starting_deck_holds_an_anarchy_playable_card() -> void:
+	var r := load_real()
+	var tag: String = r.config.unrest.allowed_tag
+	var tagged: Array = r.config.deck.keys().filter(func(id): return r.cards[id].has_tag(tag))
+	check(not tagged.is_empty(), "the starting deck holds a card tagged '%s'" % tag)
+
+
+## Backlog 369: every resource a real card costs is gained by the play effect of some starting-deck card.
+func test_every_cost_resource_is_gained_by_a_starting_deck_play() -> void:
+	var r := load_real()
+	var gained := {}
+	for id in r.config.deck:
+		for effect in r.cards[id].effects_for("play"):
+			if GAIN_OPS.has(effect.op):
+				gained[effect.resource] = true
+	var unfunded: Array[String] = []
+	for id in r.cards:
+		for res in r.cards[id].cost:
+			if not gained.has(res) and not unfunded.has(res):
+				unfunded.append(res)
+	eq(unfunded, [] as Array[String], "cost resources no starting-deck card gains on play")
+
+
 # --- Military from turn 1 (285; recruited from the build menu since 296) ---
 
 ## Backlog 296 (replaces 285's "the starting deck holds a military unit" and 160's "every unit has a supply pile or a
@@ -165,7 +208,7 @@ func test_every_growth_card_costs_food() -> void:
 # --- Starter events (backlog 069) ---
 
 ## The ops a real event may use: they only give (see 072 for harmful ops).
-const EVENT_OPS: Array[String] = ["gain", "gain_per_tag", "score", "grow"]  # and lose of unrest (144)
+const EVENT_OPS: Array[String] = ["gain", "gain_per_tag", "gain_per_keyword", "score", "grow"]  # and lose of unrest (144; 365)
 
 
 func test_every_real_event_is_in_the_event_deck() -> void:
@@ -203,7 +246,7 @@ func test_real_era_1_events_harm_only_by_unrest() -> void:
 				continue
 			if not EVENT_OPS.has(effect.op) and not (effect.op == "lose" and effect.get("resource") == "unrest"):
 				bad_ops.append("%s: %s" % [id, effect.op])
-	eq(bad_ops, [] as Array[String], "event effects that aren't gain, gain_per_tag, score, grow or lose of unrest")
+	eq(bad_ops, [] as Array[String], "event effects that aren't gain, gain_per_tag, gain_per_keyword, score, grow or lose of unrest")
 	check(blank >= 1, "at least one blank event (got %d)" % blank)
 	check(active >= 1, "at least one event with an effect (got %d)" % active)
 
@@ -383,6 +426,37 @@ func test_every_per_keyword_and_per_tag_event_effect_can_fire() -> void:
 	eq(dead, [] as Array[String], "event effects that count a keyword or tag nothing in play has")
 
 
+## Backlog 365: a feature keyword the events punish (a lose_per_keyword, a raid's target) is one some event rewards too;
+## the terrains are exempt, since their buildings carry keyword bonuses.
+func test_every_feature_keyword_the_events_punish_some_event_rewards() -> void:
+	var r := load_real()
+	var punished := {}
+	var rewarded := {}
+	for id in r.config.get("event_deck", {}):
+		var def: CardDef = r.cards[id]
+		for k in def.raid.get("targets", []):
+			punished[k] = true
+		for effect in event_effects(def):
+			if effect.op == "lose_per_keyword" or effect.op == "gain_per_keyword":
+				for k in effect.get("keywords"):
+					(punished if effect.op == "lose_per_keyword" else rewarded)[k] = true
+	var unanswered: Array[String] = []
+	for k in punished:
+		if not rewarded.has(k) and not r.config.get("terrains", []).has(k):
+			unanswered.append(k)
+	eq(unanswered, [] as Array[String], "keywords events only punish")
+
+
+## Backlog 365: era-1 events that count a keyword only give (no lose_per_keyword before era 2).
+func test_no_era_1_event_takes_per_keyword() -> void:
+	var r := load_real()
+	var takers: Array[String] = []
+	for def in events_by_era(r).get(1, []):
+		if event_effects(def).any(func(effect): return effect.op == "lose_per_keyword"):
+			takers.append(def.id)
+	eq(takers, [] as Array[String], "era-1 events that take per keyword")
+
+
 func test_events_both_give_and_take_food_wealth_and_insight() -> void:
 	var r := load_real()
 	var gained := {}
@@ -512,6 +586,255 @@ func test_every_locked_build_menu_entry_is_unlocked_by_a_tech_and_back() -> void
 		if menu[id].locked:
 			check(opened.has(id), "locked entry %s is unlocked by a tech in research_deck" % id)
 	check(not menu.is_empty(), "the real config has a build menu")
+
+
+## Backlog 305: the real buildings with upgrade_of, checked to be there so the upgrade invariants aren't empty.
+func real_upgrades(r: Dictionary) -> Array[CardDef]:
+	var out := real_buildings(r).filter(func(def: CardDef) -> bool: return def.is_upgrade())
+	check(not out.is_empty(), "the real data has building upgrades")
+	return out
+
+
+## Backlog 305: the era a build-menu entry opens in: 1 if it is open from turn 1, else the lowest era of a research-deck
+## tech that unlocks it (0 if none does).
+func entry_era(r: Dictionary, id: String) -> int:
+	if not r.config.get("build_menu", {}).get(id, {}).get("locked", false):
+		return 1
+	var era := 0
+	for tech in techs_in_research_deck(r):
+		if unlocked_by(tech).has(id):
+			era = tech.era if era == 0 else mini(era, tech.era)
+	return era
+
+
+## Backlog 305: the keyword sets a territory a game can hold may have (the starting territory, the territory deck and
+## every listed civilization's home): its printed keywords, alone and with each resource it may roll.
+func land_keyword_sets(r: Dictionary) -> Array:
+	var ids: Array = [r.config.starting.territory] + r.config.territory_deck.keys()
+	for civ in r.config.get("civilizations", []):
+		if r.cards[civ].home != "":
+			ids.append(r.cards[civ].home)
+	var out := []
+	for id in ids:
+		var land: CardDef = r.cards[id]
+		out.append(land.keywords)
+		for option in Territories.resource_table(r.config, land):
+			out.append(land.keywords + option.keywords)
+	return out
+
+
+## Whether a territory with keywords meets requires (any of them; an empty list meets anything).
+func meets(keywords: Array, requires: Array) -> bool:
+	return requires.is_empty() or requires.any(func(k): return keywords.has(k))
+
+
+## Backlog 305: an upgrade and its base are both built from the build menu, and a locked upgrade opens through a tech.
+func test_every_upgrade_and_its_base_are_build_menu_entries_opened_by_a_tech() -> void:
+	var r := load_real()
+	var menu: Dictionary = r.config.get("build_menu", {})
+	for def in real_upgrades(r):
+		check(menu.has(def.id), "upgrade %s is a build-menu entry" % def.id)
+		check(menu.has(def.upgrade_of), "%s's base %s is a build-menu entry" % [def.id, def.upgrade_of])
+		if menu.get(def.id, {}).get("locked", false):
+			check(entry_era(r, def.id) > 0, "locked upgrade %s is unlocked by a tech in research_deck" % def.id)
+
+
+## Backlog 305: some territory a game can hold meets both an upgrade's base's requires and its own.
+func test_every_upgrade_can_stand_on_some_territory() -> void:
+	var r := load_real()
+	var lands := land_keyword_sets(r)
+	var homeless: Array[String] = []
+	for def in real_upgrades(r):
+		var base: CardDef = r.cards[def.upgrade_of]
+		if not lands.any(func(k: Array) -> bool: return meets(k, base.requires) and meets(k, def.requires)):
+			homeless.append("%s %s on %s %s" % [def.id, def.requires, base.id, base.requires])
+	eq(homeless, [] as Array[String], "upgrades no territory can hold together with their base")
+
+
+## Backlog 305: an upgrade never opens in an earlier era than the building it goes on.
+func test_no_upgrade_opens_before_its_base() -> void:
+	var r := load_real()
+	var early: Array[String] = []
+	for def in real_upgrades(r):
+		var era := entry_era(r, def.id)
+		var base_era := entry_era(r, def.upgrade_of)
+		if era < base_era:
+			early.append("%s (era %d) on %s (era %d)" % [def.id, era, def.upgrade_of, base_era])
+	eq(early, [] as Array[String], "upgrades that open before their base")
+
+
+## Backlog 305: restructuring buildings into upgrades leaves every terrain a building of its own that isn't an upgrade:
+## one whose requires names it.
+func test_every_terrain_keeps_a_building_that_is_not_an_upgrade() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var missing: Array[String] = []
+	for terrain in r.config.terrains:
+		if not real_buildings(r).any(func(def: CardDef) -> bool:
+				return reachable.has(def.id) and not def.is_upgrade() and def.requires.has(terrain)):
+			missing.append(terrain)
+	eq(missing, [] as Array[String], "terrains whose only buildings are upgrades")
+
+
+## Backlog 306: a tier's place in population.tiers (0 for a building with no tier, which any settlement takes; -1 if
+## the config has no such tier).
+func tier_rank(r: Dictionary, tier: String) -> int:
+	if tier == "":
+		return 0
+	var tiers: Array = r.config.population.get("tiers", [])
+	for i in tiers.size():
+		if tiers[i].id == tier:
+			return i
+	return -1
+
+
+## Backlog 306: every building's tier is a real one, and a chain of upgrades never asks for a smaller settlement as it
+## rises.
+func test_every_tier_is_real_and_no_upgrade_needs_less_than_its_base() -> void:
+	var r := load_real()
+	var tiered := real_buildings(r).filter(func(def: CardDef) -> bool: return def.tier != "")
+	check(not tiered.is_empty(), "the real data has buildings that need a tier")
+	for def in tiered:
+		check(tier_rank(r, def.tier) >= 0, "%s's tier %s is one of population.tiers" % [def.id, def.tier])
+	var lower: Array[String] = []
+	for def in real_upgrades(r):
+		var base: CardDef = r.cards[def.upgrade_of]
+		if tier_rank(r, def.tier) < tier_rank(r, base.tier):
+			lower.append("%s (%s) on %s (%s)" % [def.id, def.tier, base.id, base.tier])
+	eq(lower, [] as Array[String], "upgrades that need a smaller settlement than their base")
+
+
+## Backlog 306: the techs that need tech, directly or through other techs, and tech itself.
+func tech_and_later(r: Dictionary, tech: CardDef) -> Dictionary:
+	var out := {tech.id: true}
+	var grew := true
+	while grew:
+		grew = false
+		for t in techs_in_research_deck(r):
+			if not out.has(t.id) and out.has(t.prereq):
+				out[t.id] = true
+				grew = true
+	return out
+
+
+## Backlog 306: the cards the player can have without researching tech or any tech that needs it: the starting deck
+## and tableau, open supply piles and build-menu entries, and what every other research-deck tech unlocks or creates.
+func cards_without(r: Dictionary, tech: CardDef) -> Dictionary:
+	var ids: Array = r.config.deck.keys() + r.config.starting.tableau + open_entries(r)
+	for id in r.config.supply:
+		if not r.config.supply[id].get("locked", false):
+			ids.append(id)
+	var later := tech_and_later(r, tech)
+	for t in techs_in_research_deck(r):
+		if not later.has(t.id):
+			ids += unlocked_by(t) + created_by(t)
+	var out := {}
+	for id in ids:
+		out[id] = true
+	return out
+
+
+## Backlog 306: a eureka can be met before its tech is learned, so it never counts only cards that tech (or a tech
+## after it) makes available.
+func test_no_eureka_counts_only_what_its_own_tech_makes_available() -> void:
+	var r := load_real()
+	var unmeetable: Array[String] = []
+	for tech in techs_in_research_deck(r):
+		var eureka: Dictionary = tech.eureka
+		var available := cards_without(r, tech)
+		if eureka.has("card") and not available.has(eureka.card):
+			unmeetable.append("%s: card %s" % [tech.id, eureka.card])
+		if eureka.has("tag") and not available.keys().any(func(id): return r.cards[id].tags.has(eureka.tag)):
+			unmeetable.append("%s: tag %s" % [tech.id, eureka.tag])
+	eq(unmeetable, [] as Array[String], "eurekas only their own tech (or a later one) can meet")
+
+
+## Backlog 306: an upgrade that falls back never lowers the unrest limit below what its base gives.
+func test_no_upgrade_lowers_the_unrest_limit() -> void:
+	var r := load_real()
+	var lowering: Array[String] = []
+	for def in real_upgrades(r):
+		if def.modifiers.get(Modifiers.UNREST_LIMIT, 0) < 0:
+			lowering.append(def.id)
+	eq(lowering, [] as Array[String], "upgrades with a negative unrest_limit")
+
+
+## Backlog 306: output that grows with a territory's pop is urban: an upgrade using gain_per_pop needs a tier.
+func test_every_upgrade_that_scales_with_pop_needs_a_tier() -> void:
+	var r := load_real()
+	var scaling := real_upgrades(r).filter(func(def: CardDef) -> bool:
+		return def.effects.any(func(e: Effect) -> bool: return e.op == "gain_per_pop"))
+	check(not scaling.is_empty(), "the real data has upgrades that scale with pop")
+	for def in scaling:
+		check(def.tier != "", "%s scales with pop, so it needs a tier" % def.id)
+
+
+## Backlog 307: the techs meant to open nothing, only to discount others through their eurekas and prereqs. Any other
+## tech that unlocks, creates and adds nothing is a content change's leftover.
+const PURE_DISCOUNT_TECHS: Array[String] = ["mathematics"]
+
+
+## Backlog 307: every tech that opens no card and adds no era is a deliberate pure-discount tech.
+func test_every_tech_that_opens_nothing_is_a_listed_discount_tech() -> void:
+	var r := load_real()
+	var empty: Array[String] = []
+	for tech in techs_in_research_deck(r):
+		if not tech.effects.any(func(e: Effect) -> bool: return e.op in ["unlock", "create", "add_era"]):
+			empty.append(tech.id)
+	empty.sort()
+	var listed := PURE_DISCOUNT_TECHS.duplicate()
+	listed.sort()
+	eq(empty, listed, "techs that open nothing")
+
+
+## Backlog 307: a Metropolis's own buildings are upgrades; a stand-alone one is a wonder or a once-per-realm entry (308).
+func test_every_metropolis_building_is_an_upgrade_a_wonder_or_once() -> void:
+	var r := load_real()
+	var tiers: Array = r.config.population.get("tiers", [])
+	var top: String = tiers[-1].id if not tiers.is_empty() else ""
+	var menu: Dictionary = r.config.get("build_menu", {})
+	var stand_alone: Array[String] = []
+	for def in real_buildings(r):
+		if def.tier == top and not def.is_upgrade() and not def.has_tag("wonder") \
+				and not menu.get(def.id, {}).get("once", false):
+			stand_alone.append(def.id)
+	eq(stand_alone, [] as Array[String], "stand-alone %s buildings that aren't wonders or once" % top)
+
+
+## Backlog 308: whether def makes food each upkeep.
+func makes_food_on_upkeep(def: CardDef) -> bool:
+	return def.effects.any(func(e: Effect) -> bool:
+		return e.trigger == "upkeep" and e.get("resource") == GameEngine.FOOD and (e.op in GAIN_OPS or e.op == "gain_per_pop"))
+
+
+## Backlog 308: every territory a game can hold (the territory deck and every civilization's home) can hold a building
+## of its own, not an upgrade, that makes food each upkeep: its requires met by the territory's printed keywords.
+func test_every_territory_can_hold_a_food_building() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var farms := real_buildings(r).filter(func(def: CardDef) -> bool:
+		return reachable.has(def.id) and not def.is_upgrade() and makes_food_on_upkeep(def))
+	var ids: Array = r.config.territory_deck.keys()
+	for civ in r.config.get("civilizations", []):
+		if r.cards[civ].home != "":
+			ids.append(r.cards[civ].home)
+	var hungry: Array[String] = []
+	for id in ids:
+		var land: CardDef = r.cards[id]
+		if not farms.any(func(def: CardDef) -> bool: return meets(land.keywords, def.requires)):
+			hungry.append("%s %s" % [id, land.keywords])
+	eq(hungry, [] as Array[String], "territories with no food building they can hold")
+
+
+## Backlog 308: a one-per-realm building that isn't a wonder is the reward of a large settlement, so it needs a tier.
+func test_every_once_building_that_is_not_a_wonder_has_a_tier() -> void:
+	var r := load_real()
+	var menu: Dictionary = r.config.get("build_menu", {})
+	var untiered: Array[String] = []
+	for def in real_buildings(r):
+		if menu.get(def.id, {}).get("once", false) and not def.has_tag("wonder") and def.tier == "":
+			untiered.append(def.id)
+	eq(untiered, [] as Array[String], "once buildings that aren't wonders and need no tier")
 
 
 ## Backlog 295: a wonder is built once a game.
@@ -1196,6 +1519,45 @@ func test_every_gain_per_tag_tag_is_on_a_reachable_card() -> void:
 	eq(missing, [] as Array[String], "gain_per_tag tags no reachable card carries")
 
 
+## Backlog 364: a building's effects create only actions (Fishing Huts adding a Net Fishing to the deck).
+func test_every_card_a_building_creates_is_an_action() -> void:
+	var r := load_real()
+	var wrong: Array[String] = []
+	for id in reachable_cards(r):
+		if r.cards[id].type != CardDef.BUILDING:
+			continue
+		for effect in r.cards[id].effects:
+			if effect.op == "create" and r.cards[effect.card_id].type != CardDef.ACTION:
+				wrong.append("%s creates %s" % [id, effect.card_id])
+	eq(wrong, [] as Array[String], "cards buildings create that aren't actions")
+
+
+## Backlog 368: a card a building brings (Hunters' Camp's Hunt) reaches a game and isn't also dealt or bought.
+func test_every_card_a_building_creates_comes_only_from_the_building() -> void:
+	var r := load_real()
+	var reachable := reachable_cards(r)
+	var wrong: Array[String] = []
+	for def in real_buildings(r):
+		for effect in def.effects:
+			if effect.op != "create":
+				continue
+			if not reachable.has(effect.card_id) or r.config.deck.has(effect.card_id) \
+					or r.config.supply.has(effect.card_id):
+				wrong.append("%s creates %s" % [def.id, effect.card_id])
+	eq(wrong, [] as Array[String], "cards buildings create that are unreachable, dealt or bought")
+
+
+## Backlog 368: a building adds its action once, however many of the building you build.
+func test_every_action_a_building_creates_is_unique() -> void:
+	var r := load_real()
+	var wrong: Array[String] = []
+	for def in real_buildings(r):
+		for effect in def.effects:
+			if effect.op == "create" and r.cards[effect.card_id].type == CardDef.ACTION and not effect.get("unique"):
+				wrong.append("%s creates %s" % [def.id, effect.card_id])
+	eq(wrong, [] as Array[String], "actions buildings create that aren't unique")
+
+
 ## Backlog 273: a tech's gain_per_tag counts a tag at least 3 reachable buildings carry, so it grows as you build.
 func test_every_tech_gain_per_tag_counts_a_tag_on_3_buildings() -> void:
 	var r := load_real()
@@ -1336,6 +1698,20 @@ func test_the_anarchy_event_has_flavor_and_a_quote() -> void:
 		check(def.quote_text != "" and def.quote_by != "", "and a quote")
 
 
+## Backlog 352: every building, projects and upgrades included, has a flavor line.
+func test_every_building_has_flavor() -> void:
+	for def: CardDef in load_real().cards.values():
+		if def.type == CardDef.BUILDING:
+			check(def.flavor != "", "%s has flavor" % def.id)
+
+
+## Backlog 351: every action has a flavor line.
+func test_every_action_has_flavor() -> void:
+	for def: CardDef in load_real().cards.values():
+		if def.type == CardDef.ACTION:
+			check(def.flavor != "", "%s has flavor" % def.id)
+
+
 ## Backlog 215: every tech has a flavor line and a quote with its source, and every event a flavor line.
 func test_every_tech_has_flavor_and_a_quote_and_every_event_flavor() -> void:
 	var r := load_real()
@@ -1344,3 +1720,148 @@ func test_every_tech_has_flavor_and_a_quote_and_every_event_flavor() -> void:
 			check(def.flavor != "", "%s has flavor" % def.id)
 		if def.type == CardDef.TECH:
 			check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % def.id)
+
+
+## Backlog 353: flavor reads in one glance: a line is at most 150 characters, a civilization's paragraph at most 200
+## (the style guide's §18 aims for ~120 and ~170).
+func test_flavor_lines_are_short() -> void:
+	for def: CardDef in load_real().cards.values():
+		var limit := 200 if def.type == CardDef.CIVILIZATION else 150
+		check(def.flavor.length() <= limit,
+			"%s's flavor is %d characters (at most %d)" % [def.id, def.flavor.length(), limit])
+
+
+## Backlog 353: every government has a flavor paragraph and a quote with its source, as the civilizations do.
+func test_every_government_has_flavor_and_a_quote() -> void:
+	for def: CardDef in load_real().cards.values():
+		if def.type == CardDef.GOVERNMENT:
+			check(def.flavor != "", "%s has flavor" % def.id)
+			check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % def.id)
+
+
+## Backlog 396: every wonder (a building tagged wonder) has a quote with its source, as the techs do.
+func test_every_wonder_has_a_quote() -> void:
+	var wonders := 0
+	for def: CardDef in load_real().cards.values():
+		if def.type == CardDef.BUILDING and def.tags.has("wonder"):
+			wonders += 1
+			check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % def.id)
+	check(wonders > 0, "the real data has wonders")
+
+# --- Military content (backlog 167) ---
+
+## The real units: card defs of type unit, checked to be there.
+func real_units(r: Dictionary) -> Array[CardDef]:
+	var out: Array[CardDef] = []
+	for id in r.cards:
+		if r.cards[id].type == CardDef.UNIT:
+			out.append(r.cards[id])
+	check(not out.is_empty(), "the real data has units")
+	return out
+
+
+## The real raids in the event deck, checked to be there.
+func real_raids(r: Dictionary) -> Array[CardDef]:
+	var out: Array[CardDef] = []
+	for id in r.config.get("event_deck", {}):
+		if not r.cards[id].raid.is_empty():
+			out.append(r.cards[id])
+	check(not out.is_empty(), "the event deck has raids")
+	return out
+
+
+## AC2: an upgrade is a step up: every upgrades_to names a stronger unit, whose entry opens no earlier than its own.
+func test_every_unit_upgrade_is_stronger_and_opens_no_earlier() -> void:
+	var r := load_real()
+	var upgrades := 0
+	for unit in real_units(r):
+		if unit.upgrades_to == "":
+			continue
+		upgrades += 1
+		var to: CardDef = r.cards[unit.upgrades_to]
+		check(to.strength > unit.strength, "%s (%d) upgrades to a stronger %s (%d)" % [unit.id, unit.strength, to.id,
+			to.strength])
+		check(entry_era(r, to.id) >= entry_era(r, unit.id), "%s opens no earlier than %s" % [to.id, unit.id])
+	check(upgrades >= 2, "at least 2 unit upgrades (got %d)" % upgrades)
+
+
+## Every unit open on turn 1 can be upgraded, so the first garrison isn't a dead end.
+func test_every_unit_open_on_turn_1_has_an_upgrade() -> void:
+	var r := load_real()
+	for unit in real_units(r):
+		if entry_era(r, unit.id) == 1 and not r.config.build_menu[unit.id].locked:
+			check(unit.upgrades_to != "", "%s has an upgrade" % unit.id)
+
+
+## AC1 and AC3: every unit can be had (an entry open from the start or unlocked by a research-deck tech), and every
+## era the research deck reaches opens a new unit stronger than any unit of the eras before.
+func test_every_era_opens_a_stronger_unit() -> void:
+	var r := load_real()
+	var best_by_era := {}
+	for unit in real_units(r):
+		var era := entry_era(r, unit.id)
+		check(era > 0, "%s can be had" % unit.id)
+		best_by_era[era] = maxi(best_by_era.get(era, 0), unit.strength)
+	var best_before := 0
+	for era in research_eras(r):
+		check(best_by_era.has(era), "era %d opens a unit" % era)
+		check(best_by_era.get(era, 0) > best_before, "era %d's strongest unit (%d) beats the eras before (%d)" % [era,
+			best_by_era.get(era, 0), best_before])
+		best_before = maxi(best_before, best_by_era.get(era, 0))
+
+
+## Raids escalate: every era the research deck reaches has a raid, and its strongest is stronger than every earlier era's.
+func test_every_era_has_a_raid_stronger_than_the_eras_before() -> void:
+	var r := load_real()
+	var best_by_era := {}
+	for raid in real_raids(r):
+		best_by_era[raid.era] = maxi(best_by_era.get(raid.era, 0), raid.raid.strength)
+	var best_before := 0
+	for era in research_eras(r):
+		check(best_by_era.has(era), "era %d has a raid" % era)
+		check(best_by_era.get(era, 0) > best_before, "era %d's strongest raid (%d) beats the eras before (%d)" % [era,
+			best_by_era.get(era, 0), best_before])
+		best_before = maxi(best_before, best_by_era.get(era, 0))
+
+
+## AC3: each era with raids has a unit open by then (from the start, or from a tech of that era or earlier).
+func test_every_raid_era_has_a_unit_open_by_then() -> void:
+	var r := load_real()
+	for raid in real_raids(r):
+		var open := real_units(r).filter(func(u: CardDef) -> bool: return entry_era(r, u.id) in range(1, raid.era + 1))
+		check(not open.is_empty(), "%s (era %d) can be met by a unit open by then" % [raid.id, raid.era])
+
+
+## AC4: every raid's targets are on some territory a game can hold (the deck, the start, a home, rolled resources).
+func test_every_raid_target_is_on_some_territory() -> void:
+	var r := load_real()
+	var on_land := {}
+	for keywords in land_keyword_sets(r):
+		for k in keywords:
+			on_land[k] = true
+	for raid in real_raids(r):
+		for k in raid.raid.get("targets", []):
+			check(on_land.has(k), "%s's target %s is on some territory" % [raid.id, k])
+
+
+## Backlog 381: across the real cards every placeholder motif occurs.
+func test_every_art_motif_occurs_across_the_real_cards() -> void:
+	var seen := {}
+	for id in load_real().cards:
+		seen[CardArt.motif_for(id)] = true
+	eq(seen.size(), CardArt.Motif.size(), "every motif is some card's: %s" % [seen.keys()])
+
+
+## Backlog 381: docs/design/card-art.md has exactly one row naming <id>.png for every card, and none for a non-card.
+func test_the_card_art_list_has_one_row_per_card() -> void:
+	var rows := {}
+	var file_cell := RegEx.create_from_string("^\\| `([a-z0-9_]+)\\.png` \\|")
+	for line in FileAccess.get_file_as_string("res://docs/design/card-art.md").split("\n"):
+		var found := file_cell.search(line)
+		if found != null:
+			rows[found.get_string(1)] = rows.get(found.get_string(1), 0) + 1
+	var cards: Dictionary = load_real().cards
+	for id in cards:
+		eq(rows.get(id, 0), 1, "%s has one row" % id)
+	for id in rows:
+		check(cards.has(id), "%s.png is listed but isn't a card" % id)

@@ -30,20 +30,18 @@ func drawn(wealth := 3) -> GameEngine:
 # --- AC1: loading ---
 
 func test_choices_load_on_an_event() -> void:
-	var r := choice_load()
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	if not r.cards.has("envoys"):
-		return
-	var choices: Array = r.cards.envoys.choices
-	eq(choices.size(), 2, "two options")
-	if choices.size() != 2:
-		return
-	eq(choices[0].cost, {"wealth": 2}, "option 0's cost")
-	eq(choices[0].effects.map(func(x): return x.op), ["score"], "option 0's effects")
-	eq(choices[1].cost, {}, "option 1 is free")
-	eq(choices[1].effects.map(func(x): return x.op), ["gain"], "option 1's effects")
-	eq(r.cards.fleeting.choices, [], "a plain event has none")
+	check_loads([
+		["Envoys and a plain event", [ENVOYS], {
+			"cards.envoys.choices.size()": 2,
+			"cards.envoys.choices.0.cost": {"wealth": 2},
+			"cards.envoys.choices.0.effects.size()": 1,
+			"cards.envoys.choices.0.effects.0.op": "score",
+			"cards.envoys.choices.1.cost": {},
+			"cards.envoys.choices.1.effects.size()": 1,
+			"cards.envoys.choices.1.effects.0.op": "gain",
+			"cards.fleeting.choices": [],
+		}],
+	], choice_load)
 
 
 func test_bad_choices_are_a_load_error() -> void:

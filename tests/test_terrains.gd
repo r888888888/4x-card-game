@@ -28,14 +28,20 @@ func kw(list: Array) -> Array[String]:
 	return out
 
 
-## TERRAIN_CARDS plus extra, parsed with KEYWORDS and RESOURCE_KEYWORDS.
-func terrain_cards(extra: Array = []) -> Dictionary:
+## TERRAIN_CARDS plus extra, parsed with KEYWORDS and RESOURCE_KEYWORDS: {cards, errors, warnings}.
+func terrain_cards_load(extra: Array = []) -> Dictionary:
 	var errors: Array[String] = []
 	var warnings: Array[String] = []
 	var cards := DataLoader.parse_cards({"cards": TERRAIN_CARDS + extra}, resources(), "cards.json", errors, warnings,
 		kw(KEYWORDS), kw(RESOURCE_KEYWORDS))
-	check(errors.is_empty(), "terrain cards should parse: %s" % [errors])
-	return cards
+	return {"cards": cards, "errors": errors, "warnings": warnings}
+
+
+## terrain_cards_load's cards, failing the test on a load error.
+func terrain_cards(extra: Array = []) -> Dictionary:
+	var r := terrain_cards_load(extra)
+	check(r.errors.is_empty(), "terrain cards should parse: %s" % [r.errors])
+	return r.cards
 
 
 ## Config overrides with the fixture keywords, terrains and resource keywords, plus more.
@@ -46,9 +52,9 @@ func terrain_config(more := {}) -> Dictionary:
 	}.merged(more, true)
 
 
-## Config errors for TERRAIN_CARDS + extra_cards with terrain_config(overrides).
-func terrain_errors(overrides: Dictionary, extra_cards: Array = []) -> Array[String]:
-	return config_errors_for(terrain_cards(extra_cards), terrain_config(overrides))
+## TERRAIN_CARDS + extra_cards and a config with terrain_config(overrides) (config_load_on).
+func terrain_load(overrides: Dictionary, extra_cards: Array = []) -> Dictionary:
+	return config_load_on(terrain_cards_load(extra_cards), terrain_config(overrides))
 
 
 ## A game on TERRAIN_CARDS with territory_resources tables and the territory deck.
@@ -84,28 +90,20 @@ func ids(zone: Zone) -> Array[String]:
 
 # --- AC1: the terrains list ---
 
-func test_terrains_list_loads_into_the_config() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var raw := raw_config({"farm": 1})
-	raw.merge(terrain_config(), true)
-	var config := DataLoader.parse_config(raw, resources(), terrain_cards(), "config.json", errors, warnings)
-	eq(errors, [] as Array[String], "no errors")
-	eq(config.get("terrains"), kw(TERRAINS), "normalized terrains")
-
-
-func test_terrains_default_to_empty() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(raw_config({"farm": 1}), resources(), terrain_cards(), "config.json", errors, warnings)
-	eq(config.get("terrains"), [] as Array[String], "no terrains")
+func test_terrains_list_loads() -> void:
+	check_loads([
+		["normalized terrains; Peak and River (a terrain plus features) load", {}, {"config.terrains": kw(TERRAINS)}],
+	], terrain_load)
+	check_loads([
+		["no terrains", {}, {"config.terrains": [] as Array[String]}],
+	], func(overrides: Dictionary) -> Dictionary: return config_load_on(terrain_cards_load(), overrides))
 
 
 func test_terrains_validation() -> void:
 	check_cases([
 		["terrain not a keyword", {"terrains": ["swamp"]}, ["config.json", "terrains", "'swamp'"]],
 		["terrains not an array", {"terrains": "mountain"}, ["config.json", "terrains"]],
-	], terrain_errors)
+	], terrain_load)
 
 
 # --- AC2: exactly one terrain per territory ---
@@ -118,16 +116,12 @@ func test_each_territory_needs_exactly_one_terrain() -> void:
 		["a feature only", [none], ["card 'spring'", "keywords", "needs exactly one terrain"]],
 		["no keywords", [bare], ["card 'void'", "keywords", "needs exactly one terrain"]],
 		["two terrains", [two], ["card 'ridge'", "keywords", "'mountain'", "'plain'"]],
-	], func(extra): return terrain_errors({}, extra))
-
-
-func test_one_terrain_with_features_loads() -> void:
-	eq(terrain_errors({}), [] as Array[String], "Peak and River (a terrain plus features) load")
+	], func(extra): return terrain_load({}, extra))
 
 
 func test_without_terrains_a_territory_needs_none() -> void:
 	var bare := {"id": "void", "name": "Void", "type": "territory", "slots": 1}
-	eq(terrain_errors({"terrains": []}, [bare]), [] as Array[String], "no terrains configured: no terrain needed")
+	eq(terrain_load({"terrains": []}, [bare]).errors, [] as Array[String], "no terrains configured: no terrain needed")
 
 
 # --- AC3: roll tables keyed by terrain ---
@@ -158,8 +152,8 @@ func test_terrain_table_key_validation() -> void:
 			"config.json: territory_resources: unknown card 'nowhere'"],
 		["a feature is not a terrain", {"territory_resources": {"fresh_water": gold}},
 			"config.json: territory_resources: unknown card 'fresh_water'"],
-	], terrain_errors)
-	has_msg(terrain_errors({"territory_resources": {"plain": gold}}, [clash]), "territory_resources: 'plain'")
+	], terrain_load)
+	has_msg(terrain_load({"territory_resources": {"plain": gold}}, [clash]).errors, "territory_resources: 'plain'")
 
 
 # --- AC4: a territory's own table wins ---

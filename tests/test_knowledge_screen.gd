@@ -6,6 +6,13 @@ extends "res://tests/lib/tech_case.gd"
 ## while closed), is_open(), open(), close(), header, context_text(), era_heading(i) (the i-th row's heading Label),
 ## era_tiles(i), era_vellum(i) and vellum_text(i) (222), tile(name) and tile_texts(name) (222), linked(name) (278), slide_offset() (how
 ## far the screen sits right of its place) and realm_shift() (how far the screen below has moved left).
+## In detail (from docs/testing.md, 331): The Knowledge screen (208; the tech tree modal before it, 059, 140) in the
+## real `main.tscn`: T and the Knowledge button push it on the play area's navigator (`main.knowledge`: `shown()`,
+## `header`, `context_text()`, `era_heading(i)`, `slide_offset()`, `realm_shift()`), a row per era (caps heading, a
+## future era dimmed with its unlocks), compact tiles (222: `tile(name)`, `tile_texts(name)`, `era_tiles(i)`,
+## `era_vellum(i)`, `vellum_text(i)`) whose click, Enter, right-click or I opens the details, whose Learn button
+## researches (229), a future era under vellum, back by Back / Esc / T / the link or a left click outside it that does
+## nothing else (326; on End turn it also ends the turn, 348), the slide and the Realm's shift (a fade with Reduce motion), over a territory view
 
 
 ## Whether main has its Knowledge screen (checked, so a test without it fails instead of crashing and leaving a
@@ -54,6 +61,7 @@ func test_the_knowledge_button_opens_the_screen() -> void:
 
 # --- Backlog 092: the hint names the research card from the engine ---
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const TREE_TOOLTIP := "Shortcut: T. The tech tree: every tech by era, what it costs now and what it gives.\nEra: Era 1."  # the fixture has no era names
 
 
@@ -157,17 +165,6 @@ func tile_size() -> Vector2:
 
 func learned(e: GameEngine, id: String) -> bool:
 	return e.zone("researched").cards.any(func(c): return c.def.id == id)
-
-
-## Pushes a press of mouse button at the centre of control on main's viewport.
-func click(main: Node, control: Control, button := MOUSE_BUTTON_LEFT) -> void:
-	for pressed in [true, false]:
-		var event := InputEventMouseButton.new()
-		event.button_index = button
-		event.pressed = pressed
-		event.position = control.get_global_rect().get_center()
-		event.global_position = event.position
-		main.get_viewport().push_input(event, true)
 
 
 func test_a_click_on_an_available_tile_opens_its_details_and_learns_nothing() -> void:
@@ -349,7 +346,7 @@ func test_a_click_on_a_tile_that_isnt_available_opens_its_details() -> void:
 func test_a_right_click_on_an_available_tile_opens_its_details_and_learns_nothing() -> void:
 	await with_tree(func(main: Node):
 		await wait_screen_transition()
-		click(main, tile(main, "Writing"), MOUSE_BUTTON_RIGHT)
+		click_control(main, tile(main, "Writing"), MOUSE_BUTTON_RIGHT)
 		eq(main.details.shown().get("name", ""), "Writing", "Writing's details")
 		check(not learned(Game.engine, "writing"), "not learned"))
 
@@ -453,7 +450,7 @@ func test_a_future_era_is_under_vellum_with_its_unlocks() -> void:
 		var optics: Button = tile(main, "Optics")
 		check(vellum.get_global_rect().encloses(optics.get_global_rect()), "it covers the era's tiles")
 		eq(main.knowledge.era_heading(1).get_parent().modulate, Color.WHITE, "the row isn't dimmed")
-		click(main, optics)
+		click_control(main, optics)
 		eq(main.details.shown(), {}, "a click on the vellum opens nothing"))
 
 
@@ -559,9 +556,8 @@ func test_bug_224_it_runs_in_from_the_play_areas_edge_under_the_sidebar() -> voi
 			eq(main.knowledge.slide_offset(), width, "it travels its own width, from the play area's right edge")
 			var sidebar := main.sidebar as Control
 			check(sidebar.z_index > (main.knowledge as Control).z_index, "the sidebar draws over the sliding sheet")
-			var panel := sidebar.get_theme_stylebox("panel") as StyleBoxFlat
-			check(panel != null and panel.draw_center and panel.bg_color.a == 1.0,
-				"the sidebar is opaque, so the sheet passes under it")))
+			var grain := Looks.texture_of(sidebar.get_theme_stylebox("panel"))  # the board's opaque grain (341)
+			check(grain != null and not grain.has_alpha(), "the sidebar is opaque, so the sheet passes under it")))
 
 
 func test_bug_224_the_sheet_is_opaque() -> void:
@@ -755,3 +751,154 @@ func test_the_hover_keeps_the_tiles_border_and_margins() -> void:
 			var normal := tile(main, tech_name).get_theme_stylebox("normal") as StyleBoxFlat
 			eq(hover.border_width_left, normal.border_width_left, "%s: the same border width" % tech_name)
 			eq(hover.get_minimum_size(), normal.get_minimum_size(), "%s: the same margins" % tech_name))
+
+
+# --- Backlog 325: what the insight covers ---
+
+func test_an_available_tile_the_insight_doesnt_cover_looks_short_until_it_does() -> void:
+	await with_tree(func(main: Node):
+		var e := Game.engine
+		e.resources["insight"] = 4
+		e.changed.emit()
+		await wait_screen_transition()
+		eq(tile(main, "Writing").theme_type_variation, &"TechTile", "Writing (3) is covered")
+		var short := tile(main, "Bronze Working")
+		eq(short.theme_type_variation, &"TechTileShort", "Bronze Working (5) is short")
+		var box := short.get_theme_stylebox("normal") as StyleBoxFlat
+		eq(box.bg_color if box != null else Color.TRANSPARENT, Palette.TILE, "short: still the sheet, not the locked well")
+		for label in short.find_children("*", "Label", true, false):
+			eq(label.get_theme_color("font_color"), Palette.TEXT_DISABLED, "short: muted text")
+		var error := e.buy_tech_error(uid_of(e.zone("research_deck"), "bronze"))
+		check(error != "" and short.tooltip_text.contains(error), "the tooltip says what's short: %s" % short.tooltip_text)
+		e.resources["insight"] = 5
+		e.changed.emit()
+		await wait_screen_transition()
+		eq(tile(main, "Bronze Working").theme_type_variation, &"TechTile", "5 insight covers it"))
+
+
+# --- 326: a left click outside the screen closes it, and does nothing else ---
+
+## The first card view in main's hand, or null.
+func first_hand_card(main: Node) -> CardView:
+	var views: Array[CardView] = main.views_in(main.hand)
+	check(not views.is_empty(), "a card in hand")
+	return views[0] if not views.is_empty() else null
+
+
+## Waits past a hand card's details delay, so a click that would show its details has done so.
+func wait_details_delay() -> void:
+	await (Engine.get_main_loop() as SceneTree).create_timer(Anim.DETAILS_CLICK_DELAY + 0.1).timeout
+
+
+func test_a_left_click_outside_the_screen_closes_it_and_does_nothing_else() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		var card := first_hand_card(main)
+		if card == null:
+			return
+		var in_hand: int = MainProbe.hand_view_count(main)
+		check(not main.knowledge.get_global_rect().intersects(card.get_global_rect()), "the hand card is outside the sheet")
+		click_control(main, card)
+		check(not main.knowledge.is_open(), "a click on the hand closes the screen")
+		await wait_details_delay()
+		eq(main.details.shown(), {}, "the click opens no card's details")
+		eq(MainProbe.hand_view_count(main), in_hand, "the hand is unchanged")
+		eq(card.state, CardView.State.REST, "the card is not picked up"))
+
+
+func test_a_click_on_end_turn_closes_the_screen_and_ends_the_turn() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		var turn := Game.engine.turn
+		click_control(main, main.sidebar.end_turn)
+		await wait_frames()
+		check(not main.knowledge.is_open(), "the click closes the screen")
+		eq(Game.engine.turn, turn + 1, "and ends the turn (348)"))
+
+
+func test_e_on_the_screen_ends_the_turn_and_closes_it() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		var turn := Game.engine.turn
+		press_key(main, KEY_E)
+		await wait_frames()
+		eq(Game.engine.turn, turn + 1, "E ends the turn (348)")
+		check(not main.knowledge.is_open(), "and the screen closes (290)"))
+
+
+func test_a_click_inside_the_screen_leaves_it_open() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		var insight: Label = null
+		for label in main.knowledge.find_children("*", "Label", true, false):
+			if label.text.begins_with("Insight"):
+				insight = label
+		check(insight != null, "the Insight line")
+		if insight == null:
+			return
+		click_control(main, insight)
+		check(main.knowledge.is_open(), "a click on the sheet's background leaves it open")
+		click_control(main, main.knowledge.era_heading(0))
+		check(main.knowledge.is_open(), "a click on an era's title leaves it open"))
+
+
+func test_a_click_outside_a_tech_details_modal_closes_only_the_modal() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		click_control(main, tile(main, "Pottery"))
+		eq(main.details.shown().get("name", ""), "Pottery", "Pottery's details")
+		await wait_screen_transition()
+		var card := first_hand_card(main)
+		if card == null:
+			return
+		click_control(main, card)
+		eq(main.details.shown(), {}, "the click closes the details")
+		check(main.knowledge.is_open(), "the screen stays open"))
+
+
+func test_a_right_click_outside_the_screen_leaves_it_open() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		var heading: Label = null
+		for label in main.find_children("*", "Label", true, false):
+			if label.text.begins_with("In Hand") and label.is_visible_in_tree():
+				heading = label
+		check(heading != null, "the In Hand heading")
+		if heading == null:
+			return
+		click_control(main, heading, MOUSE_BUTTON_RIGHT)
+		check(main.knowledge.is_open(), "a right click outside leaves it open"))
+
+
+func test_a_click_on_the_hand_works_as_before_once_the_screen_is_closed_or_leaving() -> void:
+	await with_tree(func(main: Node):
+		await wait_screen_transition()
+		press_key(main, KEY_ESCAPE)  # leaving: closed as soon as it starts to leave
+		var card := first_hand_card(main)
+		if card == null:
+			return
+		click_control(main, card)
+		await wait_details_delay()
+		eq(main.details.shown().get("name", ""), Game.engine.def_details(card.card_id).get("name", "?"), "the click shows the card's details"))
+
+
+# --- Backlog 362: the era rows glide ---
+
+## Opens the Knowledge screen on the real game in a 1280 × 720 window (more era rows than fit) and checks a wheel
+## notch over its rows moves them a step, gliding unless calm (check_wheel_step).
+func check_knowledge_wheel_step(calm: bool) -> void:
+	await with_reduce_motion(calm, func(): await with_window_size(Vector2i(1280, 720), func():
+		var main := open_main()
+		main.start_game(1)
+		press_key(main, KEY_T)
+		await wait_screen_transition()
+		await check_wheel_step(main, scroll_around(main.knowledge.era_heading(0)), "the era rows")
+		close_main(main)))
+
+
+func test_a_wheel_notch_glides_the_era_rows_a_step() -> void:
+	await check_knowledge_wheel_step(false)
+
+
+func test_with_reduce_motion_a_wheel_notch_jumps_the_era_rows_a_step() -> void:
+	await check_knowledge_wheel_step(true)

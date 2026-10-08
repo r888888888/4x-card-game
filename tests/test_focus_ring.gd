@@ -3,6 +3,9 @@ extends "res://tests/lib/test_case.gd"
 ## modal's action button, a screen's first control) has the focus but draws no ring; Tab or Shift+Tab switches to
 ## keyboard mode, where it draws; a mouse click switches back. "Draws the ring" is Godot's shown focus state:
 ## has_focus(true), which is false while the focus is hidden.
+## In detail (from docs/testing.md, 331): The focus ring waits for Tab (230): code focus (modals, Navigator screens) is
+## hidden in pointer mode, Tab/Shift+Tab switch to keyboard mode where it rings, a click switches back; every `ui/`
+## focus goes through `FocusRing`; a card focus the code places (the explore choice) follows the mode too (234)
 
 
 ## Opens main on seed 1 with the menu open (Restart focused by the menu). Use with await.
@@ -51,7 +54,7 @@ func click_corner(main: Node) -> void:
 
 func test_a_modals_action_button_is_focused_with_no_ring_until_tab() -> void:
 	var main: Node = await open_menu_main()
-	var restart: Button = main.menu_buttons()[0]
+	var restart: Button = MainProbe.menu_buttons(main)[0]
 	eq(restart.text, "Restart", "the menu's first button")
 	eq(focus_owner(main), restart, "Restart has the focus")
 	check(not rings(restart), "Restart draws no ring before Tab")
@@ -93,7 +96,7 @@ func test_a_pushed_screens_focus_control_draws_no_ring() -> void:
 
 func test_tab_and_shift_tab_in_a_modal_show_the_ring() -> void:
 	var main: Node = await open_menu_main()
-	var buttons: Array[Button] = main.menu_buttons()
+	var buttons: Array[Button] = MainProbe.menu_buttons(main)
 	press_key(main, KEY_TAB)
 	await wait_frames()
 	eq(focus_owner(main), buttons[1], "Tab moves the focus to New game")
@@ -114,7 +117,7 @@ func test_after_tab_the_next_modal_focuses_with_the_ring() -> void:
 	await wait_frames()
 	main.open_menu()
 	await wait_frames()
-	var restart: Button = main.menu_buttons()[0]
+	var restart: Button = MainProbe.menu_buttons(main)[0]
 	eq(focus_owner(main), restart, "Restart has the focus again")
 	check(rings(restart), "in keyboard mode it draws the ring")
 	close_main(main)
@@ -131,7 +134,7 @@ func test_a_click_hides_the_ring_again() -> void:
 	check(not main.modals.is_open(), "the click closed the menu")
 	main.open_menu()
 	await wait_frames()
-	var restart: Button = main.menu_buttons()[0]
+	var restart: Button = MainProbe.menu_buttons(main)[0]
 	eq(focus_owner(main), restart, "Restart has the focus")
 	check(not rings(restart), "after a click it draws no ring")
 	close_main(main)
@@ -142,7 +145,7 @@ func test_a_fresh_main_starts_in_pointer_mode() -> void:
 	press_key(first, KEY_TAB)  # keyboard mode in one main...
 	close_main(first)
 	var main: Node = await open_menu_main()  # ...isn't carried into the next
-	check(not rings(main.menu_buttons()[0]), "a new main's menu draws no ring on Restart")
+	check(not rings(MainProbe.menu_buttons(main)[0]), "a new main's menu draws no ring on Restart")
 	close_main(main)
 
 
@@ -180,10 +183,9 @@ func test_no_ui_script_but_the_helper_calls_grab_focus() -> void:
 
 # --- Bug 234: the card focus ring the code places waits for Tab too ---
 
-## Whether card view draws the card focus ring (CardView.shows_focus_ring, held as Object so this parses before it exists).
-func card_rings(view: Object) -> bool:
-	check(view != null and view.has_method("shows_focus_ring"), "CardView.shows_focus_ring() exists")
-	return view != null and view.has_method("shows_focus_ring") and view.shows_focus_ring()
+## Whether card view draws the card focus ring.
+func card_rings(view: CardView) -> bool:
+	return view.shows_focus_ring()
 
 
 ## Plays an Explorer from the hand on main's fixture game: an explore choice of the two territories opens.

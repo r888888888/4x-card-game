@@ -9,6 +9,7 @@ extends RefCounted
 var views := {}  # uid -> CardView
 var outcome := {}  # the last card_played outcome: the next sync flies the played card to where it was played
 var quiet := false  # syncing after a navigation: cards appear and go at once, with no pop or flight (105)
+var _built: Array[int] = []  # cards the engine just built (357): the next sync gives them the build ceremony
 
 var _main: MainScreen
 var _top_bar: TopBar
@@ -25,6 +26,7 @@ func sync(e: GameEngine) -> void:
 	var m := _main
 	var rows := {"reveal": m.choices.reveal}
 	rows["governments"] = m.choices.government_row  # the government deck, shown while one is to be chosen (154)
+	rows["offered"] = m.choices.take_row  # the cards to take one of into the hand (370)
 	var viewed := m.territory_view.card_uids()  # these rest in the territory view instead of the Realm
 	var shown := {}
 	for zone_name in ["hand"] + rows.keys() + TableauView.LEADING_ZONES.keys():
@@ -47,27 +49,59 @@ func sync(e: GameEngine) -> void:
 		if views.has(group.territory):
 			var t: int = group.territory
 			views[t].show_settled(TerritoryView.stats(e, t), e.territory_tooltip(t))
-			views[t].set_raid_warning(e.raid_warning(t))
+			views[t].set_raid_warning(e.military.raid_warning(t))
 	for zone_name in rows:
 		var cards := e.zone(zone_name).cards
 		if zone_name == "governments" and m.pending_kind() == GameEngine.PENDING_GOVERNMENT:  # the default first (254)
 			var options: Array = e.pending().options
 			cards = cards.duplicate()
 			cards.sort_custom(func(a: CardInstance, b: CardInstance): return options.find(a.uid) < options.find(b.uid))
+		var top_first: bool = zone_name == "reveal" or zone_name == "offered"  # top of the deck or pile first
 		for i in cards.size():
-			var card: CardInstance = cards[cards.size() - 1 - i] if zone_name == "reveal" else cards[i]  # reveal: top of the deck first
+			var card: CardInstance = cards[cards.size() - 1 - i] if top_first else cards[i]
 			place(card, rows[zone_name], i, 0.0)
 	for uid in viewed:  # a unit away from home says where it is from (163); a trained one, its strength (164)
 		if views.has(uid) and e.unit_station(uid) != -1:
-			views[uid].set_unit_origin(e.unit_origin(uid))
-			views[uid].set_unit_strength(e.unit_strength_tag(uid))
+			views[uid].set_unit_origin(e.military.origin(uid))
+			views[uid].set_unit_strength(e.military.strength_tag(uid))
+			var pips := e.military.veteran_pips(uid)  # a counter waiting for its tally shows once the raid closes (388)
+			views[uid].set_veteran_pips(pips.filled - _main.news.waiting_veterans().count(uid), pips.total)
 	for card in e.zone("active_events").cards:
-		var raid := e.raid_tag(card.uid)
+		var raid := e.military.raid_tag(card.uid)
 		if raid != "":
-			views[card.uid].set_raid_info(raid, e.raid_short(card.uid))
+			views[card.uid].set_raid_info(raid, e.military.raid_short(card.uid))
 		else:
 			views[card.uid].set_event_info(e.event_turns_left(card.uid), e.event_counters(card.uid))
 	outcome = {}
+	for uid in _built:  # an upgrade has no view of its own: its ceremony plays on its base, without a tag (357)
+		var base := e.upgrade_base(uid)
+		if base != -1 and views.has(base):
+			_ceremony(views[base], e.zone("tableau").find(base).def, "")
+	_built.clear()
+
+
+## Switches on the new veteran pip of each of uids' views (388, §10.3's tally): in tableau order, one per unit,
+## Anim.TALLY_STEP apart (all at once with Reduce motion), each with a counter tick, still TALLY_STEP apart.
+func tally_veterans(e: GameEngine, uids: Array[int]) -> void:
+	var shown := e.zone("tableau").cards.filter(func(c): return uids.has(c.uid) and views.has(c.uid))
+	for k in shown.size():
+		var view: CardView = views[shown[k].uid]
+		var delay := k * Anim.TALLY_STEP
+		if UIKit.calm() or delay == 0.0:
+			view.light_veteran_pip()
+		else:
+			_main.get_tree().create_timer(delay).timeout.connect(func(): if is_instance_valid(view): view.light_veteran_pip())
+		_main.sfx.play(Sfx.COUNTER_TICK, delay)
+
+
+## The engine built uid (its built signal, 357): the next sync gives it the build ceremony.
+func note_built(uid: int) -> void:
+	_built.append(uid)
+
+
+## The build ceremony on view, a card of def, with a tag reading tag ("" for none).
+func _ceremony(view: CardView, def: CardDef, tag: String) -> void:
+	BuildCeremony.play(view, _main.fx, CardView.type_color(def.type), tag)
 
 
 ## Makes sure card has a view resting in (or flying to) a slot at index in container.
@@ -77,12 +111,15 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 	var m := _main
 	var in_hand := container == m.hand
 	var error := e.playable_error(card.uid) if in_hand else ""
+	var detail := e.play_error_detail(card.uid) if error != "" else ""  # 347
 	var leading := TableauView.leading_zone(e, card.uid) if container == m.tableau.row else ""
 	var kind := TableauView.board_kind(leading) if container == m.tableau.row else ""  # 138: a fixed-height board face
 	var view: CardView = views.get(card.uid)
 	if view == null:
 		view = CardView.new()
 		view.setup(card, e.card_db, in_hand, error, kind)
+		if detail != "":
+			view.set_play_error(error, detail)
 		view.set_pickable(m.choices.is_choice_row(container), m.choices.pick_hint(container))
 		if leading != "":
 			view.set_hint(TableauView.LEADING_ZONES[leading])
@@ -97,6 +134,9 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 			view.deal(slot, m.fx, _top_bar.pile_point(), delay)
 		elif quiet:
 			view.attach(slot)
+		elif _built.has(card.uid):  # in its slot at once, under the build ceremony (357)
+			view.attach(slot)
+			_ceremony(view, card.def, BuildCeremony.RECRUITED if card.def.type == CardDef.UNIT else BuildCeremony.BUILT)
 		else:
 			view.pop_in(slot)
 		return in_hand
@@ -118,7 +158,7 @@ func place(card: CardInstance, container: Container, index: int, delay: float) -
 		view.setup(card, e.card_db, in_hand, error, kind)
 		view.slot.custom_minimum_size = view.slot_size()
 	if in_hand:
-		view.set_play_error(error)
+		view.set_play_error(error, detail)
 		view.set_shortfall(e.play_shortfall(card.uid))
 	elif leading != "":
 		view.set_hint(TableauView.LEADING_ZONES[leading])

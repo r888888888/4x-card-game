@@ -3,6 +3,7 @@ extends "res://tests/lib/test_case.gd"
 ## motion. Palette colours are read by name (Script.get) so this file parses while they are still constants; the
 ## switch goes through Settings.set_day_mode on a temp settings file, and every test ends back on the player's palette.
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const PALETTE_PATH := "res://ui/palette.gd"
 const KEY_PATH := "res://ui/legend_key.gd"
 ## AC2's Day values.
@@ -77,19 +78,21 @@ func check_look(main: Node, mode: String) -> void:
 	main.add_child(button)
 	eq((button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color, palette("CONTROL"), "%s: a Button's fill" % mode)
 	button.free()
-	eq(main.background_color(), palette("BACKGROUND"), "%s: the board's background" % mode)
+	var board := Looks.mismatch(MainProbe.background_box(main), Looks.grain(palette("BACKGROUND")))
+	check(board == "", "%s: the board's grain: %s" % [mode, board])
 	for uid in main.views:
 		var view: CardView = main.views[uid]
 		if view.board_kind == CardView.BOARD_FRONTIER:
 			continue
-		var box := view.get_theme_stylebox("panel") as StyleBoxFlat
-		check(box.bg_color in [palette("RAISED"), palette("DIM_BG")], "%s: %s's panel %s" % [mode, view.card_id, box.bg_color.to_html()])
+		var box := view.get_theme_stylebox("panel")
+		var paper := Looks.mismatch(box, Looks.paper())
+		check(paper == "" or Looks.mismatch(box, Looks.dimmed_paper()) == "", "%s: %s's paper: %s" % [mode, view.card_id, paper])
 		var band := view.find_child("Band", true, false) as ColorRect
 		if band != null:
 			var type: String = Game.engine.card_db[view.card_id].type
 			check(band.color in [palette(type.to_upper()), palette("DIM_BORDER")], "%s: %s's band" % [mode, view.card_id])
 	for key in [GameEngine.FOOD, GameEngine.WEALTH]:
-		var counter: Control = main.counter(key)
+		var counter: Control = MainProbe.counter(main, key)
 		var glyph := counter.find_children("*", "TextureRect", true, false)[0] as TextureRect
 		eq(glyph.self_modulate, Icons.hue(key), "%s: the %s glyph" % [mode, key])
 		eq(figure_color(counter), palette("TEXT"), "%s: the %s figure" % [mode, key])
@@ -97,9 +100,9 @@ func check_look(main: Node, mode: String) -> void:
 	eq(log_text.get_theme_color("default_color"), palette("LOG_TEXT"), "%s: the log's text" % mode)
 
 
-## The colour counter's figure is drawn in (an odometer's since 181, else the label's).
-func figure_color(counter: Control) -> Color:
-	return counter.figure().color if counter.has_method("figure") else counter.get_theme_color("font_color")
+## The colour counter's figure is drawn in (its odometer's, 181).
+func figure_color(counter: Counter) -> Color:
+	return counter.figure().color
 
 
 func test_day_mode_switches_a_game_in_progress_and_back() -> void:
@@ -131,13 +134,14 @@ func test_open_modals_and_screens_switch_and_stay_open() -> void:
 		set_day(true)
 		await wait_frames()
 		eq(main.modals.depth(), depth, "the civilization modal stays open")
-		eq((panel.get_theme_stylebox("panel") as StyleBoxFlat).bg_color, palette("RAISED"), "its panel is paper")
+		var paper := Looks.mismatch(panel.get_theme_stylebox("panel"), Looks.paper())
+		check(paper == "", "its panel is Day paper: %s" % paper)
 		main.open_menu()
 		await wait_frames()
 		set_day(false)
 		await wait_frames()
-		check(main.menu_buttons()[0].is_visible_in_tree(), "the menu stays open")
-		var menu_button: Button = main.menu_buttons()[0]
+		check(MainProbe.menu_buttons(main)[0].is_visible_in_tree(), "the menu stays open")
+		var menu_button: Button = MainProbe.menu_buttons(main)[0]
 		eq((menu_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color, palette("CONTROL"), "its buttons are night again")
 		close_main(main))
 
@@ -150,8 +154,8 @@ func test_the_settings_modal_switches_and_stays_open() -> void:
 		set_day(true)
 		await wait_frames()
 		check(main.settings_modal.is_open(), "still open")
-		eq((main.settings_modal.panel.get_theme_stylebox("panel") as StyleBoxFlat).bg_color, palette("RAISED"),
-			"its sheet reads the day paper")
+		var paper := Looks.mismatch(main.settings_modal.panel.get_theme_stylebox("panel"), Looks.paper())
+		check(paper == "", "its sheet is Day paper: %s" % paper)
 		close_main(main))
 
 
@@ -189,7 +193,7 @@ func test_the_day_key_is_in_the_focus_loop() -> void:
 		main.start_game(1)
 		main.open_menu()
 		await wait_frames()
-		for b in main.menu_buttons():
+		for b in MainProbe.menu_buttons(main):
 			if b.text == "Settings":
 				b.pressed.emit()
 		await wait_frames()
@@ -209,7 +213,7 @@ func test_bug_195_opening_main_in_day_mode_before_a_game_raises_no_error() -> vo
 		var main := open_main()
 		await wait_frames()
 		check(main.start_screen.is_open(), "the title screen is open")
-		check(not main.board_shown(), "the board isn't shown")
+		check(not MainProbe.board_shown(main), "the board isn't shown")
 		var button := Button.new()
 		main.add_child(button)
 		eq((button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color.to_html(false), Palette.DAY["CONTROL"].to_html(false),
@@ -227,10 +231,12 @@ func test_bug_195_a_game_started_in_day_mode_shows_the_board_in_paper() -> void:
 		var main := open_main()
 		main.start_game(1)
 		await wait_frames()
-		eq(main.background_color().to_html(false), Palette.DAY["BACKGROUND"].to_html(false), "the board's background")
+		var board := Looks.mismatch(MainProbe.background_box(main), Looks.grain(Palette.DAY["BACKGROUND"]))
+		check(board == "", "the board's Day grain: %s" % board)
 		var view: CardView = main.views[first_in_hand(Game.engine)]
-		var fill := (view.get_theme_stylebox("panel") as StyleBoxFlat).bg_color.to_html(false)
-		check(fill in [Palette.DAY["RAISED"].to_html(false), Palette.DAY["DIM_BG"].to_html(false)], "a hand card's panel is paper: %s" % fill)
+		var box := view.get_theme_stylebox("panel")
+		var paper := Looks.mismatch(box, Looks.paper())
+		check(paper == "" or Looks.mismatch(box, Looks.dimmed_paper()) == "", "a hand card is on Day paper: %s" % paper)
 		close_main(main)
 		Game.engine = real)
 
@@ -342,6 +348,103 @@ func test_bug_323_rich_body_text_follows_day_mode() -> void:
 				eq(label.get_theme_color("default_color"), palette("TEXT"),
 					"%s: %s reads TEXT" % ["day" if day else "night", label.get_path()])
 		close_main(main))
+
+
+# --- 355: plain labels on paper ---
+
+## The label beside edit in its row (the "Seed" label).
+func row_label(edit: LineEdit) -> Label:
+	return edit.get_parent().get_child(0) as Label
+
+
+## Opens main's new-game screen from the title screen.
+func open_new_game(main: Node) -> void:
+	main.start_screen.new_game_button.pressed.emit()
+	await wait_frames()
+
+
+func test_bug_355_the_new_game_seed_label_reads_on_paper_in_day_mode() -> void:
+	await with_temp_settings(func():
+		set_day(true)
+		var main := open_main()
+		await open_new_game(main)
+		var edit: LineEdit = main.new_game_screen.seed_edit
+		eq(row_label(edit).text, "Seed", "precondition: the seed label")
+		eq(row_label(edit).get_theme_color("font_color").to_html(false), "22211f", "the Seed label reads Day TEXT")
+		eq(edit.get_theme_color("font_placeholder_color").to_html(false), "57534b", "the placeholder reads Day TEXT_DIM")
+		close_main(main)
+		set_day(false))
+
+
+func test_bug_355_the_settings_seed_label_reads_on_paper_in_day_mode() -> void:
+	await with_temp_settings(func():
+		var main: Node = await mid_game()
+		set_day(true)
+		main.settings_modal.open(Game.engine.seed_value)
+		await wait_frames()
+		var label := row_label(main.settings_modal.seed_edit)
+		eq(label.text, "Seed", "precondition: the seed label")
+		eq(label.get_theme_color("font_color").to_html(false), "22211f", "the Seed label reads Day TEXT")
+		close_main(main)
+		set_day(false))
+
+
+func test_bug_355_the_new_game_seed_label_follows_day_mode() -> void:
+	await with_temp_settings(func():
+		var main := open_main()
+		await open_new_game(main)
+		var edit: LineEdit = main.new_game_screen.seed_edit
+		for day in [false, true, false]:
+			set_day(day)
+			await wait_frames()
+			var mode := "day" if day else "night"
+			eq(row_label(edit).get_theme_color("font_color").to_html(false), "22211f" if day else "ede6d6",
+				"%s: the Seed label" % mode)
+			eq(edit.get_theme_color("font_placeholder_color").to_html(false), "57534b" if day else "b9b1a1",
+				"%s: the placeholder" % mode)
+		close_main(main))
+
+
+func test_bug_355_no_label_draws_in_default_white_in_day_mode() -> void:
+	await with_temp_settings(func():
+		var main: Node = await mid_game()
+		set_day(true)
+		press_key(main, KEY_ESCAPE)
+		MainProbe.menu_buttons(main).filter(func(b): return b.text == "New game")[0].pressed.emit()
+		await wait_frames()
+		main.settings_modal.open(Game.engine.seed_value)
+		await wait_frames()
+		var labels := main.find_children("*", "Label", true, false)
+		check(row_label(main.new_game_screen.seed_edit) in labels, "the new-game screen's labels are swept")
+		check(row_label(main.settings_modal.seed_edit) in labels, "the Settings modal's labels are swept")
+		var white: Array = labels.filter(func(label: Label): return label.get_theme_color("font_color") == Color.WHITE)
+		eq(white.map(func(label: Label): return "%s (%s)" % [label.text, label.get_parent().get_class()]), [],
+			"labels drawn in Godot's default white")
+		close_main(main)
+		set_day(false))
+
+
+# --- 395: emphasis text follows the mode ---
+
+func test_emphasis_text_reads_on_sheets_and_the_log_in_both_modes() -> void:
+	await with_temp_settings(func():
+		for day in [false, true]:
+			set_day(day)
+			var mode := "day" if day else "night"
+			eq(palette("EMPHASIS").to_html(false), "7a5200" if day else "ffd966", "%s EMPHASIS" % mode)
+			for ground in ["RAISED", "PANEL"]:
+				var ratio := contrast(palette("EMPHASIS"), palette(ground))
+				check(ratio >= 4.5, "%s EMPHASIS on %s: %.2f:1" % [mode, ground, ratio]))
+
+
+func test_glossary_terms_are_written_in_the_modes_emphasis() -> void:
+	var details := {"rules": [], "state": [], "terms": [{"term": "Housing", "text": "The most pop a territory can hold."}]}
+	await with_temp_settings(func():
+		for day in [false, true]:
+			set_day(day)
+			var body := CardDetailsModal.body_bbcode(details)
+			var expected := "[color=#%s]Housing[/color]" % palette("EMPHASIS").to_html(false)
+			check(body.contains(expected), "%s: %s in %s" % ["day" if day else "night", expected, body]))
 
 
 # --- 324: the data-load-error overlay ---

@@ -11,13 +11,14 @@ func turn_limit() -> int:
 
 
 ## Printed VP on the tableau and in ALWAYS_ON_ZONES, VP from effects, and vp_per_pop for each pop (when population
-## is on).
+## is on). A card that has fallen back scores nothing (300, 301).
 func score() -> int:
 	var total := bonus_score
 	for z in ["tableau"] + GameEngine.ALWAYS_ON_ZONES:
 		for card in zone(z).cards:
-			if not Sites.unfinished(_as_engine(), card):  # a site scores once completed (286)
-				total += card.def.vp
+			if Sites.unfinished(_as_engine(), card) or Fallback.fallen_back(_as_engine(), card):
+				continue  # a site scores once completed (286), a card while it hasn't fallen back (300, 301)
+			total += card.def.vp
 	if population_on():
 		total += total_pop() * config.population.vp_per_pop
 	return total
@@ -69,10 +70,10 @@ func outcome_summary(outcome: Dictionary) -> String:
 
 
 ## The decision the player owes before the game can go on, or {} when none: {kind: PENDING_GOVERNMENT, options: the
-## government deck's uids (154)}, {kind: PENDING_EXPLORE, options: territory uids top first, source: uid of the card
-## that explored}, {kind: PENDING_RENEWAL, count: cards still to trash, options: discard uids but governments (147)},
-## {kind: PENDING_DISCARD, count: cards still to discard, options: hand uids} or {kind: PENDING_EVENT_CHOICE, uid: the
-## choice event's, options: its option indices (269)}.
+## government deck's uids (154)}, {kind: PENDING_EXPLORE or PENDING_TAKE (370), options: revealed territory or offered
+## uids top first, source: uid of the card that revealed or offered them}, {kind: PENDING_RENEWAL, count: cards still to
+## trash, options: discard uids but governments (147)}, {kind: PENDING_DISCARD, count: cards still to discard, options:
+## hand uids} or {kind: PENDING_EVENT_CHOICE, uid: the choice event's, options: its option indices (269)}.
 func pending() -> Dictionary:
 	var p := state.pending.duplicate(true)
 	match p.get("kind", ""):
@@ -99,12 +100,14 @@ func era() -> int:
 
 ## How the next upkeep changes each resource on hand, food net of what pop eats (may be negative), plus
 ## "starve": the pop that food shortfall would starve, after famine guards. When Anarchy will rule next turn it
-## includes the drain on the stores after upkeep and feeding (156). {} on the last turn or after game over.
+## includes the drain on the stores after upkeep and feeding (156); a declared revolution's government has fallen
+## first (332). {} on the last turn or after game over.
 ## Runs the upkeep effects on a fork: nothing here changes, is logged or emitted.
 func upkeep_forecast() -> Dictionary:
 	if is_over or turn >= turn_limit():
 		return {}
 	var f := _as_engine().fork()
+	Anarchy.before_upkeep(f)  # a declared revolution falls first, as at the turn's start (332)
 	TurnLoop.resolve_upkeep(f)
 	var forecast := {}
 	for r in resources:
@@ -133,6 +136,12 @@ func turn_forecast() -> Dictionary:
 	return TurnLoop.forecast(_as_engine())
 
 
+## The zones whose cards turn_forecast reads (336): the board and the always-on zones, plus any zone an effect in the
+## card db counts. A cache of forecasts keys on these zones' cards.
+func forecast_zones() -> Array[String]:
+	return TurnLoop.forecast_zones(_as_engine())
+
+
 ## Upkeeps left for active event uid before it is discarded (0 if uid isn't an active event).
 func event_turns_left(uid: int) -> int:
 	return Events.turns_left(self, uid)
@@ -148,15 +157,16 @@ func upcoming_era_unlocks() -> Dictionary:
 	return Research.upcoming_era_unlocks(self)
 
 
-## The tech tree by era: one {era, name, reached, unlocks, techs} per era with techs in research_deck, in era
-## order. unlocks is the era's upcoming_era_unlocks entry ({} once reached); techs are its tech_tree entries.
+## The tech tree by era: one {era, name, reached, unlocks, opens, techs} per era with techs in research_deck, in era
+## order. unlocks is the era's upcoming_era_unlocks entry ({} once reached); opens says how an era not reached opens
+## ("Opens at 8 pop or 15 wealth", "Opens through a tech"; "" once reached, 337); techs are its tech_tree entries.
 func tech_eras() -> Array[Dictionary]:
 	return Research.eras(self)
 
 
 ## Every tech in config research_deck, by era then config order: [{id, era, prereq, state (TECH_*), cost (insight
 ## now; printed for a future tech), gives (card ids it creates or unlocks), uid (-1 for a future tech), eureka (whether
-## its eureka is met, 141)}].
+## its eureka is met, 141), affordable (available and the insight covers its cost now, pending choices aside, 325)}].
 func tech_tree() -> Array[Dictionary]:
 	return Research.tree(self)
 
@@ -337,59 +347,6 @@ func unit_station(uid: int) -> int:
 	return card.station_uid if card != null and card.def.type == CardDef.UNIT else -1
 
 
-## "from Homeland" for unit uid stationed away from its home (163), else "".
-func unit_origin(uid: int) -> String:
-	return Military.unit_origin(self, uid)
-
-
-## Settled territory uid's defence (161): defense_parts(uid).total, or 0 for anything else.
-func defense(uid: int) -> int:
-	return Military.defense_parts(self, uid).get("total", 0)
-
-
-## Settled territory uid's defence by source (161): {units, buildings, cities, terrain, total}, or {} for anything else.
-func defense_parts(uid: int) -> Dictionary:
-	return Military.defense_parts(self, uid)
-
-
-## The territory active raid uid will strike (162), or -1 when uid isn't an active raid.
-func raid_target(uid: int) -> int:
-	return Military.raid_target(self, uid)
-
-
-## Each announced raid as {uid, target, strength, defense}, in the order drawn, with its target's current defence
-## (162); [] with no raid active.
-func raid_forecast() -> Array[Dictionary]:
-	return Military.raid_forecast(self)
-
-
-## A raid_resolved outcome as its result line (271), "Raiders pillaged Hills: −2 food, −1 pop."; the raid modal shows it.
-func raid_outcome_text(outcome: Dictionary) -> String:
-	return Military.outcome_text(self, outcome)
-
-
-## Active raid uid's announcement, "Raiders will strike Hills in 2 turns: 3 against your 0.", with the target's current
-## defence (162); "" for anything else.
-func raid_line(uid: int) -> String:
-	return Military.raid_line(self, uid)
-
-
-## Active raid uid's board tag, "Hills 3 vs 0" (162); "" for anything else.
-func raid_tag(uid: int) -> String:
-	return Military.raid_tag(self, uid)
-
-
-## Whether active raid uid's target is short of its strength now (162); false for anything else.
-func raid_short(uid: int) -> bool:
-	return Military.raid_short(self, uid)
-
-
-## The mark on settled territory uid while raids are aimed at it, "Raiders strike in 2 turns: 3 vs 0" (one line each,
-## 162); "" when none is.
-func raid_warning(territory_uid: int) -> String:
-	return Military.raid_warning(self, territory_uid)
-
-
 ## The units stationed on territory uid (160), in the order they were recruited; [] for anything else.
 func units_at(uid: int) -> Array[int]:
 	return Territories.units_at(self, uid)
@@ -483,7 +440,7 @@ func _as_engine() -> GameEngine:
 
 ## What building card_id on territory_uid would change (299): {cost: what build would pay, lines: [[key, before, after],
 ## …]} with only the lines that change: each resource's upkeep_forecast in config order, then "free_slots",
-## "free_workers", "defense", "housing", "actions_left" (none while actions are unlimited). {} when build_error says no.
-## Builds on a fork: nothing here changes, is logged or emitted.
+## "free_sea_slots" (366), "free_workers", "defense", "housing", "actions_left" (none while actions are unlimited). {}
+## when build_error says no. Builds on a fork: nothing here changes, is logged or emitted.
 func build_preview(card_id: String, territory_uid: int) -> Dictionary:
 	return BuildMenu.preview(_as_engine(), card_id, territory_uid)

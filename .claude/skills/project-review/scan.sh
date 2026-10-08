@@ -19,11 +19,6 @@ for f in tests/test_*.gd; do printf '%4d  %s\n' "$(grep -c '^func test_' "$f")" 
 section "Helpers defined in more than one test file (same name; check they behave the same)"
 grep -ho '^func [a-z][a-z0-9_]*' tests/test_*.gd | grep -v 'func test_' | sort | uniq -c | awk '$1 > 1' | sort -rn
 
-section "Helpers in test files that already exist in tests/lib/"
-for name in $(grep -ho '^func [a-z][a-z0-9_]*' tests/lib/*.gd | awk '{print $2}' | sort -u); do
-	grep -l "^func $name(" tests/test_*.gd 2>/dev/null | sed "s/^/$name: /"
-done
-
 section "Tests calling private engine members"
 grep -n '\._[a-z]' tests/test_*.gd tests/lib/*.gd | grep -v '^\s*#' | head -20
 
@@ -61,22 +56,12 @@ grep -rnE '(==|!=) *"(action|building|city|territory|tech|event|civilization|gov
 section "UI code that may hold rules (conditions on engine state)"
 grep -nE 'if .*(e|Game\.engine)\.(resources|zone\(|pending|turn|is_over|config)' ui/*.gd | head -20
 
-section "Tracked files that shouldn't be (junk, orphan .uid files, empty files)"
+section "Tracked files that shouldn't be (junk, empty files; orphan .uid files: test_docs, 330)"
 {
 	git ls-files | grep -E '\.DS_Store$|~$|\.orig$'
-	git ls-files '*.uid' | while read -r f; do [ -e "${f%.uid}" ] || echo "$f (no ${f%.uid} beside it)"; done
 	git ls-files | while read -r f; do [ -f "$f" ] && [ ! -s "$f" ] && echo "$f (empty)"; done
 	true
 } | grep . || echo "(none)"
-
-section "Test files missing from docs/testing.md"
-for f in tests/test_*.gd; do grep -qw "$(basename "$f" .gd)" docs/testing.md || echo "$f"; done
-
-section "Test files holding an engine as Object (0 outside a red phase)"
-grep -lE ': Object = .*(engine|GameEngine)|engine[a-z_]*\(.*\) -> Object|\(e: Object|, e: Object' \
-	tests/test_*.gd tests/lib/*.gd | sed 's/^/  /'
-grep -lE ': Object = .*(engine|GameEngine)|engine[a-z_]*\(.*\) -> Object|\(e: Object|, e: Object' \
-	tests/test_*.gd tests/lib/*.gd | wc -l | sed 's/^ */count: /'
 
 section "Local permissions that contradict CLAUDE.md's Git rules"
 grep -nE 'git (merge|push|rebase|reset|branch -D)' .claude/settings*.json 2>/dev/null || echo "(none)"

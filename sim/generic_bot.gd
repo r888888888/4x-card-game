@@ -7,23 +7,24 @@ extends RefCounted
 ##
 ## value() = score + turns ahead × the next turn's score (turn_forecast, 309) + Σ weight × concave(stock + turns ahead ×
 ## its forecast change) for food, wealth and insight − weight × unrest − weight × the unrest coming in over the turns
-## ahead (321) − a squared penalty as unrest nears its limit + the deck's worth (what its cards would add if played, 0
-## for one with nothing to act on, 310) + the printed cost of the techs learned (+ a weight per settled territory up to
-## the admin cap for wide, 321). Turns ahead = min(HORIZON, turns left): income counts early, only points at the end.
+## ahead (321) − a squared penalty as unrest nears its limit + the deck's worth (what the best plays of a drawn hand
+## would add, each card worth what playing it adds and never below 0, 0 for one with nothing to act on: 310, 376) + the
+## printed cost of the techs learned (+ a weight per settled territory up to the admin cap for wide, 321). Turns ahead =
+## min(HORIZON, turns left): income counts early, only points at the end.
 ## A position's forecast is computed once: value() looks it up by what it reads (forecast_key, 315).
 ##
 ## Choices that pay off over many turns are weighed by rollouts (314): the government choice when owed, and every
 ## REVOLT_EVERY turns whether to revolt. A rollout plays a sample fork ROLLOUT_TURNS turns on in cheap mode (no card
 ## values, no extra lookahead step), never revolting and choosing the government it was opened for, and returns its
-## value then. Strategies (STRATEGIES): generic; wide (weighs each settled territory up to the admin cap); tall (never
-## settles a third).
+## value then. Strategies (STRATEGIES): generic; wide (weighs each settled territory up to the admin cap); tall (settles
+## only when nothing else is worth doing, and never past TALL_TERRITORIES, 390).
 
 ## The strategy played when none is named.
 const STRATEGY := "generic"
 ## The strategies SimStats plays (all of them for "all").
 const STRATEGIES: Array[String] = ["generic", "wide", "tall"]
 ## The settled territories tall stops at.
-const TALL_TERRITORIES := 2
+const TALL_TERRITORIES := 3
 ## How often, in turns, a revolt is weighed, and how many turns a rollout plays.
 const REVOLT_EVERY := 4
 const ROLLOUT_TURNS := 12
@@ -51,8 +52,8 @@ const RENEWAL_COMBOS := 40
 ## Actions the bot never takes itself: play ends the turn; revolts are weighed by rollouts (314).
 const SKIPPED := ["end_turn", "revolt"]
 ## Each strategy's weights: per unit of food, wealth and insight (projected, diminishing), per unrest held (0: held
-## unrest costs through its risk only), per unrest coming in over the turns ahead (321), the deck's worth (× turns ahead
-## × plays a turn), the unrest risk (squared) and each point of learned techs' printed cost, and per settled territory
+## unrest costs through its risk only), per unrest coming in over the turns ahead (321), the deck's worth (× turns
+## ahead), the unrest risk (squared) and each point of learned techs' printed cost, and per settled territory
 ## up to the admin cap (321).
 const WEIGHTS := {
 	"generic": {"food": 0.5, "wealth": 0.7, "insight": 0.5, "unrest": 0.0, "unrest_rate": 0.5, "deck": 0.05,
@@ -76,8 +77,34 @@ static var forecast_lookups := 0
 static var forecasts_computed := 0
 static var forecast_checks := 0
 static var forecast_mismatches := 0
-## The zones whose cards a forecast reads (_forecast_zones adds any zone a gain_per_tag counts cards in).
-const FORECAST_ZONES: Array[String] = ["tableau", "researched", "civilization", "government", "active_events"]
+## The GameState and CardInstance fields forecast_key reads (336); the suite fails on a field in neither these nor the
+## UNREAD lists, so a new field upkeep reads can't leave the cache serving stale forecasts.
+const KEY_STATE_FIELDS: Array[String] = ["turn", "is_over", "bonus_score", "era", "eras_added", "revolt_pending",
+	"anarchy_turn", "anarchy_limit", "last_raid_turn", "resources", "zones"]
+const KEY_CARD_FIELDS: Array[String] = ["uid", "def", "territory_uid", "base_uid", "station_uid", "pop", "keywords",
+	"turns_left", "counters", "progress", "given_this_turn", "raid_strength"]
+## The fields the key leaves out, each with why the forecast doesn't depend on it.
+const UNREAD_STATE_FIELDS := {
+	"seed_value": "the rng is already seeded; the forecast only shuffles decks, which changes none of its numbers",
+	"rng": "the forecast only shuffles decks (an era unlock), which changes none of its numbers",
+	"log_lines": "upkeep writes the log but never reads it",
+	"pending": "forecasts are taken between decisions, and starting a turn opens none before the draw",
+	"actions_used": "reset as the turn begins",
+	"actions_gained": "reset as the turn begins",
+	"moved_units": "reset as the turn begins",
+	"supply": "only buying reads it",
+	"locked_supply": "only buying and unlocking read it",
+	"locked_builds": "only building and unlocking read it",
+	"built_once": "only building reads it",
+	"next_uid": "a new card's uid changes none of the forecast's numbers",
+	"names_given": "only naming a settled territory reads it",
+	"seen_techs": "only the new-tech marks read it",
+	"seen_supply": "only the new-pile marks read it",
+}
+const UNREAD_CARD_FIELDS := {
+	"choice_waiting": "only an event's draw reads it, and the forecast draws none",
+	"city_name": "a name: no rule reads it",
+}
 
 
 ## What one game's choices share: the strategy and its weights, measured card values ({id: [turn, value]}), a step
@@ -179,7 +206,8 @@ static func rollout(engine: GameEngine, strategy := STRATEGY, government_id := "
 
 
 ## The entry ([action, args…]) to do next, [] for none: the owed decision's option whose fork values most, else the
-## candidate whose fork beats doing nothing by most. Changes nothing in engine.
+## candidate whose fork beats doing nothing by most. Tall tries its settle plays only when no other candidate beats
+## doing nothing (390). Changes nothing in engine.
 static func best_action(engine: GameEngine, strategy := STRATEGY, ctx: Context = null, look_on := true) -> Array:
 	ctx = ctx if ctx != null else Context.new(strategy)
 	var deciding: bool = engine.pending().get("kind", "") != ""
@@ -187,17 +215,30 @@ static func best_action(engine: GameEngine, strategy := STRATEGY, ctx: Context =
 		return _government(engine, strategy, ctx)
 	var seed := hash([engine.seed_value, engine.turn, ctx.step])
 	ctx.step += 1
+	var candidates := _candidates(engine, ctx)
+	var held := []
+	if ctx.strategy == "tall" and not deciding:
+		held = candidates.filter(func(c): return _settles(engine, c))
+		candidates = candidates.filter(func(c): return not _settles(engine, c))
+	var best := _best_of(engine, candidates, seed, deciding, ctx, look_on)
+	return best if not best.is_empty() or held.is_empty() else _best_of(engine, held, seed, deciding, ctx, look_on)
+
+
+## Of candidates, the one whose fork (sample seed) values most: any when deciding, else only one beating doing nothing
+## by EPS; [] for none. A quiet play that refunded is worth the best it leads to one step later (look_on).
+static func _best_of(engine: GameEngine, candidates: Array, seed: int, deciding: bool, ctx: Context,
+		look_on: bool) -> Array:
 	var base := value(engine, ctx)
 	var best: Array = []
 	var best_v := -INF if deciding else base + EPS
-	for c in _candidates(engine, ctx):
+	for c in candidates:
 		var f := engine.sample_fork(seed)
 		if not _do(f, c):
 			continue
 		_settle(f, ctx)
 		var v := value(f, ctx)
 		if look_on and not ctx.rollout and not deciding and absf(v - base) < QUIET and _refunds(engine, f, c):
-			var next := best_action(f, strategy, ctx, false)
+			var next := best_action(f, ctx.strategy, ctx, false)
 			if not next.is_empty():
 				var g := f.fork()
 				_do(g, next)
@@ -240,7 +281,7 @@ static func _government(engine: GameEngine, strategy: String, ctx: Context) -> A
 
 
 ## The entries the bot tries: legal_actions() but SKIPPED, the buys cut to BUYS_TRIED, a renewal expanded to its
-## combinations.
+## combinations, of the least valuable cards first (373).
 static func _candidates(e: GameEngine, ctx: Context) -> Array:
 	var out := []
 	var buys := []
@@ -250,7 +291,7 @@ static func _candidates(e: GameEngine, ctx: Context) -> Array:
 		if entry[0] == "buy":
 			buys.append(entry)
 		elif entry[0] == "renew":
-			for combo in _combos(entry[1], entry[2]):
+			for combo in _combos(_least_valuable_first(e, entry[1], ctx), entry[2]):
 				out.append(["renew", combo])
 		else:
 			out.append(entry)
@@ -260,13 +301,31 @@ static func _candidates(e: GameEngine, ctx: Context) -> Array:
 	return out + buys.slice(0, BUYS_TRIED)
 
 
-## Whether entry plays a card that settles while TALL_TERRITORIES are already settled (tall's limit; read from effects).
+## A renewal's options (uids), the least valuable card first by card_value (ties in listing order), so the combinations
+## tried are those of the cards worth least (373); listing order in a rollout, which measures no card values.
+static func _least_valuable_first(e: GameEngine, options: Array, ctx: Context) -> Array:
+	if ctx.rollout:
+		return options
+	var worth := {}
+	for i in options.size():
+		var card := e.zone(e.zone_of(options[i])).find(options[i])
+		worth[options[i]] = [card_value(e, card.def.id, ctx), i]
+	var out := options.duplicate()
+	out.sort_custom(func(a, b): return worth[a] < worth[b])  # [value, index]: ties keep listing order
+	return out
+
+
+## Whether entry plays a card that settles while TALL_TERRITORIES are already settled (tall's limit).
 static func _settles_too_far(e: GameEngine, entry: Array) -> bool:
+	return _settles(e, entry) and _settled(e) >= TALL_TERRITORIES
+
+
+## Whether entry plays a card from hand that settles (read from its effects).
+static func _settles(e: GameEngine, entry: Array) -> bool:
 	if entry[0] != "play_card":
 		return false
 	var card := e.zone("hand").find(entry[1])
-	return card != null and card.def.effects.any(func(effect): return effect.op == "settle") \
-			and _settled(e) >= TALL_TERRITORIES
+	return card != null and card.def.effects.any(func(effect): return effect.op == "settle")
 
 
 ## The settled territories (in the tableau).
@@ -290,7 +349,7 @@ static func _refunds(before: GameEngine, after: GameEngine, c: Array) -> bool:
 
 ## Calls entry's action on e; false when it refused.
 static func _do(e: GameEngine, entry: Array) -> bool:
-	return e.callv(entry[0], entry.slice(1)) != false
+	return LegalActions.apply(e, entry)
 
 
 ## Answers e's owed decisions, up to 3 deep, each with the option whose fork values most: for valuing a fork whose
@@ -331,7 +390,7 @@ static func value(e: GameEngine, ctx: Context) -> float:
 		if over > 0:
 			v -= w.risk * over * over
 	if not ctx.valuing and not ctx.rollout:
-		v += w.deck * ahead * _plays_a_turn(e) * _deck_worth(e, ctx)
+		v += w.deck * ahead * _deck_worth(e, ctx)
 	for tech in e.zone("researched").cards:
 		for r in tech.def.cost:
 			v += w.owned * tech.def.cost[r]
@@ -374,32 +433,24 @@ static func _forecast(e: GameEngine, ctx: Context) -> Dictionary:
 	return fresh
 
 
-## What turn_forecast reads of e (315): the turn, resources, effect score, era, Anarchy and raid state, and each card in
-## the zones an upkeep can read (its uid, id, territory, station, pop, turns left, counters and site progress). The
-## hand, deck, discard, supply and the unturned decks aren't in it.
+## What turn_forecast reads of e (315, 336): KEY_STATE_FIELDS (the turn, resources, effect score, eras, Anarchy and
+## raid state) and each card in the engine's forecast_zones() with KEY_CARD_FIELDS. The hand, deck, supply and the
+## unturned decks aren't in it, nor a zone no effect counts.
 static func forecast_key(e: GameEngine, ctx: Context) -> Array:
 	if ctx.forecast_zones.is_empty():
-		ctx.forecast_zones = _forecast_zones(e)
+		ctx.forecast_zones = e.forecast_zones()
 	var key := [e.turn, e.is_over, e.state.bonus_score, e.state.era, e.state.revolt_pending, e.state.anarchy_turn,
-		e.state.anarchy_limit, e.state.last_raid_turn]
-	for r in e.resources:
+		e.state.anarchy_limit, e.state.last_raid_turn, e.state.eras_added.size()]
+	key.append_array(e.state.eras_added)  # the arrays' contents, flattened: a key mustn't hold a live array
+	for r in e.state.resources:
 		key.append_array([r, e.resources[r]])
 	for z in ctx.forecast_zones:
 		key.append(z)
-		for c in e.zone(z).cards:
-			key.append_array([c.uid, c.def.id, c.territory_uid, c.station_uid, c.pop, c.turns_left, c.counters, c.progress,
-				c.given_this_turn])
+		for c in e.state.zones[z].cards:
+			key.append_array([c.uid, c.def.id, c.territory_uid, c.base_uid, c.station_uid, c.pop, c.turns_left, c.counters,
+				c.progress, c.given_this_turn, c.raid_strength, c.keywords.size()])
+			key.append_array(c.keywords)
 	return key
-
-
-## FORECAST_ZONES plus any zone a card's gain_per_tag counts in (read from the card db).
-static func _forecast_zones(e: GameEngine) -> Array[String]:
-	var out: Array[String] = FORECAST_ZONES.duplicate()
-	for id in e.card_db:
-		for effect in e.card_db[id].effects:
-			if effect.op == "gain_per_tag" and not out.has(effect.zone):  # a create's zone is where it puts a card
-				out.append(effect.zone)
-	return out
 
 
 ## The cards a turn can play: the actions a turn, at most the hand size (the hand size for unlimited actions).
@@ -413,19 +464,52 @@ static func _concave(s: float) -> float:
 	return 3.0 * s if s < 0 else STOCK_SCALE * log(1.0 + s / STOCK_SCALE)
 
 
-## The average card_value of the cards drawn from (deck, hand and discard), 0 for a card with nothing to act on now.
+## What a turn's plays from the cards drawn from (deck, hand and discard) are worth (376): turn_worth of their
+## card_values, 0 for a card with nothing to act on now, with a hand of hand_size and _plays_a_turn plays.
 static func _deck_worth(e: GameEngine, ctx: Context) -> float:
-	var total := 0.0
-	var n := 0
+	var values := []
 	var live := {}  # card id → whether it has something to act on (the same for every copy)
 	for z in ["deck", "hand", "discard"]:
 		for card in e.zone(z).cards:
-			n += 1
 			if not live.has(card.def.id):
 				live[card.def.id] = not e.would_need_target(card.uid) or not e.would_target(card.uid).is_empty()
-			if live[card.def.id]:
-				total += card_value(e, card.def.id, ctx)
-	return total / n if n > 0 else 0.0
+			values.append(card_value(e, card.def.id, ctx) if live[card.def.id] else 0.0)
+	return turn_worth(values, e.hand_size(), _plays_a_turn(e))
+
+
+## The expected sum of the best plays of a hand of hand cards drawn from cards worth values, each floored at 0 (a card
+## the bot wouldn't play costs a draw, not value; 376). Sorted best first, the card with i better ones is played when
+## it is drawn and fewer than plays of those are drawn with it (hypergeometric).
+static func turn_worth(values: Array, hand: int, plays: int) -> float:
+	var sorted: Array[float] = []
+	for v in values:
+		sorted.append(maxf(0.0, v))
+	sorted.sort()
+	sorted.reverse()
+	var n := sorted.size()
+	if n == 0:
+		return 0.0
+	var h := mini(hand, n)
+	var others := _choose(n - 1, h - 1)  # the ways to draw the rest of a hand holding a given card
+	var total := 0.0
+	for i in n:
+		if sorted[i] <= 0.0:
+			break
+		var played := 0.0
+		for k in mini(plays, h):
+			played += _choose(i, k) * _choose(n - 1 - i, h - 1 - k)
+		total += sorted[i] * h / n * played / others
+	return total
+
+
+## n choose k, 0 outside 0..n.
+static func _choose(n: int, k: int) -> float:
+	if k < 0 or k > n:
+		return 0.0
+	var out := 1.0
+	for j in mini(k, n - k):
+		out = out * (n - j) / (j + 1)
+	return out
 
 
 ## What playing a copy of card id now adds to the value (the deck's worth left out), measured on a sample fork where

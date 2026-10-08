@@ -1,7 +1,7 @@
 # Mid-Century Modern Style Guide — "The Civic Planning Desk"
 
 Spikes `spike/mcm-style-guide` and `spike/mcm-sound`. A visual, motion, interaction and sound design system for the
-4X card game, written so a UI designer, a sound designer or a Godot developer can build it without reinterpreting
+4X card game, with the voice of its flavor text (§18) and the direction of its card art (§19), written so a UI designer, a sound designer or a Godot developer can build it without reinterpreting
 adjectives. A live specimen of the tokens and the core components (with motion, synthesized sound, and Reduce motion
 and Sound switches) is in [mcm-specimen.html](mcm-specimen.html); open it in a browser.
 
@@ -14,6 +14,7 @@ Companion pages in this folder (open them in a browser); [index.html](index.html
 - [mocks/](mocks/): the option pages, each comparing a few designs for one question, kept as the record of what was
   chosen and why (the index says which option each item built).
 - [tools/sound-export.html](tools/sound-export.html): renders the sound tokens into the game's placeholder files.
+- [card-art.md](card-art.md): every card's art file and brief (§19).
 
 Where the game already has a concept (Palette, GameTheme, Anim, Navigator, Modal, Toasts, the top bar), the guide
 names it, and §17 maps every token onto the existing code.
@@ -118,8 +119,15 @@ control room) is the dark mode the game ships by default today. Every value belo
 | `color.ink-3` | Disabled text and decoration only (never information) | `#7A7468` | `#8E877A` |
 | `color.rule-fine` | Decorative hairlines between rows | `#CFC6B5` | `#3A3733` |
 | `color.rule` | Boundaries the player must see (control borders, inputs) | `#6F685C` | `#857D70` |
-| `color.shadow` | Hard offset shadows | `#22211F` | `#0D0C0B` |
+| `color.shadow` | Hard offset shadows; soft card and sheet shadows | `#22211F` | `#0D0C0B` |
 | `color.scrim` | Behind a modal | ink at 40% | `#000` at 60% |
+
+**Surfaces (341).** The neutrals are laid over real materials, so the desk reads as made of something without
+changing its colours. `board` (the board and the rail) and `sheet` under the top strip sit over walnut grain at 90%
+(Night) / 88% (Paper): the grain only just shows, and the rail's grain runs on from the board's, so only its hairline
+marks its edge. Cards, modals and overlay panels are printed on paper: dark gray paper under black at 30% in Night,
+white paper as it is in Paper; a dimmed card lays `dim-bg` at 60% over its paper. Keys, flags, tooltips, tiles and
+list rows stay flat. Text and the support hues keep their contrast (§4.3) on each surface's mean colour.
 
 ### 4.2 Primary palette (identity)
 
@@ -160,10 +168,11 @@ steel frame of the Eames storage unit, and it is what stops a palette this warm 
 | Loss, error, blocked, starving, at limit | `color.danger` | Brick | ⊘ / `−` sign, solid bar |
 | Information, neutral notice | `color.info` | Muted blue | ⓘ circle glyph |
 | Keyboard focus | `color.focus` | Teal | 2 px ring, offset 2 px |
-| Selected | `color.signal` + ink | — | hard 4 px shadow + index tab |
+| Selected | `color.signal` + ink; a list row: a lamp | — | a card: hard 4 px shadow + index tab; a list row: a `sheet` strip + lit lamp (§7.16) |
 | Primary action | `color.signal` | — | the only signal fill on screen |
 
-Focus (teal ring) and selection (shadow + orange tab) never look alike, so a keyboard player can see both at once.
+Focus (teal ring) and selection (a card's shadow and orange tab; a list row's strip and lit lamp) never look alike, so a
+keyboard player can see both at once.
 
 ### 4.5 Game colours
 
@@ -197,7 +206,8 @@ These are the shapes the game's glyphs already use (`Icons.GLYPHS`); the guide k
 
 1. A screen at rest uses neutrals + at most **two** support hues + signal (once). Resource colours inside the
    resource bar don't count against this; they're a key, not decoration.
-2. Large areas are neutral. Support hues appear as planes no larger than a card band, a bar, or a tab.
+2. Large areas are neutral. Support hues appear as planes no larger than a card band, a bar, or a tab. The one
+   exception is a card's illustration (§19), a framed print with its own short palette.
 3. No transparency for colour mixing. Translucency is reserved for one thing: the drafting **vellum overlay**
    (§11.8), `sheet` at 88%.
 4. Hover never changes hue. It changes value by one step (§7.1) or adds a rule.
@@ -251,7 +261,8 @@ The game's current sizes (Title 26, Stat/BarStat 20–26, default 20) are close;
   lowercase is never tracked positive.
 - **Tracking**: display +6%, caps labels +10–12%, body 0, numerals 0 (tabular figures already space themselves).
 - **Line height**: 1.4 for body, 1.2 for labels, 1.0–1.1 for numerals and display. Paragraph spacing = one line.
-- **Measure**: body text 45–70 characters. Card rules text is short by design; modal text caps at 640 px wide.
+- **Measure**: body text 45–70 characters. Card rules text is short by design; a text sheet's body caps at 640 px wide
+  (§11.10; a ledger sheet keeps the measure inside its columns instead).
 - **Hierarchy by size and case, then weight, then colour.** Use at most two weights on one surface (usually 400 +
   600). Never use colour alone to make something a heading.
 - **Numerals**: every number that can change uses tabular lining figures, so the layout never shifts when 9 becomes
@@ -315,18 +326,24 @@ fake a highlight.
 
 ### 6.5 Shadows
 
-Shadows are solid, unblurred offsets down and to the right (light from top-left, consistent everywhere).
+Controls stand on solid, unblurred offsets down and to the right (light from top-left, consistent everywhere). Paper
+(cards, modal sheets, overlay panels; 341) rests on soft shadows instead: `color.shadow`, blurred, straight down,
+deeper as it lifts.
 
 | Token | Offset | Use |
 |---|---|---|
-| `shadow.none` | 0 | Flat paper; pressed controls |
-| `shadow.plinth` | 2, 2 | Resting controls (buttons stand on a plinth) |
-| `shadow.lift` | 4, 4 | Hovered card, selected card, open drawer |
-| `shadow.sheet` | 8, 8 | Modal sheets, the drag ghost |
+| `shadow.none` | 0 | Pressed controls; a frontier card (open land, not paper) |
+| `shadow.plinth` | 2, 2 | Resting controls (buttons stand on a plinth), flags |
+| `shadow.lift` | 4, 4 | A selected card, a hovered tech tile or index card in a modal (a selected list row has none, §7.16) |
+| `shadow.card` (soft) | 0, 4 · blur 8 | A card at rest; alpha 0.35 Night / 0.20 Paper |
+| `shadow.card-hover` (soft) | 0, 8 · blur 16 | A hovered card; 0.45 / 0.28 |
+| `shadow.card-drag` (soft) | 0, 14 · blur 24 | A dragged card; 0.50 / 0.32 |
+| `shadow.sheet` (soft) | 0, 16 · blur 32 | Modal sheets and overlay panels; 0.55 / 0.35 |
 
-Colour `color.shadow` at 100% in Paper (it is a printed shadow) and `#0D0C0B` in Night. In Godot:
+A hard shadow is `color.shadow` at 100% in Paper (it is a printed shadow) and `#0D0C0B` in Night. In Godot:
 `StyleBoxFlat.shadow_size = 0` won't draw; use `shadow_size = 1` with `shadow_offset` = the token and a
-`shadow_color` with full alpha, or draw a second `Panel` offset behind. (See §17.)
+`shadow_color` with full alpha, or draw a second `Panel` offset behind. (See §17.) A soft shadow is the same colour at
+the token's alpha, `shadow_size` its blur, anti-aliased (`Surfaces.lift`).
 
 ### 6.6 Panel density
 
@@ -338,8 +355,9 @@ Colour `color.shadow` at 100% in Paper (it is a printed shadow) and `#0D0C0B` in
 
 Cards are **index cards**, not app tiles: square corners, `sheet` face, 2 px `ink` border (Night: `rule`), and
 a **type band**: a 6 px plane-coloured strip across the top under the name, carrying the type glyph at its right
-end. Rules text below a hairline. VP bottom-right with the starburst. No drop shadow at rest (cards lie flat);
-`shadow.lift` when lifted.
+end. On a hand-size face the card's **art plate** (§19) follows the band: 5:2, full width, 1 px `ink` frame.
+Rules text below a hairline. VP bottom-right with the starburst. Printed on paper, on a soft `shadow.card` at rest,
+`shadow.card-hover` when hovered and `shadow.card-drag` when dragged (341).
 
 **Cost is always top-right**, on every card type, on the name's line: one **cost entry per resource paid**, in a
 fixed order: food, wealth, insight. Each entry is the resource's glyph (`icon.m` 20, the resource's hue line)
@@ -354,6 +372,29 @@ box.
 
 A dimmed (unplayable) card keeps full-contrast text, swaps the band for a 45° hatch in `ink-3` and adds its reason
 strip as a `well` plate with ⊘ and `ink` text, not a red banner.
+
+**Face text is a spec sheet** (382). Under the type line, in this order: a **ledger** of the card's figures (a
+government's actions, unrest limit, tolerated tier, territories administered: label in 14 px caps `ink-2`, figure in
+tabular `type.numeral-s`, two columns, no rules between rows); the **rules**, one effect a line, with every card the
+card unlocks on one *Unlocks* line; and at the foot, above the VP, a line of **fine print** for what gates the card
+rather than what it does (*Needs*, *Eureka*, *Starts on*, *Built over turns*): 14 px caps `ink-2`, entries joined by
+" · ", a hairline above. Fine print is the smallest type on a card; 14 px is the floor (§12 rule 5), never less. The
+long form, sentence by sentence, stays in the details. A tableau-size face shows the ledger and rules, not the fine
+print.
+
+**When the rules don't fit** (383; options compared in [mocks/card-overflow-options.html](mocks/card-overflow-options.html)),
+a card keeps its size and its type size. It never grows, shrinks its rules, fades them out or slices a line.
+1. **At rest** it shows whole rules while they fit (a one-paragraph rule is cut after its last whole sentence), then
+   a foot under a dashed `rule`: *+3 more* on the left, *details* with its `I` key on the right (on a hand card; a
+   card in a modal, whose full text is beside it, shows only *+3 more*). All of it 14 px caps.
+2. **Rest the pointer** on a hand card for 120 ms without moving and the text sheet (type line to fine print) slides up
+   over the art plate, only as far as the hidden text needs, at most the whole plate, and stops (120 ms `machined`).
+   Its top edge is a 1 px `ink` rule. A pointer passing through moves nothing.
+3. **If rules are still hidden**, the foot's dashed rule fills from left to right with a 2 px `ink` bar over 1.1 s,
+   linear: a gauge, telling the player both that there is more and when it will come. It runs once and never loops.
+4. **When it is full**, the **rules popover** (§11.11) opens beside the card. No click is needed; a press at any step
+   cancels the reveal and goes on to play, drag or select as usual.
+Cards that fit only lift on hover. A long card's art yields only while the player reads it.
 
 ### 6.8 Icon sizing
 
@@ -407,8 +448,9 @@ the specification, not an omission.
     edge, glyph, one line of text. Sound: the rail lamp's bell, `ui.notification`, in one of three patterns.
 11. **Indicator lamp** — a 10–14 px disc. OFF: `well` with 1 px `rule` ring. ON: the hue's plane colour plus a 2 px
     ring of its line colour and a single small highlight dot (the only permitted radial). Lamps always sit beside a
-    printed label. Sound: None of its own; a lamp that lights to report news carries that news's tone
-    (`ui.confirm`, `ui.notification`), and a lamp going out is always silent.
+    printed label. A lit lamp also marks the chosen row of a selectable list (§7.16); there it lights with no
+    starburst, as part of the selection. Sound: None of its own; a lamp that lights to report news carries that news's
+    tone (`ui.confirm`, `ui.notification`), a selection lamp the selection's tick, and a lamp going out is always silent.
 12. **Progress indicator** — segmented: a `well` track divided into discrete cells (one per unit when ≤ 12, else
     percentage blocks of 10%) that fill with the hue plane. Never a smooth gradient bar. Sound: None while it fills;
     completion plays `ui.confirm`, unless the completion is itself a game event with its own sound.
@@ -420,13 +462,26 @@ the specification, not an omission.
     `ui.sheet.open` / `ui.sheet.close`; the scrim is silent.
 15. **End-turn control** — §11.9 and §15.12. Sound: the desk's heaviest key and a relay behind the panel,
     `ui.endturn.press`, `ui.endturn.commit`, `ui.endturn.turn`.
-16. **Selectable list** — an **index card** list (217; the alternatives are in
-    [list-options.html](mocks/list-options.html)): rows printed on a `well`, no box, `ink-2` label in `type.label`. The one
-    selected row is pulled out like an index card: a `sheet` strip moved 8 px toward the trailing side onto a hard 4 px
-    `shadow`, its label `ink`, with the signal **index tab** (4 px wide, the row's height inset) on its leading edge:
-    the same selection mark a card gets (§4.4, §10.5). Hover only inks the label. Focus keeps its teal ring, so focus
-    and selection read apart. A click or Up / Down selects. A list beside a detail holds the detail at its tallest
-    item's height, so changing the selection never moves the sheet. Sound: `ui.selection` as the tab lands.
+16. **Selectable list** — a **lamp** list (217; quieted in 356, chosen from
+    [list-quiet-options.html](mocks/list-quiet-options.html), option H; the first alternatives are in
+    [list-options.html](mocks/list-options.html)): rows printed on a `well`, no box, `ink-2` label in `type.label`.
+    The one selected row is marked in place, with no depth: its background fills with a `sheet` strip, its label
+    inks, and a lit **indicator lamp** (§7.11, 12 px, sage) shows before its name, `space.4` in from the row's edge
+    and `space.3` before the text. The other rows carry no lamp but keep its room, so no label moves. Nothing slides,
+    nothing casts a shadow, and the signal colour is left to the sheet's primary action. Hover only inks the label.
+    Focus keeps its teal ring, so focus and selection read apart. A click or Up / Down selects. Headings group the
+    rows in `type.label-caps`; a heading after rows has `space.5` above it, and the first opens the well. A list
+    beside a detail holds the detail at its tallest item's height, so changing the selection never moves the sheet.
+    A list taller than its column scrolls (§7.17) and follows the selection. Sound: `ui.selection` as the lamp lights.
+17. **Scroll area** — content taller (or, in the hand, wider) than its box glides rather than jumps (356, 363). A
+    wheel notch gives the content a push that decays, so it eases about 120 px and coasts to rest in about half a
+    second; a trackpad's stream of small pushes adds up the same way, and a sideways area takes the sideways wheel too.
+    It stops dead at either end, with no bounce. When the keyboard moves a selection out of view, the area eases it
+    back into view (200 ms, `machined`, no overshoot). Its **scrollbar** is a thin steel bar, upright or sideways: an
+    8 px `steel` grabber, square, on a `well` track, `ink-2` under the pointer and while dragged; it shows only when
+    the content overflows. Reduce motion: a notch and a follow jump (§9.5). Sound: None (moving within a screen is
+    silent, §10.2). Used by every scroll area: the Build list, the Knowledge screen, the renewal ledger and the Realm
+    (362), and sideways the hand (363).
 
 ---
 
@@ -440,7 +495,7 @@ Icons are drawn on a **24 px grid with a 2 px live-area margin** (20 px live are
 | Line caps / joins | Square caps, mitred joins. No round caps (that's the SaaS look). |
 | Corners | Sharp. Curves are true circular arcs only (compass-and-ruler geometry). |
 | Primitives | Circle, square, equilateral triangle, straight lines at 0°/45°/90°. No freehand. |
-| Detail | ≤ 5 primitives per icon. If it needs more, it's an illustration, not an icon. |
+| Detail | ≤ 5 primitives per icon. If it needs more, it's an illustration (§19), not an icon. |
 | Optical size | A solid glyph carries more weight than an outlined one, so it is drawn about 20% smaller on the grid (the unrest bolt spans 16 of the 24 units, not 20) to sit at the same visual height as its neighbours and the figure beside it. |
 | Filled vs outlined | Outlined = a thing or a place (the type glyphs in text). Filled = state you have / is active (a lit lamp, the active tab, a researched tech). Toggling outline→fill is how an icon shows "on". One standing exception: the unrest bolt is always solid, so the one harmful resource never looks like the others. |
 | Active / inactive | Active: `ink` (or its hue line), filled where the icon has a fill state. Inactive: `ink-2`, outlined. Disabled: `ink-3`, outlined, never with a strike-through unless it means "blocked" (⊘). |
@@ -482,7 +537,8 @@ directly; redraw them on this grid, keeping the white-SVG-tinted-at-runtime pipe
 | **Pulse** | A lamp switching on | brightness of a lamp; a 1–2 px ring | none | `ease.lamp` (fast on, slow decay) | Silent, unless the lamp reports news; then that news's tone, at lamp-on. Lamps go out silently. |
 
 Scale is **not** a primitive. Nothing scales on hover. Scale is allowed only for a lamp "on" bloom (ring 1.0→1.4,
-fading) and for the Navigator's existing "grow out of the card" transition, which should become a wipe (§11).
+fading); the Navigator's old "grow out of the card" transition became a wipe (350) and then a slide from the right
+(§10.2, 359).
 Likewise, no sound exists without a primitive under it: if nothing moves or lights, nothing is heard.
 
 ### 9.3 Easing curves
@@ -519,7 +575,12 @@ travel (§16.5).
 | Resource gain | 600–900 ms total | Delta tag (+3) snaps in beside the counter (90 ms), the counter rolls, the lamp pulses once, tag holds 600 ms then wipes out (120 ms). | `snap`, `linear-step`, `lamp` | ticks during the roll; `ui.resource.gain` / `.loss` @ lamp-on. The tag is silent. |
 | Counter increment | 60–80 ms per step, ≤ 8 steps visible | Odometer roll per changed digit column; for \|Δ\| > 8, roll the last 8 steps only. | `linear-step` | `ui.counter.tick` @ each step's landing; the jump past the first steps is silent |
 | Selection | 100–140 ms | Card slides 12 px up out of its row; shadow none→lift; index tab (signal) wipes in on its top edge. | `machined` | `ui.selection` @ index tab lands, ≈ 65 ms. Deselect: None |
+| Card text rise (383) | 120 ms rest, then 120 ms | A long hand card's text sheet slides up over its art plate by the hidden text's height (≤ the plate); back on leave. | `machined` / `release` | None |
+| Rules wait (383) | 1.1 s | The *+N more* foot's dashed rule fills left to right with a 2 px `ink` bar; full, the rules popover opens (90 ms opacity + 4 px slide). | linear | None |
+| List selection | 40 ms lamp, 120 ms fill | The row's `sheet` strip fills in place and its lamp lights; nothing moves. The old row's lamp goes out over 120 ms. | `lamp`, linear | `ui.selection` @ lamp-on (0 ms). Deselect: None |
+| Scroll | ≈ 500 ms per notch | A wheel notch pushes the content, which decays (friction 8 / s) over ≈ 120 px and stops dead at an end; a keyboard follow eases 200 ms. | decay; follow `machined` | None |
 | Confirmation | 240–320 ms | Lamp on, then a 6-ray starburst draws out from the lamp (rays wipe 0→8 px, then fade 160 ms). | `lamp`, `machined` | `ui.confirm` @ lamp-on (0 ms); the rays are silent |
+| Build ceremony (§10.8, 357) | ≈ 1.4 s, from the Build sheet's close | The card is in its slot as the sheet closes; 160 ms later a lamp ring blooms off its edge (0→12 px, fading, 450 ms), 12 rays draw out from 8 px off its edge (0→24 px in 200 ms, fade 200 ms), and 120 ms after the ring a BUILT tag snaps onto its top-right corner (4 px drop, 90 ms), holds 900 ms and wipes out to the right (140 ms). Ring and rays in the card's plane colour, the tag `signal`. | `lamp`, `snap`, `machined` / `release` | `ui.milestone.build` (`ui.milestone.recruit` for a unit) @ the ring's lamp-on; `ui.flap` as the tag lands |
 | Error feedback | 240 ms | One lateral **snap**: −4, +4, 0 px (80 ms each), border turns `danger`, ⊘ appears; message stays until the cause changes or 4 s. No shaking > 4 px. | `snap` | `ui.reject`: one tap per lateral stop, ≈ 44 and ≈ 124 ms |
 | Major milestone | 1.2–2.0 s, skippable | Ceremonial sheet wipes across, display type split-flaps in by character (25 ms stagger), concentric-ring or 16-ray starburst motif draws, one `settle`. Click/Esc skips to the end state. | `machined`, `settle` | `ui.milestone.*`: sheet @ 0, flutter with the type, musical accent @ the motif's completion; a skip fades it in 30 ms |
 
@@ -530,9 +591,12 @@ The game has Reduce motion (`Settings.reduce_motion`). With it on:
 - Slide, wipe, roll, rotate → **instant**, plus a ≤ 120 ms opacity crossfade where a change of place would
   otherwise be unclear (navigation, modals). This matches `Anim.CALM_FADE_TIME` (0.15 s → 0.12 s).
 - Pulse → the lamp switches on and **stays** lit for 1.5 s (no blinking); the delta tag holds 1.5 s.
+- Scroll → a wheel notch moves the content its whole step at once, and a keyboard follow jumps (§7.17).
 - Press feedback remains (it is 2 px and instant feedback, not decoration), but its tween becomes a frame switch.
 - Milestones skip to their end state; the starburst is drawn static.
 - Looping animation of any kind (the drop-zone pulse) stops; a static 3 px outline replaces it.
+- A long card's text sheet jumps up instead of sliding; the rules wait's gauge fills in three equal steps (it keeps its
+  1.1 s, as it is a timer, not decoration); the rules popover appears without its slide.
 - **Sound is unchanged** in kind and level. Where a motion becomes instant, its contact and its stop are the same
   frame, so it plays the stop sound only (the drawer's felt stop, the latch, the sheet settling) and drops any travel
   texture; an instant counter plays one tick and its registration, not a run. A player who reduces motion may lean on
@@ -559,15 +623,13 @@ sound never explains anything the screen doesn't. A held button is silent while 
 when it commits.
 
 ### 10.2 Navigation
-Screens are **sheets on rails**. The Knowledge (tech) screen comes from the right, the Supply from the right as well,
-the log drawer from the left rail. Each sheet carries the `ScreenHeader` title bar (241): filled with the screen's colour, its left end the index tab
+Screens are **sheets on rails**. The Knowledge (tech) screen comes from the right, a territory's view and the Supply
+from the right as well, the log drawer from the left rail. Each sheet carries the `ScreenHeader` title bar (241): filled with the screen's colour, its left end the index tab
 of the sheet underneath ("◂ Realm", the board's colour, slanted right edge) that takes you back; going back
-slides it out the way it came. A screen that grows out of a card (Navigator, 104) becomes a **wipe from the card's
-rectangle**: a clip rect expands from the card's bounds to the full sheet in 300 ms, with the card's type band
-colour flashing in the title block bar for the first 120 ms — continuity without scaling. The card's outline (2 px
-`ink`, its 6 px band on top) grows with the clip, tracing its edge, and is gone 120 ms after it lands; without it the
-growing clip shows only blank sheet, because the title bar sits outside the clip until the end. Closing reverses
-both into the card.
+slides it out the way it came. A sheet runs in its own width from the play area's right edge in 320 ms
+(`machined`) while the sheet under it moves 24 px left, and runs back out in 260 ms (`release`). A territory's view
+opens this way too (359), not out of its card: a wipe from the card's rectangle (350) was tried and dropped, since
+the territory's card is small next to the sheet and the wipe read as a zoom.
 
 **Sound.** A screen is a sheet run along a straightedge, so it sounds like paper on a rail: `ui.nav.forward`, a
 soft texture that starts with the wipe and a quiet stop as the sheet lands (≈ 172 ms); `ui.nav.back`, the sheet run
@@ -608,6 +670,9 @@ A selected card **slides 12 px out of its row** (out of a stack, like pulling an
 gains `shadow.lift` and a 3 px `ink` border, and a signal-orange **index tab** (24×6 px) wipes in on its top edge.
 Hover (not selected) only gives `shadow.plinth` + 4 px slide. Nothing scales. (Today's hand hover scales 1.08 and
 lifts 20 px; it becomes 0 scale and 8 px.)
+
+A row of a selectable list is not a thing to pick up, so it is selected **in place**: its strip fills and its lamp
+lights (§7.16), with no slide, shadow or tab (356).
 
 **Sound.** Selection is the most frequent act in the game, so it is nearly silent: `ui.selection`, the tiny
 plastic tick of an index tab clipped onto the card, as the tab lands. Deselecting, hovering and moving the keyboard
@@ -654,6 +719,18 @@ tile's band fills in with a left→right wipe. Large sequences only for era chan
 silent. A stronger routine confirmation (choosing a government, a treaty signed) may use the two-note form, a rising
 fourth. Neither is ever layered, musical or longer than 250 ms, so a confirmation can't be mistaken for an
 achievement. Learning a tech is an event, not a confirmation: it plays `ui.milestone.breakthrough` (§11.3).
+
+**Building is an event too (357).** Building on a territory, recruiting a unit and building an upgrade end in a small
+ceremony on the new card, between a confirmation and a milestone (timing in §9.4): the lamp ring and a 12-ray
+starburst in the card's plane colour, then a stamp. The stamp is a tag in `signal` with `on-signal` capitals, "BUILT" or
+"RECRUITED", snapped onto the card's top-right corner, and it wipes out after 900 ms. An upgrade has no card of its own
+(it is a ribbon on its base), so the ring and rays play on the building it upgrades, with no stamp. Nothing moves the
+card: it is in its slot as the Build sheet closes, and the ceremony starts once the sheet has cleared it (160 ms). A card
+that reaches the board any other way (dealt, settled, created by an effect) keeps its usual arrival. With Reduce motion
+the ring and rays are drawn at full size, static, and the tag shows without its drop; all three hold 1.5 s and go
+without a wipe (§9.5). The sound is unchanged: `ui.milestone.build` (a ribbon cut: a relay, a muted-piano pickup, a
+D major chord ringing out over a low D) or, for a unit, `ui.milestone.recruit` (two low drums, a drum with a snare, a
+short horn call A3 → D4). Both sit at +9, under every other milestone.
 
 ### 10.9 Errors and refusals
 An action the engine refuses (an invalid drop, a play the `*_error` query forbids) is refused the way a mechanism
@@ -731,12 +808,13 @@ rejection buzz, since the player made no error.
 ### 11.6 City / settlement management (territory view)
 The territory replaces the Realm (105). Present it as a **site plan**: a title block (territory name, its keywords as
 small caps tags), the building slots as a row of plan rooms (rectangles with 1 px walls, a room label in the corner),
-and the pop meter (§11.7). Entering: a wipe from the territory card's rect (§10.2). Workers assigned to a building
+and the pop meter (§11.7). Entering: a sheet from the right, as Knowledge (§10.2). Workers assigned to a building
 appear as filled teal figures in the room's corner; idle buildings get a hatched floor and an ochre caution lamp
 with "IDLE".
 Sound: entering is navigation (`ui.nav.forward`). Placing a worker plays `ui.selection` (a marker set on a plan) as
 the figure fills; the idle lamp is silent. Founding a city (settling a territory) is an event: `ui.milestone.city`, a
-heavier latch, like a plan being stamped, and two marimba notes.
+heavier latch, like a plan being stamped, and two marimba notes. Building on it is a smaller event, the build ceremony
+(§10.8): `ui.milestone.build`.
 
 ### 11.7 Population
 Pop is a **tally counter** of pips (the meter, 124). Pips are pop figures at the stats line's text size (242) in a
@@ -788,6 +866,21 @@ choreography drops the sounds still to come and fades those playing in 30 ms. Pr
 Drafting sheets. Title block (4 px bar, title left, context right), body in `type.body` at max 640 px, footer above
 a hairline: secondary actions right-aligned, primary rightmost. Esc and a click on the scrim close (ModalStack, 153).
 A modal opened over a modal is offset +8, +8 px from the one beneath, so the stack reads as stacked paper.
+
+**Modal layouts** (344). Every sheet is one of three; the title block and footer are the same in all of them.
+
+| Layout | Body | Width | Used by |
+|---|---|---|---|
+| **Text sheet** | Text, in `type.body` | Body ≤ 640 px: the measure (§7) | Abandon, Revolt, Rename, the menu, settings, events |
+| **Card sheet** | A hand-size card in the aside (left), then a text body | The aside is outside the cap; the body ≤ 640 px | Card details, the event and raid cards (`show_card`) |
+| **Ledger sheet** | A list column, then `space.6` (32 px), then a detail column: the selected entry's hand-size card, then `space.5` (24 px), its flavor (italic, dim; 354), `space.5` again (360), and its lines | List 384 px + 32 + detail 264 px = 680 px; no 640 cap | The Build modal |
+
+A ledger sheet keeps the measure inside each column instead of across the body: the list's rows wrap at the column's
+384 px (a name and cost, a reason under it), and the detail's flavor and lines wrap at the card's 264 px. The list shows 12
+one-line rows (480 px) before it scrolls (a scroll area, §7.17, that follows the selection), and holds that height
+whatever is selected, so changing the selection never moves the sheet. Its headings (Buildings, Upgrades, Units) each
+have `space.5` above them after the first, so the groups read apart. A sheet that needs more than this (several cards compared, many builds in a row) is a screen,
+not a modal. In code: `Modal.BODY_MAX_WIDTH` and `Modal.LEDGER_*`.
 Sound: `ui.sheet.open`, a sheet laid on the desk, peaking as it settles; `ui.sheet.close`, the sheet lifted, at once.
 A stacked modal plays the same lay, 1 dB quieter (it lands on paper, not on the desk). The scrim is silent. Choosing in
 a cabinet-door overlay plays the doors (§10.6) and the choice's `ui.confirm`.
@@ -798,6 +891,14 @@ moving between adjacent tooltip targets), with a 90 ms opacity + 4 px slide from
 `type.label-caps` heading, then `type.body-s`. Numbers in a tooltip line up in a small two-column ledger
 (the upkeep forecast: one row per source, a hairline, the net).
 Sound: None, in every state. A tooltip answers a hover, and hover is silent.
+
+**The rules popover** (383) is the same printed tab, 320 px wide, beside a hand card whose rules don't fit even after
+its text sheet rises (§6.7): right of the card, or left when the right has no room, its notch toward the card. It
+opens after the 1.1 s gauge, not the 400 ms delay. Content: the card's name as the `type.label-caps` heading, the
+long-form rules, then the play error and its detail if any. It isn't a modal: the pointer may move onto it without
+closing it, and it stays until the pointer leaves both, Esc, or a press (WCAG 1.4.13: hoverable, dismissible,
+persistent). It replaces a hand card's plain tooltip: a card whose rules fit has no hover popup, since its reason
+strip is on the face and its details are a click or `I` away. It shares the counters' popover control (379).
 
 ### 11.12 Victory / progression
 Era change and game over are **ceremonial sheets**: full-screen `sheet` (lighter than the board, so the wipe reads)
@@ -822,7 +923,7 @@ figure). The draw deck is the same pile face down (the card back's ring motif) a
 is hidden; a supply pile shows its top copy. Clicking a face-up pile **deals it out into a grid**, the top card
 staying put and the rest sliding to their places 30 ms apart; clicking again gathers them back. A pile too big for the
 space it deals into (past about eight cards) **unfolds into a sheet** instead: a panel wiping out of the pile's own
-rectangle with every card as a header tile (the same wipe as §10.2).
+rectangle with every card as a header tile (a clip rect growing from the pile's bounds to the sheet's).
 Sound: `ui.pile.deal`, one short riffle of card stock across the whole deal (never one sound per card), ending as the
 last card lands; `ui.pile.gather`, a shorter riffle and the soft tap of the pile squaring. The unfolding sheet plays
 `ui.nav.forward`. The count ticks when it changes.
@@ -937,6 +1038,11 @@ last card lands; `ui.pile.gather`, a shorter riffle and the soft tap of the pile
 | Dry Level 1 sounds; one small room for any reverb | Hall reverb on a button |
 | Silence while the player thinks | An ambient UI hum or a ticking clock |
 | Sounds implied by the mechanism on screen | Typewriter bells, cash registers, sci-fi bleeps, lounge music |
+| A long card cut at a whole rule, with *+3 more* at its foot | A fade-out over the last line, a line sliced in half, or a card taller than its row |
+| A gauge filling once in the foot before the rules popover opens | A card that trembles, pulses or changes colour to say a popup is coming |
+| Card art in four flat inks on cream, overprinted where shapes cross (§19) | A painted, rendered or photographic picture; gradients and glows |
+| An ancient scene drawn the way a 1958 magazine would draw it | 1950s people, cars or cocktails; boomerangs and atomic starbursts |
+| Print texture inside a shape, once | Scratches, folds, stains or fake misregistration over the whole picture |
 
 ---
 
@@ -1039,7 +1145,7 @@ action or turn, **occasional** = a few per turn or fewer, **rare** = a few per g
 | `ui.selection` | A plastic index tab clipped onto a card · a barely-there tick | 30–60 ms | very low (−8) | neutral-high, thin | none | the index tab lands, ≈ 65 ms | very high |
 | `ui.card.lift` | Card stock leaving its row · a soft flick | 40–70 ms | very low (−6) | neutral; paper, 1–4 kHz | none | the card reaches −2 px, ≈ 33 ms | high |
 | `ui.card.place` | An index card laid on the blotter · a soft, flat pat with a little body | 60–100 ms | low (−3) | neutral-low; ≈ 300 Hz body under paper | none | the card lands (start of its 60 ms landing snap) | high |
-| `ui.hover` | A fingertip brushing a felt-lined key edge · a soft, dry, short tick | 15–25 ms | very low (−8) | neutral; ≈ 2 kHz soft tick over a ≈ 1.5× overtone, no body | none | the pointer entering an enabled key or an actionable card (a press or drag in progress, a disabled key and a moving card are silent) | very high |
+| `ui.hover` | A fingertip brushing a felt-lined key edge · a soft, dry, short tick | 15–25 ms | very low (−8) | neutral; ≈ 2 kHz soft tick over a ≈ 1.5× overtone, no body | none | the pointer entering an enabled key or an actionable card, including a territory view's city and buildings (342) (a press or drag in progress, a disabled key and a moving card are silent) | very high |
 | `ui.counter.tick` | A drum counter's pawl advancing · a compact electromechanical tick | 30–60 ms | very low (−6; each later tick in a run −1) | neutral; ≈ 3 kHz click on a ≈ 1 kHz body; a downward roll −1 st | none | each digit lands on its next value (the last step registers instead) | very high |
 | `ui.flap` | A split-flap word turning over · one short riffle of light flaps | 120–250 ms, one per word | very low (−8) | neutral-high, dry rattle | none | the first flap falls | occasional |
 | `ui.resource.gain` | The counter's drum locking in, with the lamp's faint tone · "tk-clack" and a whisper of A5 | 80–140 ms | low (−3) | slightly elevated; the A5 tone 12 dB under the click | none | the last step lands, with the lamp pulse, in place of its tick | high |
@@ -1081,6 +1187,8 @@ action or turn, **occasional** = a few per turn or fewer, **rare** = a few per g
 | `ui.milestone.defeat` | The same mechanism; a falling cadence, dignified | 2000–2600 ms (+ tail) | event (+10) | as era, ending on B minor → D | as base | as era | once |
 | `ui.milestone.repelled` | A raid repelled (271): a gate barred (a heavy latch), then marimba rising D4–A4–D5 | 600–900 ms | event (+10) | marimba, as `ui.milestone.city` | as base | with the raid modal | rare (once per raid) |
 | `ui.milestone.pillaged` | A raid pillaged (271): a relay drop and a low drum, then muted piano falling B3 → F♯3–B3–D4 (B minor); dignified, never an alarm | 700–1000 ms | event (+10) | muted piano, as `ui.milestone.defeat` | as base | with the raid modal | rare (once per raid) |
+| `ui.milestone.build` | A building, or an upgrade, built (357): a relay, a muted-piano pickup A3–E4, then a D major chord ringing out over a low thump and a low D | ≈ 1.7 s | event (+9; under every other milestone) | muted piano D4–F♯4–A4–D5, a vibraphone A5, a soft triangle D3 under the chord | room 1.2 s, 22% | the ceremony's ring, 160 ms after the press | occasional (the most frequent event) |
+| `ui.milestone.recruit` | A unit recruited (357): two low drums, a drum with a snare, then a short horn call A3 → D4 | ≈ 0.8 s | event (+9) | low toms, a snare, a soft square horn | as base | as `ui.milestone.build` | occasional |
 
 ---
 
@@ -1192,10 +1300,12 @@ rules `type.body-s`; VP with starburst bottom-right.
 
 | Transition | Duration | Offset | Shadow | Border | Other | Sound |
 |---|---|---|---|---|---|---|
-| REST | — | 0, 0 | none | 2 ink/rule | | None |
-| → HOVER | 100 ms `machined` | 0, −4 | plinth | 2 ink | no scale | `ui.hover` on entry (hand and pickable cards) |
+| REST | — | 0, 0 | card (soft, 341) | 2 ink/rule | | None |
+| → HOVER | 100 ms `machined` | 0, −4 | card-hover | 2 ink | no scale | `ui.hover` on entry (hand and pickable cards) |
+| → RISE (long card, 383) | 120 ms rest, 120 ms `machined` | 0, −4 | card-hover | 2 ink | text sheet over the art, as far as needed | None |
+| → WAITING (still hidden) | 1.1 s linear | | | | the foot's gauge fills; then the rules popover | None |
 | → PRESSED (pick up) | 60 ms `snap` | 0, −2 | none | | the card "clicks" before lifting | `ui.card.lift` @ ≈ 33 ms, once the press becomes a drag; a click that selects plays `ui.selection` instead |
-| → DRAGGING | follow pointer, 0 lag beyond 1 frame | pointer | sheet (8, 8) | 3 ink | tilt ≤ 3° by drag speed (today 12°: reduce) | None |
+| → DRAGGING | follow pointer, 0 lag beyond 1 frame | pointer | card-drag | 3 ink | tilt ≤ 3° by drag speed (today 12°: reduce) | None |
 | → SELECTED | 140 ms `machined` | 0, −12 | lift | 3 ink | signal index tab wipes in 120 ms | `ui.selection` @ the tab lands, ≈ 65 ms. Deselect: None |
 | → PLAYED | 280 ms `release` | slides to target/discard | lift → none | | lands with a 60 ms `snap` (no squash) | `ui.card.place` @ landing (≈ 280 ms) |
 | DIMMED | instant | | none | 2 `rule` | band → hatch, reason plate | None |
@@ -1245,7 +1355,8 @@ plays `ui.milestone.breakthrough`, not both). The chaser is silent.
 
 ### 15.11 Modal
 Anatomy: `sheet`, `radius.0`, `shadow.sheet`, 4 px title-block bar, title `type.title` left, context
-`type.label-caps` right, body ≤ 640 px, footer rule, buttons right (primary rightmost).
+`type.label-caps` right, body by layout (§11.10: a text or card sheet's body ≤ 640 px, a ledger sheet 680 px in
+two columns), footer rule, buttons right (primary rightmost).
 
 | Transition | Duration | Change | Curve | Sound |
 |---|---|---|---|---|
@@ -1290,7 +1401,7 @@ Anatomy: the top card at full size; up to four card edges behind it, each offset
 | HOVER → DEALT | 260 ms per card, 30 ms apart | the top card stays; each card below slides from its edge offset to its grid cell (4 across, 12 px gaps), in pile order; the count hides | `machined` | `ui.pile.deal`: one riffle for the whole deal, from the first card leaving to the last landing |
 | DEALT → REST | 200 ms per card, 20 ms apart, last card first | each card slides back to its edge offset; the count returns | `release` | `ui.pile.gather`: the tap as the last card is home |
 | COUNT CHANGE | per §15.5 | the figure rolls; a card added lands on top with a 60 ms `snap` | `snap` | `ui.card.place` as the card lands; the count's tick |
-| TOO BIG (> 8 cards) | 300 ms | instead of dealing: a sheet wipes out of the pile's rectangle (§10.2), cards as header tiles | `machined` | `ui.nav.forward` |
+| TOO BIG (> 8 cards) | 300 ms | instead of dealing: a sheet wipes out of the pile's rectangle (§11.13), cards as header tiles | `machined` | `ui.nav.forward` |
 | Reduce motion | — | cards jump to their cells and back | | the riffle's last tap only (`ui.pile.gather`'s tap) at the change |
 
 Dealt cards are ordinary cards: hover, select and details work on them as anywhere else. The grid never overlaps the
@@ -1379,7 +1490,11 @@ Sound and motion imply the same imaginary mechanism. Change one and you change t
 4. **Routine never sounds like a reward.** No Level 1 or 2 sound is musical, holds a tone longer than 250 ms, or
    rises more than a fourth. Melody, chords and intervals belong to Level 3.
 5. **A level follows meaning and frequency, not the component.** An event that turns out to be common in play moves
-   down a level (§11.3) rather than getting quieter in place.
+   down a level (§11.3) rather than getting quieter in place. The one deliberate exception is building (357): a
+   building, unit or upgrade can come several times a turn, yet it is the player's main way of growing a territory and
+   gets an event sound, `ui.milestone.build` / `.recruit`, at +9 (under every other milestone, level with the turn's
+   chord) with a longer ring-out (a 1.2 s room, as the turn's chord). While it plays, the system's routine sounds wait
+   or drop as under any Level 3.
 
 ### 16.5 Timing synchronization
 Sound occurs at the perceived physical event.
@@ -1475,7 +1590,7 @@ Sound occurs at the perceived physical event.
 ### 16.8 Silence, density and repetition
 Silence is an intentional part of the system. Every sound earns its place; the default is none.
 
-**Silent by design**: hover on anything that isn't an enabled key or an actionable card (245: those tick, see `ui.hover`), keyboard focus moving, tooltips, links, the scrim, lamps going out,
+**Silent by design**: hover on anything that isn't an enabled key or an actionable card (245: those tick, see `ui.hover`; so do a territory view's city, buildings and enabled free slots, 342), keyboard focus moving, tooltips, links, the scrim, lamps going out,
 lamps lighting for status (AT LIMIT, IDLE, target lamps), the vellum overlay, gauge needles, the tab rail, delta
 tags, a card's drag travel, deselecting, progress cells filling, the chaser, flags leaving and restacking, the READY
 lamp after a turn, and idle time.
@@ -1554,7 +1669,7 @@ How the guide lands in the existing UI without touching `engine/`:
 | Motion tokens | `ui/anim.gd` (`Anim`): durations and sharpness | Add the duration and travel tokens; set `HOVER_SCALE`/`DRAG_SCALE` 1.0, `HOVER_LIFT` 4, `MAX_TILT` 3°; replace `LAND_SQUASH` with a 60 ms snap; `PULSE_SCALE` → lamp pulse. |
 | Easing | `TRANS_BACK` in `card_motion.gd`, `ui_kit.gd`, `territory_view.gd` | `TRANS_QUART`/`EASE_OUT` (machined), `TRANS_EXPO`/`EASE_OUT` (snap). `ease.latch`/`settle` via `PropertyTweener.set_custom_interpolator` with a cubic-bezier helper in `Anim`. |
 | Counters | `TopBar` stats + `UIKit.float_token` (126) | An `OdometerLabel` control (a clip `Control` with one digit strip per column) and a `DeltaTag`; tokens stop flying. |
-| Navigation | `Navigator` grows a screen out of its card (104) | Swap the scale tween for a clip-rect wipe from the card's rect (`clip_contents` on a wrapper whose size/position tween). |
+| Navigation | `Navigator`: screens fade or slide in from the right (104, 208) | Done in 359: the territory view slides like Knowledge; 350's wipe out of the card was removed. |
 | Modals | `Modal` / `ModalStack` (153) | Slide-up 24 px + fade; +8,+8 per stacked modal; square panel; title block. |
 | Toasts | `ui/toasts.gd` (116) | Done in 250: flags out of the game's rail (on the right, so they slide leftward); rail lamps and the count badge not yet. |
 | Reduce motion | `Settings.reduce_motion`, `UIKit.calm()`, `Anim.CALM_FADE_TIME` | Already the right switch; apply §9.5's mapping per component. |
@@ -1625,3 +1740,240 @@ variation. Then adopt it in four items, UI-only except the sound settings (no `e
    test (§16.8) before anything else is added.
 Paper mode and the milestone sequences (era change, victory, and their Level 3 sounds) come after, once the Night mode
 has been played.
+
+---
+
+## 18. Voice: flavor text
+
+Item 353. Every card but a territory, city or unit carries a line of **flavor**: the italic text that opens its details
+window (and the event pop-up), before the rules, and sits under a building's card in the Build modal (354). Civilizations and governments carry a short paragraph and a real
+**quote** with its source; techs carry a line and a quote; buildings, actions and events carry a line. The voice is
+postwar fiction set in the ancient world: what these writers *do*, never what their worlds contain (no gin, no
+commuter trains, no names from the twentieth century).
+
+### 18.1 Reference points
+
+| Writer | What to borrow | Example |
+|---|---|---|
+| Calvino | The city or the object as a riddle; a list that turns on its last item | *Market:* "…everything is for sale, and everything has been sold before: the pots, the figs, the news." |
+| O'Hara | Who stands where; status in a detail of dress or manners | *Merchant Quarter:* "…where fortunes turn and everyone dresses slightly above their means." |
+| Cheever | The disappointment the morning after; light falling on ordinary things | *Feast:* "…for one night the whole city eats together. In the morning the grievances are still there." |
+| Highsmith | Menace said politely; the calm person you shouldn't trust | *Mercenaries' Offer:* "Hard people with foreign shields wait at the gate, courteous and patient." |
+| Bradbury | Childhood, season and wonder; a line you can almost smell | *Wild Berries:* "…the children come home in the long gold evenings with purple hands and purple mouths." |
+| Didion | Short declaratives; dread stated as fact | *Granary:* "The lean years always come; only the date is unknown." |
+
+### 18.2 Rules
+
+1. **Present tense.** A card happens now; the event pop-up shows it happening. History told as a fable ("Kingship, the
+   scribes say…") is still present tense.
+2. **Short.** About **120 characters** a line, a government's too; a civilization's paragraph (on the civilization
+   picker) about **170**. The suite fails past 150 (civilizations 200): a line read in one glance, beside the rules, not instead of them.
+3. **Vary the ending.** About one line in three ends on a **wry turn** (O'Hara, Highsmith, Cheever). The rest end on an
+   **image** (Bradbury, Calvino) or a **plain fact** (Didion). A row of punchlines tires: read a card type's lines in a
+   row before you add another joke.
+4. **Disasters stay plain.** Plague, pestilence, famine, drought, fire, wreck and the loss of learning get no joke and
+   no simile that admires them. Say what happens and stop: "The granaries echo. Families eat the seed grain, then the
+   oxen, and wait for the next harvest."
+5. **People, not men.** Write "people", "they" or a role (farmers, scribes, the smith, the young). Use a gendered word
+   only for a real person or group (Hammurabi, the Pythia, the Greek philosophers).
+6. **Keep the facts.** A line teaches one true thing about its subject (where, who, what it was made of); the voice
+   colours it and never replaces it. Civilizations and techs above all. When in doubt, cite the fact in the item's Log.
+7. **No rules.** A line never names a resource, a number of the game or what the card does: the rules text below it
+   says that, generated from the effects.
+8. **Quotes are real.** A `quote` is a real saying, accurately worded, with its source in `by` (the work, and the
+   translator when the wording is theirs). Never invent one, and never put flavor-voice text in a quote.
+9. **Quotes come at the card sideways**, from a deeper cut than the quotation books, and from every age. How to
+   choose one: §18.5.
+10. **British spelling**, as in the rest of the game: harbour, colour, storeys, travellers.
+
+### 18.3 Do / Don't
+
+| Do | Don't |
+|---|---|
+| "Strings of donkeys, later camels, sway from city to city across desert and steppe, carrying tin, cloth and news." | "Caravans are great for trade and give you lots of wealth!" (rules talk, modern cheer) |
+| "From beyond the hills, drums beat through the night. No one has seen the drummers yet. No one goes to look." | "Mysterious drums echo ominously, filling everyone with a deep sense of foreboding." (tells the feeling instead of showing it) |
+| "A fever comes up the river with the boats. The healers burn herbs, the streets go quiet, and the gravediggers do not rest." | A pun or a wink on a plague, a famine or a fire. |
+| "Oxen lean into the yoke where people once broke the soil by hand…" | "…where men once broke the soil…" (rule 5) |
+
+### 18.4 Checklist for a new card
+
+- One true fact, in present tense, in about 120 characters (170 for a civilization).
+- The ending: does this card type already have its third of wry turns? Then end on an image or a fact.
+- A disaster? Plain.
+- A quote? Run it through §18.5's checks.
+- Read it aloud next to the card's rules text: it should sound like a sentence from a story, not a label.
+- Does the card need art? Add its row to [card-art.md](card-art.md) (§19).
+
+### 18.5 Choosing a quote
+
+Civilizations, governments, techs, wonders and Anarchy carry a quote under their flavor line. The flavor says what the thing
+is; the quote should make the player look at it again.
+
+**At an angle, not on the nose.** A quote that only names or describes the card's subject (a wheel for The Wheel,
+ships for Navigation, a list of crops for Olive and Vine) repeats the card's name. Find one that touches it sideways:
+
+- an idea the thing serves: Borges's "All language is a set of symbols whose use among its speakers assumes a shared
+  past" on Alphabet; Calvino's "Without stones there is no arch" on Engineering;
+- the thing used as a metaphor for something else: Job's "My days are swifter than a weaver's shuttle" on Weaving;
+  Proverbs' king's heart turned "as the rivers of water" on Irrigation;
+- an irony or a doubt: Kafka's "A cage went in search of a bird" on Bureaucracy; Cato wondering "that a soothsayer
+  doesn't laugh when he sees another soothsayer" on Priesthood; Auden's stars that don't care on Astronomy;
+- a scene that makes the stakes physical: the ship's side "four fingers' breadth in thickness" on Navigation; Pliny
+  unable to clasp the fallen Colossus's thumb on Bronze Working.
+
+A literal quote stays only when it is especially pithy or strange: "Egypt is the gift of the river"; Cato's "Good
+ploughing. What next? Ploughing."
+
+**A deep cut, not a poster.** If a reader has met the line on a mug, a motto, a graduation speech or a quotation
+site's front page, it's spent: "The unexamined life is not worth living", "Things fall apart", "Give me a place to
+stand", "Render unto Caesar", "All that glisters is not gold", "There is no new thing under the sun", "Man is the
+measure of all things". Look one layer down: the same author's less-quoted lines, a writer's aside about another
+(Diogenes Laertius, Plutarch, Cicero), an epigram, a farming manual, a letter.
+
+**Every age.** About a third of the quotes come from modern writers and poets (Larkin, Heaney, Seferis, Rilke,
+Calvino, Borges, Kafka, Arendt, Sontag), the rest from the ancient world and the King James Bible. A modern line is
+welcome on an ancient card: Seferis's marble head on Greece, Larkin's days on Calendar. Don't let one source
+dominate: before adding a Psalm or a Proverb, count the Bible quotes already in; keep the same author off cards that
+sit side by side.
+
+**Checked against a text.** Copy the wording from a published edition or translation, never from memory or a quotation
+site, and name the translator in `by` when the wording is theirs (Weaver, Keeley and Sherrard, Hicks). Cut with an
+ellipsis only, never by rewording. Drop a candidate when its author is disputed (the "bronze is the mirror of the
+form" line, given to both Aeschylus and Euripides) or when its translations disagree and you can't confirm one. Note
+where you checked it in the item's Log.
+
+**One card each, one or two sentences.** No two cards share a quote. A quote runs a sentence or two, about the
+length of the flavor line; a longer passage gets cut at a sentence break.
+
+
+---
+
+## 19. Card illustration
+
+Spike `spike/card-art`; items 381 (the plate), 382 (the face text) and 383 (overflow). Every card carries one picture, printed as a plate under its type band. The art list, with a
+file name and a brief for each card, is [card-art.md](card-art.md).
+
+### 19.1 Direction
+
+The premise, carried on: the desk's cards were printed by the studio that did the agency's annual report and its
+magazine advertising. Card art is **commercial print of 1950–1965**: the magazine ad, the editorial spot
+illustration, the corporate annual report, the airline travel poster, the picture book. It draws the ancient world
+through that lens, the way a 1958 *Fortune* spread drew a steel mill: Uruk as a few confident planes of colour,
+the figures reduced to shapes, one idea per picture.
+
+The picture is the one place on a card where colour fills an area (§4.6 rule 2). It earns that by behaving like
+print: flat inks, a short palette, crisp edges and a frame.
+
+**What it is not.** Not photographic, painterly or 3D-rendered; not a fantasy card game's dramatic oil painting. Not
+"retro" pastiche: no scratches, folds, foxing, coffee stains, heavy grain or deliberate misregistration (the guide's
+no-fake-wear rule, §1). No atomic kitsch: no boomerangs, no starbursts as wallpaper, no tiki. And no 1950s people:
+the *drawing* is mid-century, the *world* is ancient. Nobody wears a suit, smokes or drives.
+
+### 19.2 Reference points
+
+Look at these for *method*, never to copy a picture.
+
+| Source | What to borrow | For |
+|---|---|---|
+| Alice and Martin Provensen (*The Iliad and the Odyssey*, Golden Book, 1956) | The ancient world itself, drawn mid-century: frieze-like rows of flat figures, patterned dress, a loose ink line | actions, civilizations, events |
+| Charley Harper | Animals and land reduced to geometry: a bird is a triangle and a circle; minimal detail, maximum shape | territories, hunting, fishing, herds |
+| Miroslav Šašek (*This is Paris*, 1959, and the series) | Buildings and streets in a loose ink line over flat colour; a city's character in one view | buildings, cities |
+| Mary Blair (Golden Books, concept art) | Bold flat colour, stylised figures, joy; colour as mood | festivals, good events |
+| Container Corporation of America ads (*Great Ideas of Western Man*, 1950–75) | An abstract idea carried by one bold symbol on open ground | techs, governments |
+| Erik Nitsche (General Dynamics *Atoms for Peace* posters, 1955) | Knowledge as a geometric diagram: orbits, grids, rings around an object | techs |
+| Airline and rail travel posters (David Klein for TWA, the Pan Am series) | A place as one landmark in flat planes, at poster scale, with its sky | civilizations, wonders |
+| Saul Bass (film titles and posters) | Cut-paper silhouettes, ragged edges, a dramatic crop; threat without gore | disasters, raids, unrest |
+| Paul Rand, Alvin Lustig (book jackets, identities) | A few symbols collaged into an emblem; wit in the arrangement | governments, abstract actions |
+| Giovanni Pintori (Olivetti ads) | Rhythm: one form repeated into a pattern | trade, markets, crafts |
+
+### 19.3 Technique
+
+| Property | Rule |
+|---|---|
+| Planes | Flat colour shapes with crisp, cut-paper or brush-cut edges. No gradients, no airbrush, no soft shading. |
+| Overprint | Where two inks overlap they make a third, as if printed one over the other (multiply). This is the period's signature, and the only way two colours mix. |
+| Line | Optional: one charcoal line weight, loose and drawn over the colour (Šašek, Provensen), not outlining every shape. |
+| Texture | At most one print texture per picture, inside shapes only: halftone dots, dry brush, crayon resist or stipple. Never over the whole picture. |
+| Space | Flattened: a side-on frieze, an elevation, or a high oblique view. Depth by overlap and stacking, never a vanishing-point plunge. |
+| Figures | Stylised and geometric; a face is a shape, eyes a dot or nothing. Ancient dress. Never a real person's likeness: Gilgamesh or Hammurabi is a type, not a portrait. |
+| Lettering | None. The game prints the name. Writing may appear only as pattern (rows of wedges on a tablet, marks on a scroll), never legible. |
+| Harm | Disasters and violence by symbol or aftermath (an empty granary, a smoke column, an abandoned cart): no bodies, no blood, nothing a player has to look away from. The visual twin of §18.2 rule 4. |
+
+### 19.4 Palette
+
+A picture is printed in **four inks at most, plus its paper**:
+
+| Ink | Value | Use |
+|---|---|---|
+| Paper | `#F3EBDB` warm cream | The ground, and all the negative space. The file is the same in both modes; Night dims it in the game (§19.7). |
+| Key | `#22211F` charcoal (`ink`) | Line, silhouettes, the darkest shapes. |
+| Type ink | the card type's Paper plane value (below) | The dominant hue: it covers the largest coloured area (often the sky, the ground or a backdrop plane), so the picture and the type band agree. |
+| Support | one or two other plane values, used smaller | Accents: a sun, a sail, a dress. |
+
+Type inks: action muted blue `#8AA7C4`, building olive `#A3AA6A`, city ochre `#D9A441`, territory sage `#9DB592`,
+tech teal `#5E9C97`, event brick `#C9705C`, civilization plum `#B07D9C`, government indigo `#8F88B8`, unit bronze
+`#A97F63`. Support inks come from the same set.
+
+**Signal orange is never an ink** (§1 tenet 4): it stays the one loud thing on screen. Brick or ochre stands in.
+Mood is set by value, not by new hues: a good event is mostly paper and light planes; a disaster drops to two inks
+(charcoal and its type ink) with more charcoal.
+
+### 19.5 Format and composition
+
+- **The file:** `assets/cards/<card id>.png`, 1536 × 1024 px (3:2), sRGB, no alpha, no border or frame.
+- **The crop:** every view shows a centred **5:2 band**: the middle 60 % of the height (rows 205–819 of the master).
+  The top and bottom fifths are bleed (sky, ground, pattern); nothing that matters goes there. The 3:2 master leaves
+  room for larger crops later (a full-card view, a civilization poster).
+- **The thumbnail test:** the plate is 240 × 96 px on a card. Shrink the band to 120 × 48: the subject must still read.
+  One subject, one silhouette, three major shapes at most.
+- **Asymmetric:** the subject sits on a third, never centred by default (§2). Governments are the exception: an
+  emblem is a single-message moment.
+- **Negative space:** at least a third of the band is open paper or one flat plane.
+- **A series per type:** within a type, one horizon height and one scale, so a hand reads as a set of stamps or a
+  poster series. Territories share their horizon exactly, so a row of them reads as one strip of land.
+
+### 19.6 By card type
+
+| Type | The series | Composition |
+|---|---|---|
+| Civilization | Travel posters | The homeland as one landmark and its river or sea, at poster scale. Plum with two support inks: the richest pictures in the game. |
+| Government | Emblems | The institution as a symbol (a seat, a staff, a crown, a sealed jar) in the manner of a corporate identity. Centred. Indigo. |
+| City | Skylines | The city from outside its wall: roofs, a temple mound, smoke. Ochre. |
+| Territory | Landscapes | Land only: no people, no buildings. Each keyword visible: fresh water a river, lake or spring; coastal the sea at one edge; flood plain bands of dark silt. Sage. |
+| Building | Architecture | The building in its setting, elevation or three-quarter, a figure or two for scale. Olive. An upgrade redraws its base from the same viewpoint, grown, so a chain reads as one place maturing. |
+| Wonder | Monuments | The building at monumental scale from a low viewpoint, a travel-poster hero shot. The one series that may use a period motif (radiating rays, concentric rings) behind its subject. |
+| Action | People at work | Figures doing the thing, side-on, in a frieze (Provensen). Muted blue. |
+| Tech | Ideas | The idea as one object on open ground, with a diagram around it: a ring, a grid, a path, an orbit (CCA, Nitsche). Teal. |
+| Event | Spot illustrations | The moment, as an editorial spot: one scene, tightly cropped. Brick. Good events light, disasters dark and plain (§19.4). |
+| Unit | Silhouettes | A few figures in silhouette with their arms, side-on and in step. Bronze. |
+
+### 19.7 In the game
+
+- **Where:** hand-size faces (264 × 360: the hand, the details modal's card, the Build modal, the event pop-up,
+  Renewal) carry the plate under the type band, 240 × 96 px, framed by a 1 px `ink` rule. The hand card grew 40 px
+  for it (from 320), so most cards' rules and a reason strip still fit; the rest follow §6.7's overflow rules. Realm, tableau and supply-pile faces
+  carry none: at their size a picture costs a line of rules (§1 tenet 1).
+- **Missing art:** a placeholder plate in the type's plane colour with one of the period motifs (a sun on a horizon,
+  rings, a split disc, steps; picked by the card's id, so a card keeps its motif), with nothing printed on it (the file
+  each card waits for is in [card-art.md](card-art.md)). It is drawn by `CardArt` (`ui/card_art.gd`), which shows the
+  PNG instead once one is imported.
+- **Night** lays black at 25 % over the plate (`Palette.ART_SHADE`; none in Paper), as Night lays black over the card's
+  paper. Undimmed, a cream print is the brightest thing on a Night card, brighter than its text; shaded, it sits on the
+  card like a print under lamplight.
+- **Dimmed cards** keep their art as it is; the hatched band and the reason strip say why.
+- **Long cards** keep their art at rest; it yields only while the player reads, when the text sheet rises over it
+  (§6.7).
+
+### 19.8 Prompt template
+
+For an image generator: the shared style, then the card's brief from [card-art.md](card-art.md), then its inks.
+
+> Mid-century modern commercial illustration, 1950s–1960s magazine and poster print. Flat screen-printed planes of
+> colour with crisp cut-paper edges, overprinted inks where shapes overlap, a subtle halftone or dry-brush texture
+> inside some shapes, an optional loose single-weight charcoal line. In the manner of Alice and Martin Provensen,
+> Charley Harper, Miroslav Šašek and Container Corporation of America advertising. The ancient Near East and
+> Mediterranean, 3000–300 BCE. **Subject:** {brief}. Printed in four inks on warm cream paper #F3EBDB: charcoal
+> #22211F, {type ink} as the dominant colour, and {support inks}. Flattened perspective, asymmetric composition,
+> generous negative space; the subject entirely inside the middle 60 % of the height. 3:2 landscape. No text,
+> letters, numbers, border, frame, gradient, 3D rendering, photorealism, or worn, distressed or misregistered
+> effects.

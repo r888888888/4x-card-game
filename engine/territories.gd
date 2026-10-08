@@ -41,14 +41,53 @@ static func total_slots(e: GameEngine, territory_uid: int) -> int:
 static func free_slots(e: GameEngine, territory_uid: int) -> int:
 	if settled(e, territory_uid) == null:
 		return 0
-	return maxi(0, total_slots(e, territory_uid) - buildings_on(e, territory_uid).size())
+	return total_slots(e, territory_uid) - slot_use(e, territory_uid).regular
 
 
-## The buildings on territory territory_uid, in the order they were placed.
+## A settled territory's sea slots (366): the config sea_slots' slots when it has their keyword, else 0.
+static func sea_slots(e: GameEngine, territory_uid: int) -> int:
+	var territory := settled(e, territory_uid)
+	return sea_slots_of(e, territory) if territory != null else 0
+
+
+## The sea slots territory (a settled territory card) has, from its keywords.
+static func sea_slots_of(e: GameEngine, territory: CardInstance) -> int:
+	var rule: Dictionary = e.config.get("sea_slots", {})
+	return rule.slots if not rule.is_empty() and territory.keywords.has(rule.keyword) else 0
+
+
+static func free_sea_slots(e: GameEngine, territory_uid: int) -> int:
+	return sea_slots(e, territory_uid) - slot_use(e, territory_uid).sea
+
+
+## Whether a building def may fill a sea slot: it has the config sea_slots' tag (366).
+static func takes_sea_slot(e: GameEngine, def: CardDef) -> bool:
+	var rule: Dictionary = e.config.get("sea_slots", {})
+	return not rule.is_empty() and def.has_tag(rule.tag)
+
+
+## How territory territory_uid's buildings fill its slots, in the order they were placed (366): one that may fill a sea
+## slot takes a free one first, else a regular slot; one that finds neither has no slot (idle, 281).
+## {regular: regular slots used, sea: sea slots used, unslotted: the buildings with no slot}.
+static func slot_use(e: GameEngine, territory_uid: int) -> Dictionary:
+	var regular := total_slots(e, territory_uid)
+	var sea := sea_slots(e, territory_uid)
+	var used := {"regular": 0, "sea": 0, "unslotted": [] as Array[CardInstance]}
+	for card in buildings_on(e, territory_uid):
+		if used.sea < sea and takes_sea_slot(e, card.def):
+			used.sea += 1
+		elif used.regular < regular:
+			used.regular += 1
+		else:
+			used.unslotted.append(card)
+	return used
+
+
+## The buildings in territory territory_uid's slots, in the order they were placed: not the upgrades on them (300).
 static func buildings_on(e: GameEngine, territory_uid: int) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	for card in e.zone("tableau").cards:
-		if card.def.type == CardDef.BUILDING and card.territory_uid == territory_uid:
+		if card.def.uses_worker() and card.def.type == CardDef.BUILDING and card.territory_uid == territory_uid:
 			out.append(card)
 	return out
 
@@ -72,9 +111,21 @@ static func units_at(e: GameEngine, territory_uid: int) -> Array[int]:
 	return out
 
 
-## Whether card is a territory with a free building slot.
-static func has_room(e: GameEngine, territory: CardInstance) -> bool:
-	return territory.def.type == CardDef.TERRITORY and free_slots(e, territory.uid) > 0
+## Whether territory is a territory with a free slot for building: a regular one, or a sea slot it may fill (366).
+static func has_room(e: GameEngine, territory: CardInstance, building: CardInstance) -> bool:
+	if territory.def.type != CardDef.TERRITORY:
+		return false
+	return free_slots(e, territory.uid) > 0 \
+		or (takes_sea_slot(e, building.def) and free_sea_slots(e, territory.uid) > 0)
+
+
+## Why building can't go on settled territory territory_uid when only a sea slot is free there and it may not fill one
+## (366): "Its sea slot takes only port buildings."; "" otherwise.
+static func sea_only_error(e: GameEngine, building: CardInstance, territory_uid: int) -> String:
+	if takes_sea_slot(e, building.def) or free_slots(e, territory_uid) > 0 or free_sea_slots(e, territory_uid) <= 0:
+		return ""
+	var plural := "s" if sea_slots(e, territory_uid) > 1 else ""
+	return "Its sea slot%s take%s only %s buildings." % [plural, "" if plural else "s", e.config.sea_slots.tag]
 
 
 ## Whether territory has one of the keywords building card requires (or it requires none).
@@ -97,20 +148,31 @@ static func building_targets(e: GameEngine, card: CardInstance) -> Array[int]:
 	var out: Array[int] = []
 	var tableau := e.zone("tableau").cards
 	var tiers := Population.tiers(e)
-	var slots := {}  # territory uid -> city slots on it minus the buildings on it (see total_slots, free_slots)
+	var slots := {}  # territory uid -> city slots on it minus the buildings on it that can't fill a sea slot
+	var seafarers := {}  # territory uid -> the buildings on it that may fill a sea slot (366)
 	var workers := {}  # territory uid -> cards using its workers (see free_workers)
 	for c in tableau:
 		if c.def.type == CardDef.CITY:
 			slots[c.territory_uid] = slots.get(c.territory_uid, 0) + c.def.slots
-		elif c.def.type == CardDef.BUILDING:
-			slots[c.territory_uid] = slots.get(c.territory_uid, 0) - 1
+		elif c.def.type == CardDef.BUILDING and not c.def.is_upgrade():
+			if takes_sea_slot(e, c.def):
+				seafarers[c.territory_uid] = seafarers.get(c.territory_uid, 0) + 1
+			else:
+				slots[c.territory_uid] = slots.get(c.territory_uid, 0) - 1
 		if c.def.uses_worker():
 			workers[c.territory_uid] = workers.get(c.territory_uid, 0) + 1
 	var pop_on := e.population_on()
+	var seafaring := takes_sea_slot(e, card.def)
 	for territory in tableau:
-		if territory.def.type != CardDef.TERRITORY or not meets_requires(card, territory):
+		if territory.def.type != CardDef.TERRITORY or not meets_requires(card, territory) \
+				or Fallback.below_tier(e, card.def, territory.uid):
 			continue
-		var room: int = territory.def.slots + Population.tier_slots(tiers, territory.pop) + slots.get(territory.uid, 0)
+		var sea := sea_slots_of(e, territory)
+		var ships: int = seafarers.get(territory.uid, 0)  # those past the sea slots take regular ones (see slot_use)
+		var room: int = territory.def.slots + Population.tier_slots(tiers, territory.pop) + slots.get(territory.uid, 0) \
+			- maxi(0, ships - sea)
+		if seafaring:
+			room += maxi(0, sea - ships)
 		if room > 0 and (not pop_on or territory.pop - workers.get(territory.uid, 0) > 0):
 			out.append(territory.uid)
 	return out
@@ -125,13 +187,22 @@ static func unit_targets(e: GameEngine) -> Array[int]:
 	return out
 
 
-## Why building card has no territory to go on.
+## Why building card has no territory to go on: none at its tier (301) among those it may go on, else no worker, no
+## slot or no required keyword.
 static func no_building_target_error(e: GameEngine, card: CardInstance) -> String:
+	var at_tier := false
+	var allowed := false
+	for territory in e.zone("tableau").cards:
+		if territory.def.type == CardDef.TERRITORY and meets_requires(card, territory):
+			allowed = true
+			at_tier = at_tier or not Fallback.below_tier(e, card.def, territory.uid)
+	if allowed and not at_tier:
+		return Fallback.short_tier_error(card.def)
 	var slot_found := false
 	for territory in e.zone("tableau").cards:
 		if territory.def.type == CardDef.TERRITORY and meets_requires(card, territory):
-			if has_room(e, territory):
-				return "No territory with a free worker."
+			if has_room(e, territory, card):
+				return Population.NO_WORKER
 			slot_found = true
 	return "No territory with a free slot." if slot_found else requires_error(card)
 
@@ -160,6 +231,9 @@ static func status(e: GameEngine, uid: int) -> Dictionary:
 		return {}
 	var out := {"free_slots": e.free_slots(uid), "total_slots": e.total_slots(uid), "pop": e.pop(uid),
 		"housing": e.housing(uid), "free_workers": e.free_workers(uid)}
+	if e.sea_slots(uid) > 0:  # 366
+		out["sea_slots"] = e.sea_slots(uid)
+		out["free_sea_slots"] = e.free_sea_slots(uid)
 	if Population.tier(e, uid) >= 0:  # with tiers on (281)
 		out["tier_name"] = Population.tier_name(e, uid)
 		out["next_tier_pop"] = Population.next_tier_pop(e, uid)
@@ -171,30 +245,24 @@ static func tooltip(e: GameEngine, uid: int) -> String:
 	if s.is_empty():
 		return ""
 	var lines: PackedStringArray = ["Building slots: %d free of %d" % [s.free_slots, s.total_slots]]
+	if s.has("sea_slots"):
+		lines.append("Sea slot%s: %d free of %d (%s buildings only)" % ["s" if s.sea_slots > 1 else "", s.free_sea_slots,
+			s.sea_slots, e.config.sea_slots.tag])
 	if e.population_on():
 		lines.append("Pop %d, housing %d" % [s.pop, s.housing])
 		if s.has("tier_name"):
-			lines.append(_tier_line(e, uid))
+			lines.append(e.tier_line(uid))
 		lines.append("Free workers: %d (each building or unit needs one)" % s.free_workers)
-	var d := Military.defense_parts(e, uid)
+	var d := e.military.defense_parts(uid)
 	lines.append("Defence %d: units %d, walls %d, cities %d, terrain %d" % [d.total, d.units, d.buildings, d.cities,
 		d.terrain])
 	var keywords: Array[String] = e.zone("tableau").find(uid).keywords
 	if not keywords.is_empty():
 		lines.append("Keywords: " + ", ".join(PackedStringArray(keywords.map(func(k): return k.capitalize()))))
-	var raids := Military.raid_warning(e, uid)
+	var raids := e.military.raid_warning(uid)
 	if raids != "":
 		lines.append(raids)
 	return "\n".join(lines)
-
-
-## Territory uid's tier and the next one's pop ("Village: a Town at 8 pop"), or just the name at the top tier (281).
-static func _tier_line(e: GameEngine, uid: int) -> String:
-	var i := Population.tier(e, uid)
-	var all := Population.tiers(e)
-	if i + 1 >= all.size():
-		return all[i].name
-	return "%s: %s at %d pop" % [all[i].name, Population.with_article(all[i + 1].name), all[i + 1].pop]
 
 
 static func groups(e: GameEngine) -> Array[Dictionary]:

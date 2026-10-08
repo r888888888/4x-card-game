@@ -160,17 +160,10 @@ func test_settle_text() -> void:
 		eq(cards.x.rules_tooltip(cards), "Settle a discovered territory with a City", "card text")
 
 
-func test_settle_non_city_is_error() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": [FARM, {"id": "x", "name": "X", "type": "action",
-		"effects": [{"op": "settle", "card": "farm"}]}]}, resources(), "t", errors, warnings)
-	has_msg(errors, "card 'x': 'settle' effect: 'card' must be a city card (got 'farm')")
-
-
-func test_settle_unknown_card_is_error() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": [{"id": "x", "name": "X", "type": "action",
-		"effects": [{"op": "settle", "card": "nowhere"}]}]}, resources(), "t", errors, warnings)
-	has_msg(errors, "card 'x': 'settle' effect refers to unknown card 'nowhere'")
+func test_bad_settle_is_a_load_error() -> void:
+	check_cases([
+		["not a city", [card_with(CardDef.ACTION, {"op": "settle", "card": "farm"})],
+			"card 'x': 'settle' effect: 'card' must be a city card (got 'farm')"],
+		["unknown card", [card_with(CardDef.ACTION, {"op": "settle", "card": "nowhere"})],
+			"card 'x': 'settle' effect refers to unknown card 'nowhere'"],
+	], fixture_load)

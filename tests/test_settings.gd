@@ -1,5 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## SettingsStore: player settings saved to a ConfigFile (reduce motion).
+## In detail (from docs/testing.md, 331): `SettingsStore`: saving and loading `reduce_motion`, `day_mode` (183) and
+## `civilization`, `Settings.set_day_mode`, `civilization_in` fallback, bad or missing files
 
 const PATH := "user://test_settings.cfg"
 
@@ -167,8 +169,7 @@ func test_settings_set_day_mode_saves_it_and_says_so() -> void:
 	eq(saved.get("day_mode"), true, "saved")
 	eq(told[0], 1, "changed emitted once")
 	Settings.store = original
-	if Settings.has_method("set_day_mode"):
-		Settings.changed.emit()  # back to the player's palette
+	Settings.changed.emit()  # back to the player's palette
 
 
 # --- Bug 195: the suite doesn't run on the player's settings ---

@@ -5,14 +5,14 @@ extends "res://tests/lib/test_case.gd"
 ## selected, select, civilization_ids, civilization_row, detail_pane, detail_title, detail_text; 212);
 ## main.settings_modal (206: a Modal over the title screen, replacing the settings screen) holds Reduce motion (is_open,
 ## motion_toggle, close_button;
-## back_button). main.board_shown() says whether the board is visible.
+## back_button). MainProbe.board_shown(main) says whether the board is visible.
 ## Game.engine is shared by every UI test, so "no game started" is checked as "no engine changed signal".
 
 const SETTINGS_PATH := "user://test_start_screen_settings.cfg"
 
 
 func menu_button(main: Node, prefix: String) -> Button:
-	for b in main.menu_buttons():
+	for b in MainProbe.menu_buttons(main):
 		if b.text.begins_with(prefix):
 			return b
 	return null
@@ -85,7 +85,7 @@ func test_launch_shows_the_title_screen_and_starts_no_game() -> void:
 	var changes := engine_changes(func(): holder.append(open_main()))
 	var main: Node = holder[0]
 	eq(open_screens(main), ["title"] as Array[String], "only the title screen open")
-	check(not main.board_shown(), "board hidden")
+	check(not MainProbe.board_shown(main), "board hidden")
 	eq(changes, 0, "no game started (engine changed signals)")
 	eq(e.turn, turn, "turn untouched")
 	eq(e.log_lines.size(), log_size, "nothing logged")
@@ -99,7 +99,7 @@ func test_title_screen_has_the_title_and_three_buttons() -> void:
 	var titles: Array = overlay.find_children("*", "Label", true, false).filter(
 		func(l): return l.text.replace("\n", " ") == ProjectSettings.get_setting("application/config/name"))  # on two lines (213)
 	eq(titles.size(), 1, "one title label with the game's name")
-	eq(button_texts(overlay), ["New game", "Settings", "Exit"] as Array[String], "exactly three buttons, in order")
+	eq(button_texts(overlay), ["New game", "Settings", "Exit game"] as Array[String], "exactly three buttons, in order")
 	eq(overlay.find_children("*", "LineEdit", true, false).size(), 0, "no seed field")
 	eq(overlay.find_children("*", "CardView", true, false).size(), 0, "no civilization cards")
 	close_main(main)
@@ -113,7 +113,7 @@ func test_new_game_opens_the_new_game_screen_without_starting() -> void:
 	var main: Node = holder[0]
 	var screen: Object = main.new_game_screen
 	eq(open_screens(main), ["new game"] as Array[String], "title hidden, new game screen open")
-	check(not main.board_shown(), "board hidden")
+	check(not MainProbe.board_shown(main), "board hidden")
 	eq(changes, 0, "no game started")
 	eq(screen.civilization_ids(), Game.engine.civilizations(), "civilization cards, in config order")
 	check(screen.overlay.is_ancestor_of(screen.seed_edit), "seed field on the screen")
@@ -146,8 +146,8 @@ func test_start_with_seed_42_starts_that_seed() -> void:
 	eq(Game.engine.seed_value, 42, "seed")
 	eq(Game.engine.turn, 1, "turn 1")
 	eq(open_screens(main), [] as Array[String], "no screen open")
-	check(main.board_shown(), "board shown")
-	eq(main.hand_view_count(), Game.engine.zone("hand").size(), "hand views dealt")
+	check(MainProbe.board_shown(main), "board shown")
+	eq(MainProbe.hand_view_count(main), Game.engine.zone("hand").size(), "hand views dealt")
 	close_main(main)
 
 
@@ -173,7 +173,7 @@ func test_enter_in_the_seed_field_starts() -> void:
 	eq(Game.engine.seed_value, 7, "seed from the field")
 	eq(Game.engine.turn, 1, "turn 1")
 	check(not screen.is_open(), "new game screen hidden")
-	check(main.board_shown(), "board shown")
+	check(MainProbe.board_shown(main), "board shown")
 	close_main(main)
 
 
@@ -281,12 +281,12 @@ func open_settled_new_game_screen() -> Node:
 	return main
 
 
-## The new game screen's IndexTab-showing rows, by civilization id.
-func rows_with_a_tab(screen: Object) -> Array[String]:
+## The new game screen's rows showing their selection lamp (356; the index tab until then), by civilization id.
+func rows_with_a_lamp(screen: Object) -> Array[String]:
 	var out: Array[String] = []
 	for id in screen.civilization_ids():
-		var tab := (screen.civilization_row(id) as Node).find_child("IndexTab", true, false) as Control
-		if tab != null and tab.is_visible_in_tree():
+		var lamp := ReadyLamp.of(screen.civilization_row(id))
+		if lamp != null and lamp.is_visible_in_tree():
 			out.append(id)
 	return out
 
@@ -328,7 +328,7 @@ func test_start_sits_under_a_footer_rule_and_stays_put() -> void:
 		close_main(main))
 
 
-func test_the_civilizations_are_a_select_list_with_one_index_tab() -> void:
+func test_the_civilizations_are_a_select_list_with_one_lamp() -> void:
 	await with_temp_settings(func():
 		var civs: Array[String] = Game.engine.civilizations()
 		Settings.store.civilization = civs[0]
@@ -340,15 +340,15 @@ func test_the_civilizations_are_a_select_list_with_one_index_tab() -> void:
 		for id in civs:
 			check((screen.civilization_row(id) as Button).theme_type_variation in [&"ListRow", &"ListRowQuiet"],
 				"%s: a ListRow" % id)
-		eq(rows_with_a_tab(screen), [civs[0]] as Array[String], "the preselected row carries the tab")
+		eq(rows_with_a_lamp(screen), [civs[0]] as Array[String], "the preselected row carries the lamp")
 		(screen.civilization_row(civs[3]) as Button).pressed.emit()
 		await wait_frames()
-		eq(rows_with_a_tab(screen), [civs[3]] as Array[String], "a click moves the tab")
+		eq(rows_with_a_lamp(screen), [civs[3]] as Array[String], "a click moves the lamp")
 		(screen.civilization_row(civs[3]) as Button).grab_focus()
 		press_key(main, KEY_DOWN)
 		await wait_frames()
 		eq(screen.selected, civs[4], "Down selects the next")
-		eq(rows_with_a_tab(screen), [civs[4]] as Array[String], "the arrows move the tab")
+		eq(rows_with_a_lamp(screen), [civs[4]] as Array[String], "the arrows move the lamp")
 		close_main(main))
 
 
@@ -365,7 +365,7 @@ func test_moving_the_focus_off_the_selected_row_keeps_the_selection() -> void:
 		eq(screen.selected, civs[0], "the selection stays")
 		check((screen.civilization_row(civs[0]) as Button).button_pressed, "the selected row stays pressed")
 		check(not (screen.civilization_row(civs[1]) as Button).button_pressed, "the focused row is not pressed")
-		eq(rows_with_a_tab(screen), [civs[0]] as Array[String], "the tab stays on the selected row")
+		eq(rows_with_a_lamp(screen), [civs[0]] as Array[String], "the lamp stays on the selected row")
 		close_main(main))
 
 
@@ -379,9 +379,8 @@ func test_with_no_civilizations_the_pane_says_so_and_start_still_works() -> void
 	var main := open_new_game_screen()
 	var screen: Object = main.new_game_screen
 	eq(screen.civilization_ids(), [] as Array[String], "no rows")
-	var list: Control = screen.get("civilization_list")  # read by name: the test must put the real engine back
-	check(list != null and not list.is_visible_in_tree(), "the list hidden")
-	var text: String = detail_text(main) if screen.has_method("detail_text") else ""
+	check(not screen.civilization_list.is_visible_in_tree(), "the list hidden")
+	var text: String = detail_text(main)
 	check(text.contains("offers no civilizations"), "the pane says so: %s" % text)
 	eq(screen.selected, "", "nothing selected")
 	screen.start_button.pressed.emit()
@@ -445,7 +444,7 @@ func test_back_returns_to_the_title_screen_from_both() -> void:
 		main.settings_modal.close_button.pressed.emit()
 		eq(open_screens(main), ["title"] as Array[String], "Close on Settings: the title screen"))
 	eq(changes, 0, "no game started")
-	check(not main.board_shown(), "board hidden")
+	check(not MainProbe.board_shown(main), "board hidden")
 	close_main(main)
 
 
@@ -467,13 +466,13 @@ func test_menu_new_game_opens_the_new_game_screen() -> void:
 	press_key(main, KEY_ESCAPE)  # nothing focused: opens the menu
 	menu_button(main, "New game").pressed.emit()
 	eq(open_screens(main), ["new game"] as Array[String], "the new game screen, not the title screen")
-	check(not main.board_shown(), "board hidden")
+	check(not MainProbe.board_shown(main), "board hidden")
 	eq(main.views.size(), 0, "the old game's views are gone")
 	check(not main.modals.is_open(), "menu closed")  # 207: a sheet on the stack, still lifting off
 	main.new_game_screen.seed_edit.text = "6"
 	main.new_game_screen.start_button.pressed.emit()
 	eq(Game.engine.seed_value, 6, "the next game starts from the screen")
-	eq(main.hand_view_count(), Game.engine.zone("hand").size(), "only the new hand is dealt")
+	eq(MainProbe.hand_view_count(main), Game.engine.zone("hand").size(), "only the new hand is dealt")
 	close_main(main)
 
 
@@ -483,7 +482,7 @@ func test_back_after_the_menu_new_game_goes_to_the_title_screen() -> void:
 	menu_button(main, "New game").pressed.emit()
 	main.new_game_screen.back_button.pressed.emit()
 	eq(open_screens(main), ["title"] as Array[String], "the title screen")
-	check(not main.board_shown(), "board hidden")
+	check(not MainProbe.board_shown(main), "board hidden")
 	close_main(main)
 
 
@@ -495,7 +494,7 @@ func test_menu_restart_replays_the_seed_without_a_screen() -> void:
 	eq(Game.engine.seed_value, 5, "same seed")
 	eq(Game.engine.turn, 1, "a fresh game")
 	eq(open_screens(main), [] as Array[String], "no screen open")
-	check(main.board_shown(), "board shown")
+	check(MainProbe.board_shown(main), "board shown")
 	close_main(main)
 
 
@@ -530,7 +529,7 @@ func test_menu_and_game_over_name_the_civilization() -> void:
 	var main := open_main()
 	play_seed_1(main, func(_m): pass)
 	var civ_name: String = Game.engine.zone("civilization").cards[0].def.name
-	check(main.game_over_text().contains(civ_name), "game over names %s in '%s'" % [civ_name, main.game_over_text()])
+	check(MainProbe.game_over_text(main).contains(civ_name), "game over names %s in '%s'" % [civ_name, MainProbe.game_over_text(main)])
 	main.start_game(1)
 	press_key(main, KEY_ESCAPE)
 	var names := main.find_children("*", "Label", true, false).filter(
@@ -618,8 +617,8 @@ func test_esc_on_the_title_screen_does_nothing() -> void:
 	main.quit_hook = func(): quits[0] += 1
 	var changes := engine_changes(func(): press_key(main, KEY_ESCAPE))
 	eq(open_screens(main), ["title"] as Array[String], "the title screen stays open alone")
-	check(not main.board_shown(), "board hidden")
-	check(not main.menu_buttons()[0].is_visible_in_tree(), "no menu")
+	check(not MainProbe.board_shown(main), "board hidden")
+	check(not MainProbe.menu_buttons(main)[0].is_visible_in_tree(), "no menu")
 	eq(changes, 0, "no game started")
 	eq(quits[0], 0, "no quit")
 	close_main(main)

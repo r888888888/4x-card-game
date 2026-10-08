@@ -1,7 +1,7 @@
 extends "res://tests/lib/test_case.gd"
 ## The board's game words (backlog 053; the section order moved to test_board_row, 137): Realm, Buy Cards, Knowledge
 ## and Insight; no seed in the top bar and no "tableau" on screen. Runs the real main scene. Test hook:
-## main.section_headings() lists the play area's headings top to bottom as {text, tooltip}.
+## MainProbe.section_headings(main) lists the play area's headings top to bottom as {text, tooltip}.
 
 
 ## Every Control under node.
@@ -31,7 +31,7 @@ func label_with_text(node: Node, text: String) -> Label:
 
 func heading_texts(main: Node) -> Array[String]:
 	var out: Array[String] = []
-	for h in main.section_headings():
+	for h in MainProbe.section_headings(main):
 		out.append(h.text)
 	return out
 
@@ -43,7 +43,7 @@ func test_the_tableau_section_is_headed_realm_and_the_hand_hint_says_realm() -> 
 	main.start_game(1)
 	var texts := heading_texts(main)
 	check(texts.has("Realm"), "a Realm heading in %s" % [texts])
-	var hand: Array = main.section_headings().filter(func(h): return h.text == "In Hand")  # the hint is its tooltip (204)
+	var hand: Array = MainProbe.section_headings(main).filter(func(h): return h.text == "In Hand")  # the hint is its tooltip (204)
 	check(not hand.is_empty() and hand[0].tooltip.contains("Drag a card into the realm"), "hand hint says realm: %s" % [hand])
 	close_main(main)
 

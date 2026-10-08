@@ -66,7 +66,9 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.details = CardDetailsModal.new(main.modals)
 	main.details.play_requested.connect(main.card_actions.on_double_clicked)  # Play acts as a double-click would (225)
 	main.details.buy_requested.connect(main.supply.buy)  # a supply pile's Buy (259)
-	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_tech)
+	main.knowledge = KnowledgeScreen.new(main.territory_view.nav, main.tableau.get_parent(), main.details.open_tech,
+		main.modals)
+	main.knowledge.click_through = main.sidebar.end_turn  # 348
 	var lamps := func():  # the keys' lamps, after a see (288)
 		top_bar.refresh(Game.engine, true)
 		main.supply.refresh(Game.engine)
@@ -88,6 +90,8 @@ func _init(main: MainScreen, restart: Callable, close_menu: Callable, push_new_g
 	main.territory_view.rename_requested.connect(main.rename_modal.open)
 	main.build_modal = BuildModal.new(main.modals)
 	main.territory_view.build_requested.connect(main.build_modal.open)
+	main.territory_view.upgrade_requested.connect(func(t: int, card_id: String, base: int):
+		main.build_modal.open(t, BuildModal.upgrade_row_id(card_id, base)))
 	main.settings_modal = SettingsModal.new(main.modals)
 	main.settings_modal.restart_requested.connect(func(seed_value: int):
 		close_menu.call(false)
@@ -161,7 +165,7 @@ func _build_hand(main: MainScreen) -> void:
 	main.actions_label.tooltip_text = "Actions left this turn"
 	hand_section.add_child(hand_heading)
 	hand_section.move_child(hand_heading, 0)
-	main.hand_scroll = ScrollContainer.new()
+	main.hand_scroll = SmoothScroll.new()
 	main.hand_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	main.hand_scroll.custom_minimum_size.y = CardView.HAND_SIZE.y + Anim.LIFT_ROOM + 20
 	main.hand_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED

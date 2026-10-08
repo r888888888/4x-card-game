@@ -43,7 +43,7 @@ static func turns_left(e: GameEngine, uid: int) -> int:
 
 ## The turn's event (TurnLoop.start_turn calls it last, from turn 2; 237): draws the top event, makes it active for its
 ## discard_turns, and resolves its play effects. A raid drawn while raids aren't allowed goes to the deck's bottom and
-## the next event is drawn instead (257). When the deck is empty, or holds only such raids (266), the event discard is
+## the next event is drawn instead (257); one that finds no target fizzles into the discard, resolving nothing (372). When the deck is empty, or holds only such raids (266), the event discard is
 ## shuffled in first. Does nothing when both piles are empty or only such raids are left in either.
 static func draw(e: GameEngine) -> void:
 	var deck := e.zone("event_deck")
@@ -55,13 +55,22 @@ static func draw(e: GameEngine) -> void:
 	if event == null:
 		return
 	event.turns_left = event.def.discard_turns
-	e.zone("active_events").add(event)
 	e._log("Event: %s." % event.def.name)
 	e._outcome = CardPlay.new_outcome(event.uid)
 	e._outcome.id = event.def.id
+	if Military.is_raid(event) and e.military.aim(event) == null:
+		e.zone("event_discard").add(event)
+		_emit_drawn(e, event)
+		return
+	e.zone("active_events").add(event)
 	e._resolve(event, "play")
 	if Military.is_raid(event):
-		Military.announce(e, event)
+		e.military.announce(event)
+	_emit_drawn(e, event)
+
+
+## Ends drawing event: clears the outcome being collected, opens the event's choice if it has one, and emits event_drawn.
+static func _emit_drawn(e: GameEngine, event: CardInstance) -> void:
 	var outcome := e._outcome
 	e._outcome = {}
 	EventChoices.drawn(e, event)
@@ -85,7 +94,7 @@ static func _reshuffle(e: GameEngine, deck: Zone) -> bool:
 static func _take_allowed(e: GameEngine, deck: Zone) -> CardInstance:
 	for i in deck.size():
 		var top := deck.take_top()
-		if not Military.is_raid(top) or Military.raids_allowed(e):
+		if not Military.is_raid(top) or e.military.raids_allowed():
 			return top
 		deck.add_bottom(top)
 	return null

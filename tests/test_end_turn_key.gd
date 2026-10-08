@@ -2,10 +2,15 @@ extends "res://tests/lib/test_case.gd"
 ## End turn as the specimen's key (backlog 203) at the foot of the sidebar (202), in the real main scene at 1920×1080.
 ## Hook: main.sidebar.end_turn (an EndTurnKey Button): lamp_lit(), lamp_color(), label_text() (as shown, in caps),
 ## plate_text(), caption_text() ("" while hidden), busy().
+## In detail (from docs/testing.md, 331): End turn as the specimen's key (203) at the sidebar's foot in the real
+## `main.tscn` at 1920×1080: `main.sidebar.end_turn` (`lamp_lit()`, `lamp_color()`, `label_text()`, `plate_text()`,
+## `caption_text()`, `busy()`): its box, the lamp (ochre with actions left and no caption since 221, sage when ready or
+## unlimited, brick and disabled with the reason when a discard is owed or the game is over), busy "UPKEEP…" after a
+## press, the plate flapping to the new turn, the pressed travel, the rail's width × 80 in the window's corner (221);
+## `with_key_game` restores the engine whatever happens
 
 const TOLERANCE := 1.0
 
-var _old_window_size := Vector2i.ZERO
 
 
 ## Runs body(main) on main at 1920×1080 on engine (the real data's when null), started on seed 1; then closes main and
@@ -31,10 +36,6 @@ func key(main: Node) -> Button:
 	return main.sidebar.get("end_turn")
 
 
-func wait_seconds(s: float) -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
-
-
 # --- AC1: the key at the sidebar's foot ---
 
 func test_end_turn_is_the_big_key_at_the_bottom_right_of_the_sidebar() -> void:
@@ -58,7 +59,7 @@ func test_end_turn_is_the_big_key_at_the_bottom_right_of_the_sidebar() -> void:
 		eq(k.label_text(), "END TURN", "its label in caps")
 		eq(k.plate_text(), "001", "the turn plate")
 		check(k.lamp_lit(), "a lit lamp at its left")
-		var strip: Control = (main.counter(GameEngine.FOOD) as Control).get_parent()
+		var strip: Control = (MainProbe.counter(main, GameEngine.FOOD) as Control).get_parent()
 		check(not UIKit.buttons_in(strip).any(func(b): return b.text.begins_with("End turn")), "no End turn in the top strip (AC6)"))
 
 
@@ -96,8 +97,8 @@ func test_a_discard_owed_lights_brick_and_disables_the_key_with_the_reason() -> 
 		for i in e.config.hand_limit + 2 - e.zone("hand").size():
 			put_in_hand(e, e.zone("hand").cards[0].def.id)
 		e.end_turn()
-		while not main.event_modal().is_empty():
-			main.event_modal_ok_button().pressed.emit()
+		while not MainProbe.event_modal(main).is_empty():
+			MainProbe.event_modal_ok_button(main).pressed.emit()
 		await wait_frames()
 		await wait_seconds(1.3)  # past the end-of-turn busy spell
 		var error := e.end_turn_error()
@@ -164,10 +165,9 @@ func test_game_over_disables_it_with_a_brick_lamp() -> void:
 	await wait_frames()
 	check(Game.engine.is_over, "precondition: game over")
 	var k := key(main)
-	check(k != null and k.disabled, "disabled")
-	if k != null and k.has_method("lamp_color"):
-		eq(k.tooltip_text, Game.engine.end_turn_error(), "the reason")
-		eq(k.lamp_color(), Palette.UNREST, "brick")
+	check(k.disabled, "disabled")
+	eq(k.tooltip_text, Game.engine.end_turn_error(), "the reason")
+	eq((k as EndTurnKey).lamp_color(), Palette.UNREST, "brick")
 	close_main(main)
 
 

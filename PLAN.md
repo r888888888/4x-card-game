@@ -8,8 +8,8 @@
 | Map | None: tableau of cards (cities, buildings, wonders) |
 | Solo opposition | Event/barbarian deck that escalates by era |
 | Card data | JSON files, loaded at runtime |
-| Deck model | Demo uses a fixed deck; engine still supports deck-building and era decks |
-| Balance simulation | Headless `GenericBot` over many seeds (`scripts/sim.sh`, 042, 313, 314): it values every legal action on a sample fork, with no rule per mechanic; three strategies as every civilization (generic, wide, tall); compared against `main` game by game (`--compare`, 293), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
+| Deck model | A fixed main deck, grown through the supply, the build menu and techs (see The deck model) |
+| Balance simulation | Headless `GenericBot` over many seeds (`scripts/sim.sh`, 042, 313, 314): it values every legal action on a sample fork, with no rule per mechanic; three strategies as every civilization (generic, wide, tall); compared against `main` game by game (`--compare`, 293), at levels 1-4 from one game to 10 seeds × every strategy × civ (`--level`, 378), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
 | Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
@@ -22,106 +22,50 @@ through signals. This keeps rules testable and allows headless simulation
 (`sim/`, run with `scripts/sim.sh`).
 
 ## Project layout (as built)
-```
-res://
-  data/
-    cards.json           # player card definitions
-    config.json          # resources, keywords, turn limit, hand size, deck model, starting state, deck lists
-  engine/                # plain GDScript, no scene nodes
-    game_engine.gd       # public API: actions and their *_error queries, fork(), sample_fork() (311), the constants; calls the modules below
-    engine_queries.gd    # EngineQueries, GameEngine's parent (249): the read queries (score, targets, forecast, …)
-    territory_queries.gd # TerritoryQueries, EngineQueries' parent (281): pop, housing, slots, workers, tiers, territory status
-    engine_core.gd       # EngineCore, TerritoryQueries' parent (125): state and accessors, signals, effect hooks (gain, draw, …), _log/_resolve
-    game_state.gd        # GameState: everything that changes during a game; copy() is a deep copy (051)
-    turn_loop.gd         # TurnLoop: new game setup, start of turn (upkeep, feeding, era unlocks, draw), end turn, discard
-    card_play.gd         # CardPlay: play_error, valid targets, playing a hand card
-    population.gd        # Population: pop, housing, growth, workers, idle buildings, feeding
-    research.gd          # Research: learning techs from the open tree, prerequisites, eras
-    supply.gd            # Supply: buying from the card supply
-    build_menu.gd        # BuildMenu (295): building unlocked entries straight onto a territory
-    legal_actions.gd     # LegalActions (312): every action allowed now as [action, args…], for bots (legal_actions())
-    sites.gd             # Sites: wonders built over turns (286): sites, contribute, abandon
-    ready_lamps.gd       # ReadyLamps (288): what can be learned or bought now, and whether it's new since last seen
-    territories.gd       # Territories: explore and choose, settle, slots, keyword requirements, tableau groups
-    discounts.gd         # Discounts (108): what a civilization's discounts take off play, tech and supply costs
-    modifiers.gd         # Modifiers (129): the working cards (also upkeep's), standing modifiers summed over them
-    famine.gd            # Famine: brought by a hungry upkeep, counters, guard saves, no growth, ends when fed
-    anarchy.gd           # Anarchy (145–148, 154, 155): falling at the unrest limit, counters, restore order, renewal, revolt,
-                         # the government deck and choice
-    events.gd            # Events: event deck setup, drawing one at each turn start, active events' upkeep and discard
-    event_choices.gd     # EventChoices: choice events' options (269): loading them, owing, waiting and choosing
-    card_details.gd      # CardDetails: a card's rules, live state and explained terms for the details modal (056)
-    glossary.gd          # Glossary: fixed mechanic terms (Upkeep, Slots, Workers, …); keyword terms are generated;
-                         # BASIC ones (Upkeep, Slots, Pop) are left out of card details (112)
-    data_loader.gd       # JSON → CardDef; load_all reads both files; collects all errors/warnings
-    config_loader.gd     # config.json → normalized config, checked against the cards (095)
-    card_def.gd          # immutable definition; short card text and full tooltip text generated from effects
-    card_instance.gd     # runtime copy of a card (uid + def + territory_uid, pop, keywords, turns_left)
-    zone.gd              # named ordered pile (deck, hand, discard, tableau, frontier, research_deck, …)
-    effect.gd            # Effect base class
-    fields.gd            # Fields: read_int / read_string / as_int for card, config and effect fields
-    effect_registry.gd   # op name → effect script
-    effects/             # one <op>_effect.gd per effect op
-    rng.gd               # seeded RNG (reproducible games)
-  autoload/game.gd       # "Game" singleton: loads data, owns the engine, reads the launch options
-  autoload/launch_options.gd # LaunchOptions (135): --civ, --turns, --seed for the game and the sim
-  autoload/settings.gd   # "Settings" singleton: player settings (reduce motion, day mode, sound volumes and interface
-                         # sounds, 184), saved via SettingsStore; it sets the audio buses' volumes and mutes
-  autoload/settings_store.gd # ConfigFile at user://settings.cfg; bad values fall back with a warning
-  ui/                    # main.tscn/main.gd (MainScreen: actions, menu, refresh, test hooks), board_layout.gd
-                         # (176: BoardLayout builds the layout and components in code), board_views.gd (176:
-                         # BoardViews keeps the card views in line with the engine: deal, place, fly, leave)
-                         # cards: card_view.gd (CardView: panel, tooltip, border), card_face.gd (086: its content),
-                         # card_motion.gd (086: resting, flying, dragging, leaving), anim.gd (animation tuning),
-                         # icons.gd (text glyphs → icon images in cards and the log), ui_kit.gd (shared styles,
-                         # labels, overlays, button columns)
-                         # board: top_bar.gd (stats, Buy Cards, Knowledge, Log, Menu; on a ruled Strip, 221; ready_lamp.gd lights Buy Cards and
-                         # Knowledge for something new to buy or learn, 288), sidebar.gd
-                         # (202: the right rail, open on the board, 221: the civilization, government and End turn),
-                         # counter.gd (181: Counter, a glyph, an odometer figure and the forecast; no tag since 218),
-                         # odometer.gd (181: Odometer, a figure whose digits roll),
-                         # tableau_view.gd (102, 137: the Realm's row: events, frontier, territories),
-                         # territory_view.gd (101, 105: one territory in place of the Realm, its pop meter (124)),
-                         # action_button.gd (175: ActionButton, the Relieve famine (084), Restore order (146) and Revolt
-                         # (148) buttons below the Realm),
-                         # log_drawer.gd (115, 121: the log, deck and discard counts), toasts.gd (116, 250: notices as flags
-                         # out of the rail), drag_controller.gd (drag and targeting), card_focus.gd (keyboard focus and keys), card_actions.gd (playing,
-                         # clicking, discarding and picking a card view, out of main.gd: 316)
-                         # overlays and modals: choice_overlays.gd (explore, renewal 147, government 154, behind
-                         # cabinet_doors.gd, 209),
-                         # supply_screen.gd (Buy Cards), game_menu.gd and game_over_overlay.gd (Modals since 207),
-                         # modal.gd (153: Modal, every modal's base: scrim, close keys, click outside; 207: the drafting
-                         # sheet with its title block, body and footer, risen in and dropped off),
-                         # modal_stack.gd (153: ModalStack, main.modals: the top one takes input, closing one closes
-                         # those above it), card_details_modal.gd (click, right-click or I),
-                         # knowledge_screen.gd (208: Knowledge or T, a screen sliding over the Realm, drawn as a drafting sheet, 222; the tech tree modal before it), event_modal.gd (each drawn event, 079), raid_modal.gd (each raid that strikes, above the event; both opened by turn_news.gd, 271; a choice event's options in the event modal, 269), identity_modal.gd (119; Revolt… since 205),
-                         # revolt_modal.gd (205: the revolution's confirmation), rename_modal.gd (248: naming a territory)
-                         # screens: navigator.gd (103, 104: the screen stack, titles and transitions; main.nav),
-                         # screen_header.gd (104, 118, 241: the title bar and its divider tab back), start_screen.gd (063, 099: the title screen),
-                         # new_game_screen.gd (099: civilization list and detail pane since 212, seed, Start), settings_modal.gd (206: the settings, a modal from the menu and the title screen)
-                         # look: palette.gd (106: every UI colour, named; 183: a Night and a Day value each, switched by
-                         # Palette.use, and UIKit.painted / repaint for colours set in code), game_theme.gd (106: the Theme built in
-                         # code, with Heading/Title/Stat/DarkPanel/Strip/Rail variations), tokens.gd (193, 194: the guide's spacing,
-                         # corner radius and type scales, Tokens.SPACE_*, RADIUS_* and TYPE_*)
-                         # sound: sfx.gd (186: Sfx, main.sfx: every sound token, its level, bus, files and rules),
-                         # key_sounds.gd (187: every button's click and a disabled key's dead tap), event_sounds.gd (191:
-                         # the engine's milestones as Level 3 sounds); legend_key.gd, top_bar.gd (End turn), odometer.gd,
-                         # card_motion.gd, modal_stack.gd, navigator.gd and toasts.gd play their own tokens (187–190)
-  assets/icons/          # hand-drawn white 24×24 SVGs, imported as DPITexture and tinted in code
-  assets/sounds/         # ui/ (Levels 1–2, variants _a…_d) and events/ (Level 3) WAVs, placeholders rendered by
-                         # docs/design/tools/sound-export.html from the specimen's synthesis (186)
-  default_bus_layout.tres # the audio buses: Game and Interface into Master, each with its limiter (184)
-  tests/                 # run_tests.gd runner, lib/test_case.gd helpers, test_<area>.gd (see docs/testing.md)
-  sim/                   # generic_bot.gd (GenericBot and its strategies, 313, 314), sim_stats.gd (SimStats: per-seed metrics, per
-                         # strategy and civilization, workers, lock, cache), sim_compare.gd (SimCompare: two checkouts
-                         # game by game, 293), run.gd (CLI)
-  scripts/test.sh        # test entry point; scripts/test-hook.sh is the Claude Code Stop hook
-  scripts/sim.sh         # balance simulator: scripts/sim.sh [seeds] [strategy] [--civ id] [--turns n] (no strategy: all);
-                         # scripts/sim.sh --compare <checkout> [max seeds] [strategy] … compares two checkouts
-  scripts/cpus.sh        # on Linux, the CPUs this process may use (affinity and cgroup quota), for sim.sh and test.sh
-  scripts/cloud-setup.sh # installs the pinned Godot in a Claude Code cloud session (docs/cloud.md)
-  docs/                  # development process, testing guide, backlog
-```
+Each script opens with a `##` comment saying what it holds, so this lists folders and entry points only (330); the
+suite checks every path named here exists.
+- `data/`: the content. `data/cards.json` (card definitions) and `data/config.json` (resources, keywords, decks,
+  supply, build menu, eras, population, unrest, starting state), validated on load.
+- `engine/`: the rules, plain GDScript with no scene nodes.
+  - `engine/game_engine.gd`: `GameEngine`, the public API: actions and their `*_error` queries, `fork()`,
+    `sample_fork()` (311) and the constants. It extends `engine/engine_queries.gd` (read queries: score, targets,
+    forecasts, …), which extends `engine/territory_queries.gd` (pop, slots, workers, tiers), which extends
+    `engine/engine_core.gd` (state accessors, signals, the helpers effects call).
+  - `engine/game_state.gd`: `GameState`, everything that changes during a game; `copy()` is a deep copy (051).
+  - Rules modules: one class of static functions per subsystem (`TurnLoop`, `CardPlay`, `Population`, `Research`,
+    `Supply`, `BuildMenu`, `Territories`, `Anarchy`, `Events`, …), which `GameEngine` calls.
+  - Areas (394): a rules module that is an object on the engine, which callers use directly instead of a forward on
+    `GameEngine`: `engine.military` (`engine/military.gd`, `Military`: units, raids and defence; `engine.military.move(uid,
+    t)`). An area holds no state (a weak reference back to its engine), a fork gets its own, and its actions are listed
+    for bots as `"military.move"` and called with `LegalActions.apply`. The other modules move to areas one item at a
+    time.
+  - Loading: `engine/data_loader.gd` (`DataLoader.load_all`: JSON to `CardDef`s, every error and warning collected;
+    `TYPE_FIELDS` and `INT_FIELDS` say which types take a field and an integer field's minimum and default, and
+    `engine/card_type_fields.gd` reads each type's own fields, 338) and `engine/config_loader.gd` (config.json,
+    normalized and checked against the cards, 095; `engine/population_config.gd` parses its population, tiers, unrest
+    and the civilizations' homes, 339).
+  - Cards: `engine/card_def.gd` (the immutable definition and its generated text), `engine/card_instance.gd` (a card
+    in play), `engine/zone.gd` (an ordered pile).
+  - Effects: `engine/effect.gd` (the base class), `engine/effect_registry.gd` (op name to script) and one
+    `<op>_effect.gd` per op in `engine/effects/`.
+- `autoload/`: the singletons. `autoload/game.gd` (`Game`: loads the data, owns the engine, reads
+  `autoload/launch_options.gd`'s `--civ`, `--turns`, `--seed`) and `autoload/settings.gd` (`Settings`, saved through
+  `autoload/settings_store.gd`).
+- `ui/`: the display, one component per script, built in code. `ui/main.tscn` and `ui/main.gd` (`MainScreen`: the
+  refresh, the actions it wires up, the test hooks); `ui/board_layout.gd` builds the board; `ui/board_views.gd` keeps
+  the card views in line with the engine; the looks are `ui/palette.gd`, `ui/game_theme.gd` (with its sections in `ui/theme/`, 393), `ui/tokens.gd` and `ui/surfaces.gd` (wood and paper, 341);
+  modals extend `ui/modal.gd` on a `ui/modal_stack.gd`, screens go on `ui/navigator.gd`; sounds are `ui/sfx.gd`.
+- `assets/`: icons (white SVGs tinted in code), sounds (placeholders, 186) and the walnut and paper textures
+  (`assets/background/`, 341); `default_bus_layout.tres` holds the
+  audio buses (184).
+- `tests/`: `tests/run_tests.gd` (the runner), `tests/lib/test_case.gd` (assertions, fixtures, helpers), one
+  `test_<area>.gd` per area and `tests/balance/` (see `docs/testing.md`).
+- `sim/`: the balance simulator: `sim/generic_bot.gd` (`GenericBot`, 313, 314), `sim/sim_stats.gd` (`SimStats`),
+  `sim/sim_compare.gd` (two checkouts game by game, 293) and `sim/run.gd` (the CLI).
+- `scripts/`: `scripts/test.sh` (the tests), `scripts/test-hook.sh` (the Claude Code Stop hook), `scripts/sim.sh`
+  (the simulator), `scripts/cpus.sh` (usable CPUs on Linux) and `scripts/cloud-setup.sh` (Godot for a cloud session).
+- `docs/`: the development process, the testing guide, the design guide and the backlog.
+
 Prices (173): an action checks a price ({resource: amount}) with `can_pay` / `price_error` and pays it with `pay`, all on
 `EngineCore`; unrest is added or capped only through `set_unrest`, which stops at `unrest_limit()`.
 Adding an effect: follow the `add-effect` skill. The engine API is documented by the `##` comments in
@@ -160,15 +104,18 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 }
 ```
 - `trigger` is `play` (default), `upkeep`, or `start` (062: civilizations only, once at `new_game`; no op that needs a
-  target or opens a choice). Only `gain`, `gain_per_tag`, `gain_per_keyword`, `lose`, `lose_pct`, `lose_per_keyword`, `lose_pop`, `score` and
+  target or opens a choice). Only `gain`, `gain_per_tag`, `gain_per_keyword`, `gain_per_pop`, `lose`, `lose_pct`, `lose_per_keyword`, `lose_pop`, `score` and
   `grow` may use
   `upkeep` (043): the forecast restores only resources, bonus score and pop, so other ops are a loader error there.
 - `trade` (055, play only): `{ "op": "trade", "resource": "wealth", "per_root_city": 2, "pop_per": 5, "min_cities": 2 }`
   gains `per_root_city` × ⌊√cities⌋ + ⌊total pop / `pop_per`⌋; with fewer than `min_cities` city cards in the
   tableau the card can't be played (Caravan).
-- `gain_per_keyword` (081): `{ "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest", "grassland"] }`
+- `gain_per_keyword` (081): `{ "op": "gain_per_keyword", "resource": "food", "amount": 1, "keywords": ["forest"] }`
   gains `amount` (default 1) per settled territory (in the tableau) with any of `keywords`, printed or rolled; each
   territory counts once. `GameEngine.count_territories_with(keywords)` is the count (Hunt).
+- `gain_per_pop` (304): `{ "op": "gain_per_pop", "resource": "wealth", "amount": 1, "per": 3 }` gains `amount` × ⌊pop on
+  the card's own territory / `per`⌋ (both default 1): "+1 wealth per 3 pop here". It needs its own territory (a load error
+  on techs, events, governments and units, as `grow` "here"), and gains 0 with no territory or population off.
 - Harmful ops (072), on any card type: `{ "op": "lose", "resource": "food", "amount": 2 }` takes a resource, never
   below 0 ("−2 food"); `{ "op": "lose_pop", "amount": 1 }` takes pop one at a time from the territory with the most
   pop, ties first in tableau order, the same rule as starvation (`Population.most_pop`).
@@ -194,9 +141,22 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   Text "+1 action" (tooltip "+1 action this turn"). Real data: Scout and Barter.
 - `trash` (082, play only): `{ "op": "trash" }` targets another card in hand and moves it to the `trashed` zone, out of
   the game (never reshuffled). The card being played is never its own target; the outcome's `trashed` is the uid
-  (no real card uses it since 277; tests use a fixture).
+  (Slash and Burn is its real card since 369: trash a card in hand, +1 food).
+- `recall` (370, play only): `{ "op": "recall" }` (no fields) offers the discard pile's cards: several owe a take (see
+  Pending decisions), one goes to the hand at once, and an empty discard can't be recalled from (`play_error`). It
+  opens a choice, so it is a load error on `upkeep`, on `start` and on an event (an event effect can't open a choice).
+  Text "Take a card from your discard pile into your hand". Real card: Precedent (+1 action, recall; a locked supply
+  pile that Code of Laws unlocks).
+- `look` (371, play only): `{ "op": "look", "count": 3 }` (`count` 2–5, default 3) moves the top `count` cards of the
+  deck to the `offered` zone, reshuffling the discard in when the deck runs out (as `draw` does), and owes a take: one
+  into the hand, the rest to the discard. One card goes to the hand at once; none, and nothing happens. A load error on
+  `upkeep`, `start` and events (it opens a choice). Text "Look at the top 3 cards of your deck: take 1 into your hand,
+  discard the rest". Real card: Read the Stars (look 3; a locked supply pile that Astronomy unlocks).
 - `create` puts a new card in `tableau` (default), `hand`, `discard` or `deck` (`GameEngine.CREATE_ZONES`, 048);
-  any other zone is a loader error.
+  any other zone is a loader error. With `unique: true` (364) it adds nothing while the player owns a copy (one in
+  `GameEngine.OWNED_ZONES`: deck, hand, discard, tableau; a trashed one doesn't count); its text ends "if you have none".
+- `gain_per_tag` gains `amount` per card with `tag` in `zone` (default `tableau`); with `per` (367, default 1) it gains
+  `amount` × ⌊tagged ÷ `per`⌋, text "+1 insight per 2 port".
 - `cost` is an object keyed by resource, so adding resources later doesn't change the format.
 - Conditional or compound effects nest naturally, e.g. `{ "op": "if", "cond": {...}, "then": [...] }`.
 - The loader validates every card (required fields, known `op`s, known resources) and reports
@@ -216,6 +176,12 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   once a turn per unit (`GameState.moved_units`); its home and worker stay. `disband(uid)` sends it to the discard,
   freeing its worker, for no action. `move_targets`, `unit_move_block` and `unit_origin` ("from Homeland") feed the
   details modal's Move… and Disband and the unit's face.
+- Unit upgrades (166): a unit may set `upgrades_to` (another unit's id; "Upgrades to Pikes." on its card). Once that
+  unit's build-menu entry is unlocked, `upgrade_unit(uid)` replaces it for `upgrade_cost(uid)` (per resource, the
+  printed cost difference, never below 0; no discounts) and no action: the new copy keeps its home, station, veteran
+  counters and tableau place (so its worker and idleness), and the old one goes to `removed`. `upgrade_unit_error`
+  refuses as building would under Anarchy, and names only what it is short of. The details modal's Upgrade shows
+  `upgrade_line(uid)` ("Upgrade to Pikes for 2 food (no action).") or the error.
 - Defence (161): buildings and cities may set `defense` (int ≥ 1), and config `terrain_defense` maps keywords (resource
   keywords too) to ints ≥ 1. A settled territory's `defense(uid)` sums the `unit_strength` of the units stationed
   there, its working buildings' and its cities' `defense`, and `terrain_defense` for every keyword of the copy;
@@ -234,6 +200,67 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Training (164): a building may set `training` (int ≥ 1). `unit_strength(uid)` is a unit's printed strength plus the
   `training` of the working buildings on its station (0 when idle), and defence sums it. A trained unit's face shows
   `unit_strength_tag(uid)` ("Strength 3") and its details explain the bonus.
+- Veterans (165): when a raid is repelled, each working unit stationed on its target gains a veteran counter
+  (`CardInstance.counters`, `military.veterancy(uid)`), +1 strength each, up to config `veteran_max` (default 0: none;
+  shipped 2); the outcome lists them as `veterans`. Moving keeps them; leaving the tableau clears them. Its details
+  show "Veteran 1 (+1 strength)" and its face the strength tag. Its card in the territory view shows a pip per
+  `veteran_max`, lit per counter (388, `military.veteran_pips(uid)`); a raid's new counter lights as a tally once its
+  modal closes (`TurnNews.veterans_promoted`), one tick per pip, `Anim.TALLY_STEP` apart.
+- Building upgrades (300): a building may set `upgrade_of` (another building's id; never a project, and no cycles). It
+  is a build-menu entry only (never in `deck` or `supply`, nor `create`d) and builds onto a base: `build("plough",
+  farm_uid)` puts it on the base's territory (`CardInstance.base_uid`), taking no slot and no worker; `build_targets`
+  lists the bases that could take it, and a base takes each different upgrade once. An upgrade can be a base
+  (Shrine → Temple → Great Temple). It adds its effects, modifiers, housing, defence, training, famine guard and VP
+  while its base works, and falls back (counts for nothing) while its base is idle or fallen back
+  (`fallen_back_reason` "Its Farm is idle.", "Its Sanctum has fallen back."). `upgrade_base(uid)`, `upgrades_on(uid)`;
+  rules in `engine/upgrades.gd` (`Upgrades`). Its text starts "Builds on a Farm."; unlocking it reads "… can now be
+  built on a Farm."
+- Rural upgrades (305): Ploughed Fields (The Plough) and Irrigation Canals (Irrigation) go on a Farm, Harbor (Sailing,
+  coastal) on Fishing Huts, Timber Camp (Bronze Working) on a Hunters' Camp and Shaft Mine (Iron Working) on a Mine; they
+  need a tech and no tier. Caravanserai is now Caravan Station (Animal Husbandry) and the Granary opens on turn 1.
+  Content tests hold every upgrade to its base: both are build-menu entries, some territory meets both's `requires`,
+  and the upgrade never opens in an earlier era.
+- Fishing (364): Fishing Huts (coastal or marsh) cost 2 wealth and no food, give ⟳ +1 food and housing 1, and building one
+  adds a Net Fishing to the deck if you have none (a unique `create`; an action: +1 food per coastal territory). Salt Pans (Pottery, coastal; ⟳ +1
+  food) goes on Fishing Huts beside the Harbor (now ⟳ +1 food, +2 wealth), so the coast has an era-1 upgrade as the
+  Farm does. A content test holds every card a building creates to an action.
+- Sea trade (367): Sailing hands out a Sea Trade (1 food: +2 wealth per port card; no city minimum, unlike Caravan),
+  opens its supply pile (price 2, 6 copies), and gives ⟳ +1 insight per 2 port cards.
+- Urban upgrades (306): Temple (Mysticism, Village) goes on a Shrine, and Great Temple (Philosophy, Metropolis; ⟳ +1 VP,
+  +1 food per 3 pop here) and House of Life (Medicine, Town) on a Temple; Writing opens the Scribal School (the old
+  Library's numbers), and Library (Alphabet, Town; ⟳ +1 insight per 3 pop here) goes on it. The Shrine took the Temple's
+  ⟳ +1 VP on a mountain. Content tests: every `tier` is one of `population.tiers` and never lower than its base's; no
+  eureka counts only what its own tech (or a later one) opens; no upgrade lowers the unrest limit; a `gain_per_pop`
+  upgrade has a tier.
+- More urban upgrades (307), each needing a Town unless noted: Merchant Quarter (Credit) on a Market and Mint (Coinage,
+  Metropolis) on it; Storehouse (Clay Tokens) on a Granary; City Walls (Masonry) on a Palisade; Multi-storey Houses
+  (Engineering) on Courtyard Houses; Textile Works (Weaving) on a Weavers' Workshop; Dockyard (Navigation) on a Harbor.
+  Merchant Quarter, Textile Works and Dockyard make ⟳ +1 wealth per 3 pop here. The Aqueduct needs a Town (housing 3).
+  Content tests: only the listed pure-discount techs (Mathematics; Astronomy until 371) open nothing; a stand-alone Metropolis
+  building is a wonder or a `once` entry.
+- Gap buildings (308): Palace (Code of Laws; Metropolis, `once`; 3 VP, +1 action each turn), Shipyard (Sailing, coastal),
+  Terraced Fields (Masonry, hills or mountain: Mountains' food building), Reed Works (turn 1, marsh), Cistern
+  (Engineering, hills or desert), Dye Works (Weaving, coastal) and Kiln (Pottery). Monument and Forge are no longer
+  `once`. Content tests: every territory can hold a food building that isn't an upgrade; a `once` building that isn't a
+  wonder needs a tier.
+- Upgrades on screen (302): the territory view draws no card for an upgrade; its base's card carries a ribbon per
+  upgrade (`upgrade_tree`, depth first: name and `upgrade_rules_text`), hatched with the ochre idle lamp and
+  `fallen_back_reason` while it has fallen back, and a "+ Upgrade" chip while it or an upgrade on it could take
+  another (`upgrades_for`), opening the Build modal on that row. The modal's Upgrades heading lists
+  `upgrade_options(t)` ("Plough … on Farm"), previewed with `build_preview(id, base)`. An upgrade's face reads
+  "Upgrade · Farm", its lines led by "Also", with a stamp naming its tier (`upgrade_base_name`, `card_tier_name`).
+- A building's details (387) list its upgrades in an Upgrades section: `upgrade_rows(uid)` gives
+  `{card_id, base, built, error}` for each base (the building, then its upgrade tree) and each build-menu entry,
+  locked or not, that upgrades it. A row reads its name and rules, then "Built" (or its `fallen_back_reason`), its
+  error, or an Upgrade button with its cost that builds it (`build`) and closes the details; while a decision is owed
+  every row not built keeps its button, disabled with `build_menu_error()` (`ui/upgrade_list.gd`).
+- Buildings that need a tier (301): a building or upgrade may set `tier` (a `population.tiers` id; ignored with a
+  warning when tiers are off). It is built only on a territory at that tier or larger ("Forum needs a Town (Homeland is
+  a Village)."), and while its territory is smaller it falls back: it keeps its slot and worker but counts for nothing,
+  housing and printed VP included (`fallen_back_reason` "Needs a Town."), and works again by itself when the territory
+  grows back. Unlike an idle building (which keeps its housing and VP), a fallen-back card counts for nothing; the
+  rule is `engine/fallback.gd` (`Fallback`), derived from pop, never stored. The tier notice names the cards that fall
+  back or work again ("Homeland shrinks to a Hamlet. Sanctum falls back."). Text: "Needs a Village."
 - Resource keywords (config `resource_keywords`, e.g. gold) are never printed on a territory: each copy rolls
   them from its weighted table in config `territory_resources` (`{"hills": [{"keywords": ["gold"], "weight": 1},
   {"keywords": [], "weight": 1}]}`) when the game starts, with the seeded rng. A table is keyed by territory id or
@@ -245,15 +272,15 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Shipped set (131): six terrains (grassland, forest, hills, mountain, desert, marsh) times the features fresh water,
   flood plain (always with fresh water) and coastal; every keyword is on at least 2 territory types. Slots/housing come
   from a terrain base plus +1 housing per feature (flood plain also −1 slot, min 1), until a balance pass.
-- Buildings may list `requires` (keyword ids, any-of). Any effect may have a `keyword`; it then applies
+- Buildings may list `requires` (keyword ids, any-of; on another type it is ignored with a warning, and on a unit it is
+  an error, 338). Any effect may have a `keyword`; it then applies
   only when its card's territory has that keyword (text: "… (on Flood Plain)").
 
-## Keeping the deck model open
-Every deck model is expressed through **zones + a `move_card` effect**:
-- Deck-building: `market` zone, `buy_card` action moves market → discard.
-- Fixed deck: no market; progression comes from the tableau only.
-- Era decks: `era_1..era_n` zones; advancing an era swaps the draw source.
-`config.json` selects the model, so all three can be playtested without code changes.
+## The deck model
+The main deck is fixed (`deck_model` is `fixed`, the only model the loader accepts). Nothing replaced the planned
+deck-building and era-deck models with zones of their own: the deck grows instead through the supply (cards bought onto
+the discard, 032), the build menu (buildings and units built straight onto a territory, 295) and techs (which unlock
+piles and entries, 140); eras add techs and events to their own decks (027, 074).
 
 ## Turn loop (initial)
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, the civilization and the government, then active events
@@ -265,7 +292,7 @@ Every deck model is expressed through **zones + a `move_card` effect**:
 4. Play: play cards while actions (127) and resources allow, buy cards, play Research cards (id `research`) for insight, and learn techs in the tech tree (140). A hand card can be discarded for free at any time.
 5. Cleanup: keep the hand, but over `hand_limit` (7) you must discard down to it before the turn ends; unspent food carries over. The final turn discards the hand. After the last turn (`turn_limit`, 100 in the real data), show final score.
 
-Forecast (035, `upkeep_forecast` in `engine/game_engine.gd`): returns what the next upkeep does to each resource on hand, food net of what
+Forecast (035, `upkeep_forecast` in `engine/engine_queries.gd`): returns what the next upkeep does to each resource on hand, food net of what
 pop eats (may be negative), plus `starve` (pop the Famine would kill, after guards); `{}` on the last turn or after game over.
 It runs the upkeep effects on a fork (`GameEngine.fork`, a new engine on `GameState.copy()`, 051), so the game itself
 never changes. Upkeep effects are still limited to resources, bonus score and pop (`Effect.upkeep_ok`, 043). The top bar shows it as "Food: 2 (+1)" (and Wealth, Insight, and "Unrest: 2 (+1)", 144; its limit is in the tooltip, 228),
@@ -279,13 +306,14 @@ that strike (pillage or repel), not the draw, the renewal or the new event. `Tur
 `HIDDEN_ZONES` (deck, event deck, territory deck: their cards known, not their order) and makes its later draws.
 
 Pending decisions (050, `pending()`): an explore choice, a hand-limit discard, a renewal (147), the government
-choice (154) or a choice event's options (269). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the
+choice (154), a choice event's options (269) or a take (370: the cards `recall` or `look` (371) offers wait in the `offered`
+zone; `take(uid)` puts one in the hand and the rest in the discard). It is one dictionary in the state, `GameState.pending` (172), and `pending()` returns a copy with the
 options a discard, renewal or government choice has now. While one is owed, every action is refused with the same
 message (`_blocked_error`), except the decision's own action, and a discard still lets you discard, browse the supply
 and learn techs. A decision's own action checks the game being over, then another decision owed, then its own
 "nothing owed" message (`_owed_error`). A new kind follows the `add-decision` skill.
 
-## Territories (Milestone 2 — in design)
+## Territories (Milestone 2 — built)
 Loop: **explore → settle → build**. Territories give expansion a purpose and turn building
 into a placement decision, without a map. Backlog items 001–006 build it in slices
 (001 done: territory cards, territory deck, starting territory, tableau groups;
@@ -335,7 +363,7 @@ into a placement decision, without a map. Backlog items 001–006 build it in sl
 - [x] Drag cards to play (double-click fallback), card and resource animations (008)
 - [x] Engine unit tests
 
-## Population (Milestone 3 — built, playtesting next)
+## Population (Milestone 3 — built)
 Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, housing, pop VP; done),
 010 (buy growth with food; done), 011 (food upkeep and starvation; done), 012 (workers gate buildings; done), 013 (growth cards; done).
 - Config `population: { "start": 2, "food_upkeep": 1, "vp_per_pop": 1, "famine": { "card": "famine",
@@ -363,15 +391,24 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   261). `here` is a load error on a tech or an event,
   which has no territory (069); `count` only goes with `each`. A card whose play effects are all `each`/`best` grows
   can't be played when it would add no pop: during a Famine, or with every territory at its housing (276).
-- Workers: a building needs a free worker (pop − buildings on its territory > 0) as well as a free slot.
+- Workers: a building needs a free worker (pop − buildings on its territory > 0) as well as a free slot. Without one
+  the refusal is "No free worker." and `play_error_detail` / `build_error_detail` explain it for a tooltip (347).
   If pop drops below the building count, the buildings placed last are idle: they skip upkeep (decided
   before pop eats) but keep their printed VP. Cities never use a worker.
 - Settlement tiers (281): optional `population.tiers` (`[{ "id", "name", "pop", "slots" }]`, the first at pop 0, pop
   rising strictly, slots never falling; real data Hamlet 0 / Village 4 / Town 8 / Metropolis 13, adding 0 / 1 / 2 / 3
   slots). A settled territory's tier is the last whose `pop` it has reached, derived from pop and never stored
-  (`tier(uid)`, `tier_name(uid)`, `next_tier_pop(uid)`). Its `slots` add to the territory's and its cities'. A
+  (`tier(uid)`, `tier_name(uid)`, `next_tier_pop(uid)`, `tier_line(uid)`). Its `slots` add to the territory's and its cities'. A
   building past its territory's slots (placed last first) is idle, as one past its pop is. Reaching or losing a tier
-  is a notice ("Grassland grows into a Village."); the territory tooltip names the tier and the next one's pop.
+  is a notice ("Grassland grows into a Village."); the territory tooltip, and the territory view beside its
+  pop meter (346), name the tier and the next one's pop ("Village: a Town at 8 pop").
+- Sea slots (366): optional config `sea_slots` (`{ "keyword", "tag", "slots" }`, parsed in `PopulationConfig`; real data
+  coastal / port / 1) gives every settled territory with the keyword that many extra slots that only a building with
+  the tag may fill (`sea_slots(uid)`, `free_sea_slots(uid)`; `total_slots` and `free_slots` stay the regular ones).
+  Buildings fill slots in the order placed (`Territories.slot_use`): a tagged one takes a free sea slot first, else a
+  regular one; one with neither is idle. Another building on a territory whose only free slot is a sea slot is refused
+  "Its sea slot takes only port buildings." The tooltip adds "Sea slot: 1 free of 1 (port buildings only)", the live
+  line "⚓ S" after "▢ F", the view an outline per free sea slot, and the Build preview a "Free sea slots" line.
 - Size unrest (282): a government's optional `tolerates` (a tier id from `population.tiers`; text "Tolerates up to
   Village."; ignored with a warning when tiers are off) is the largest tier it keeps calm. Each upkeep starts by adding
   `size_unrest()`: +1 unrest per tier each settled territory is above it, through `set_unrest` (so the limit stops it),
@@ -392,7 +429,7 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   one per housing (124).
 - Code: pop, housing, growth and workers in `engine/population.gd`; the `grow` op in `engine/effects/grow_effect.gd`.
 
-## Techs (Milestone 4 — in progress)
+## Techs (Milestone 4 — built)
 Techs never enter the main deck. Backlog: 025 (research deck; built; reveal-2 replaced by 140), 026 (passes and the
 prerequisite discount; built, removed by 140), 139 (Insight pays for techs; built), 140 (open tech tree; built), 027 (eras, `add_era`, Library; built), 028 (first content; built: 13 techs in eras 1–2, Library via Writing; Pasture, Harbor, Monument,
 Pyramids and Forge left the deck and come back through techs), 034 (Research is a card; built), 058 (Stone Age → Bronze
@@ -405,10 +442,13 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
   (Mysticism, ⟳ +2 insight) and Walls of Uruk (Masonry, defence 4, unrest limit +1); era 2 Pyramids (Priesthood),
   Great Ziggurat (Code of Laws, ⟳ −1 unrest, limit +2), Hanging Gardens (Calendar, fresh water, every territory houses
   1 more), Great Library (Writing, ⟳ +3 insight), Great Harbor of Tyre (Sailing, coastal, ⟳ +1 wealth per coastal
-  territory); era 3 Royal Road (Bureaucracy, hand size +1; 273). The
-  starting deck is the basics (132): Farm 3 (⟳ +2 food, +1 more on a flood plain), Settler 2, Scout 2, Hunters' Camp 2 (forest; Lumber Camp until 263),
-  Research 2, Barter 2 (2 food → 2 wealth), Storyteller 1 (1 food: draw 2), Hunt 1, Warriors 1 (285: a military unit from the first shuffle). Early buildings (080) are on sale from turn 1, in unlocked supply piles,
-  Farm and Hunters' Camp too (232, 263), the rest with no deck copies: Fishing Huts (coastal, ⟳ +1 food) and Shrine (anywhere, 1 VP,
+  territory); era 3 Royal Road (Bureaucracy, hand size +1; 273) and Lighthouse of Pharos (Navigation, coastal, port;
+  ⟳ +1 wealth per port card; 365). The
+  starting deck is the basics (132, config `deck`): Settler 1, Scout 1, Research 1, Barter 2 (2 food → 2 wealth, +1
+  action), Storyteller 1 (1 food: draw 2), Bread and Beer 1 (grow 1), plus five cheap actions dealt only, one each (369): Runner (draw 1, +1 action, +1 food),
+  Tribute (+1 wealth per city), Assembly of Elders (`order`: −1 unrest, +1 insight; playable in Anarchy), Slash and
+  Burn (trash a card in hand, +1 food) and Corvée (+3 wealth, +1 unrest). Early buildings (080) are in the build menu from
+  turn 1 (295), never dealt: Farm, Hunters' Camp (forest; adds the one Hunt, +1 food per forest territory; 368), Fishing Huts (coastal or marsh, ⟳ +1 food, housing 1, adds the one Net Fishing; 364) and Shrine (anywhere, 1 VP,
   culture), so every territory can take a building before any tech (Quarry, a one-time +1 VP, was removed by 263: every building
   gives something lasting). Mines (Mining) make ⟳ +1 wealth, +1 more each for gold, tin and copper (132, 263); Harbor (Sailing)
   makes ⟳ +1 food and +2 wealth; Temple ⟳ −1 unrest, with ⟳ +1 VP only on a mountain (263).
@@ -444,12 +484,14 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 - Tech tree (059): `tech_tree()` lists every tech in `research_deck` by era, then config order, as
   `{id, era, prereq, state, cost, gives, uid}`; `state` is `GameEngine.TECH_RESEARCHED` / `TECH_AVAILABLE` (in the
   research deck, prereq met) / `TECH_LOCKED` (prereq not researched) / `TECH_FUTURE`, `gives` the cards it creates or
-  unlocks, `uid` −1 for a future tech. Optional config
+  unlocks, `uid` −1 for a future tech, `affordable` whether it is available and the insight covers its cost now (325).
+  Optional config
   `era_names` (`{"1": "Stone Age"}`) feeds `era_name(n)`, default "Era n".
 - UI: a Knowledge button (T) in the top bar (the current era's name in its tooltip; hidden when the config has no
   research deck) opens the Knowledge screen (208), drawn as a drafting sheet (222): "Insight N · play a Research card
   for more", then one band per era with its title block at the left and its techs as index-card tiles of one size.
-  A tile shows the tech's name and a marker (✓ researched, its cost now, "needs Mining" while locked) and "✔ Eureka"
+  A tile shows the tech's name and a marker (✓ researched, its cost now, "needs Mining" while locked; an available tile the insight
+  doesn't cover has muted text, 325) and "✔ Eureka"
   when met, and is filled by state (teal researched, well locked); its tooltip has the state in words, why it can't
   be learned (`buy_tech_error`), what it gives and its eureka. A click, Enter, a right click or I opens the
   details, whose Learn button researches a tech not yet learned (disabled with `buy_tech_error`, 229). An era not reached lies under a vellum printed "<ERA> · OPENS AT 8
@@ -459,7 +501,7 @@ Age tree; built: 7 era-1 techs, Bronze Working adds era 2, 6 era-2 techs), 141�
 Players can spend wealth to add more copies of existing cards to their deck. No new cards: some of the
 starting deck moved into the supply (Scout, Settler, Temple, Granary); 034 adds Research (price 3, 2 copies). Since 058
 the building piles (Granary, Pasture, Mine, Temple, Caravan, Monument, Forge, Library, Market, Harbor) start locked.
-264 adds locked piles for Stone Circle (Mysticism, ⟳ +1 insight), Mud-Brick Houses (Pottery, housing 2), Caravanserai
+264 adds locked piles for Stone Circle (Mysticism, ⟳ +1 insight), Courtyard Houses (Pottery, housing 2), Caravanserai
 (The Wheel, desert, ⟳ +1 wealth, +1 more on fresh water), Bathhouse (Priesthood, fresh water, housing 1, ⟳ −1 unrest),
 Courthouse (Code of Laws, ⟳ −1 unrest, unrest limit +1) and Aqueduct (Engineering, housing 2; Engineering gave a second
 Monument until then): every terrain has a building, every era opens a new one.
@@ -486,16 +528,23 @@ Monument until then): every terrain has a building, every era opens a new one.
 - Units in the build menu (296): a unit entry is recruited the same way (`build`), homed and stationed on a territory
   with a free worker (no slot, no terrain); "X can now be recruited." A recruited unit that is disbanded or lost to a
   pillage leaves play (no zone), to be recruited again; a unit with no entry (dealt from a deck) still goes to the
-  discard. Warriors is an open entry from turn 1.
+  discard. Warriors is an open entry from turn 1. Era units (167), each a locked entry its tech opens: Spearmen (Bronze
+  Working), Archers (Archery, era 1), Chariots (Chariot, era 2, after The Wheel), Swordsmen (Iron Working, era 3);
+  Warriors upgrade to Spearmen and Spearmen to Swordsmen (166).
 - `build_preview(card_id, territory_uid)` (299): `{cost, lines}`, each line `[key, before, after]` for what building
   there would change (each resource's `upkeep_forecast`, then `free_slots`, `free_workers`, `defense`, `housing`,
   `actions_left`), from a build on a fork; `{}` when `build_error` refuses. The Build modal (297) shows it.
 - UI (297): a territory's view has Build… (B) beside Rename…, and each free slot outline is a "+ Build" key; both open
   the Build modal (`ui/build_modal.gd`, "Build on <territory>"): a selectable list of the build menu under Buildings and
   Units (name and `build_cost`; a refused row dimmed with `build_error`'s reason), and a sheet with the selected
-  entry's card, "If built on <territory>" and `build_preview`'s lines, or the refusal; Build X / Recruit X (Enter) builds.
+  entry's card, its flavor (354, from `def_details`; none for a unit), then "If built on <territory>" and
+  `build_preview`'s lines, or the refusal; Build X / Recruit X (Enter) builds.
   Build… and the slots are disabled with `build_menu_error()` while nothing can be built and hidden with an empty menu.
   A recruited unit's Disband reads "Dismiss it" (`disbands_to_discard`).
+- The build ceremony (357, guide §10.8): `build` emits `built(uid)` before `changed`. The new card rests in its slot at
+  once under a `BuildCeremony` (`ui/build_ceremony.gd`, on the fx layer): a lamp ring and 12 rays in its plane colour,
+  then a BUILT / RECRUITED tag; an upgrade's ring and rays play on its base, no tag. `EventSounds` plays
+  `ui.milestone.build` (`.recruit` for a unit) with it, below every other event.
 - UI (033): the top bar's Buy Cards button (S, 115) opens the supply screen, an overlay with one card per pile
   (232: its play cost after discounts in its title row, `supply_play_cost`, as on a hand card; its price on a gold
   "Buy" tag hanging below it, and the copies left under that). Click or Enter opens the pile's details over the
@@ -529,8 +578,9 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
 - Raids (162): an event may set `raid` `{strength (≥ 1), targets (config keywords, optional), pop (≥ 0, default 1)}`
   (never with `discard`), and only a raid's effects may use the triggers `repel` and `pillage` (upkeep-safe ops only).
   When drawn it is announced: its play effects resolve and its target is fixed (`raid_target(uid)`, kept in the
-  event's `territory_uid`) on the settled territory with any of `targets` (all of them when none has one) with the
-  lowest `defense`, then the most pop, then tableau order. It skips upkeep and two event phases later (257: at turn T+2's
+  event's `territory_uid`) on the settled territory with any of `targets` (any territory when `targets` is empty) with
+  the lowest `defense`, then the most pop, then tableau order. A raid that finds no such territory fizzles (372): it goes
+  straight to `event_discard`, resolving nothing and starting no `raid_gap`, but is still the turn's event. It skips upkeep and two event phases later (257: at turn T+2's
   start when drawn on turn T, before the new event is drawn; `raid_turns_left(uid)` counts 2, 1), it strikes: repelled when the target's defence ≥ its strength (its `repel` effects), else
   pillaged (its `pillage` effects, the units stationed there to the discard, `pop` pop lost, never below 0); then it
   goes to `event_discard` and `raid_resolved(outcome)` reports `{uid, id, target, strength, defense, repelled, units_lost,
@@ -541,6 +591,12 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   is active, and `raid_gap` turns have passed since the last strike (`GameState.last_raid_turn`; no gap before the
   first). Otherwise it goes to the event deck's bottom and the next event is drawn; with only such raids left, no
   event that turn. Shipped: `territory_value` 3, `raid_min_size` 12, `raid_gap` 4.
+  Hoards (374): a raid's strength is fixed as it is announced, its printed strength + 1 per config `raid_hoard_step`
+  food and wealth held then (`raid_strength(uid)`, kept in `CardInstance.raid_strength`); the forecast, the raid lines
+  and the strike all use it. A pillage, after its pillage effects, also plunders a share of the food and of the wealth
+  left, each rounded up, into the outcome's `lost`: `raid_plunder_pct`% plus `raid_plunder_era_pct` points per era
+  after the first, at most 100, in the era it strikes (377; `raid_plunder_pct()`). Each key 0 (the default) turns its
+  part off. Shipped 10, 50 and 10 (50% / 60% / 70% in eras 1–3).
 - Choice events (269, `EventChoices`): an event (not a raid) may set `choices`, 2–3 options `{cost?: {resource: n ≥ 1},
   effects}`, at least one free; option effects have no `trigger` and follow an event's own rules (no target, no
   choice). When drawn, after its own play effects, `pending()` is `{kind: PENDING_EVENT_CHOICE, uid, options: [0, …]}`
@@ -552,7 +608,8 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   and can't be dismissed; a waiting choice event's modal opens once its choice is owed; choosing shows a notice. The
   sim bot answers with the option whose sample fork values most (313). Shipped: Envoys from the Hills (era 1). `raid_forecast()` lists the announced
   raids with their target's current defence; the UI reads `raid_line`, `raid_tag`, `raid_short` and `raid_warning`.
-  Shipped era 1: Raiders (2, grassland/desert), Sea Raiders (3, coastal), Hill Tribes (3, hills/mountain). Rules in
+  Shipped era 1: Raiders (2, grassland/desert), Sea Raiders (3, coastal), Hill Tribes (3, hills/mountain); era 2 (167):
+  Horse Raiders (5, grassland/desert), Pirates (5, coastal); era 3: Barbarian Horde (8, anywhere). Rules in
   `Military`.
 - Code: `engine/events.gd`, `engine/event_choices.gd` (269).
 - Era 2 and 3 events (270): each era the research deck reaches has events; from era 2 each era has a harmful and a
@@ -566,6 +623,10 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   territory), Golden Age (3 turns, +1 action, +1 hand size), School of Philosophers (+5 insight), Succession Crisis
   (pay 6 wealth, or +3 unrest, or −1 pop and +1 unrest), Mercenaries' Offer (pay 4 wealth for a Warriors in the
   discard, or nothing).
+- Coastal events (365): era 1 Tuna Run (2 turns, ⟳ +1 food per coastal territory), Beached Whale (+2 food per coastal
+  territory) and Shipwreck Salvage (+2 wealth per coastal territory), so the coast is not only raided and wrecked.
+  `test_content`: a feature keyword (not a terrain) that events punish, by `lose_per_keyword` or a raid's targets, is
+  one some event rewards; no era-1 event takes per keyword.
 - Starter deck (069): 13 events, all neutral or small boons: 4 blank (Solstice Rites, Traveling Bards, Comet Sighted,
   Distant Drums), +1 food, +1 wealth, +1 VP ×2, ⟳ +1 food for 2 turns, ⟳ +1 wealth, Forage (+2 food, 2 copies)
   and Harvest Festival (⟳ +1 food per farm). Forage and Harvest Festival left the main deck (now 19 cards), and the
@@ -614,9 +675,11 @@ A game is played as one civilization: a permanent card with a starting gift and 
   the details modal shows them first (flavor in italics, then the quote and who said it), before the rules. On the
   new game screen a click on a civilization selects it and opens these details, with a "Play as <name>" button that
   starts the game as it.
-  A government (205), a tech and an event (215) may set `flavor` too, and a government or a tech a `quote` (an event
-  may not); every real tech has both and every real event a flavor line. Flavor and quotes show only in the details,
-  never on a card face.
+  A government (205), a tech and an event (215), an action (351) and a building (352) may set `flavor` too, and a
+  government, a tech, an event (253) or a building (396) a `quote` (an action may not); every real tech and government
+  has both, every real event, action and building a flavor line, and every real wonder a quote too. The text follows the style guide's §18 voice (353): present
+  tense, ~120 characters a line (the suite caps it at 150, civilizations 200). Flavor and quotes show only in the details
+  (and a building's flavor under its card in the Build modal, 354), never on a card face.
 - UI: the new game screen (099) shows the civilizations as cards; a click selects one (and `Settings` saves it) and
   Start plays it. The saved one is preselected (`SettingsStore.civilization_in` falls back to the first, with a warning,
   if it's no longer offered). Restart, Replay and the game-over New game keep the civilization; the menu says
@@ -641,13 +704,14 @@ Your people have one government at a time; its bonuses apply while it rules.
   entry of `legal_actions()` but `end_turn` and `revolt` (an owed decision's options when one is owed) on a
   `sample_fork`, values the fork and does the best, stopping when nothing beats doing nothing. Value: score + turns ahead
   × `turn_forecast` score + food, wealth and insight weighed as stock plus forecast change over the turns ahead, with
-  diminishing returns + the deck's worth (each card's value measured by playing a copy on a fork; 0 for a card that
-  `would_target` nothing) + learned techs' printed cost − 0.5 per unrest the forecast brings in over the turns ahead
+  diminishing returns + the deck's worth (the expected best plays of a drawn hand, 376; each card's value measured by
+  playing a copy on a fork, never below 0; 0 for a card that `would_target` nothing) + learned techs' printed cost − 0.5 per unrest the forecast brings in over the turns ahead
   (calming counts only the unrest there is to calm; 321) − a squared penalty as unrest nears its limit. A draw or +1 action within 0.5 of doing nothing gets one more step of lookahead; buys are cut to the 3
-  best by card value per price. The sim's only bot since 314, which removed `ScriptedBot`.
-- Forecast cache (315): `value()` looks each position's `turn_forecast` up in its `Context` by `forecast_key` (the turn,
-  resources, effect score, era, Anarchy and raid state, and each card in the tableau, the always-on zones, the active
-  events and any zone a `gain_per_tag` counts in), keyed by turn and dropping turns already past; a turn's rollouts
+  best by card value per price; a renewal's combinations (at most 40) are of the least valuable cards first (373). The sim's only bot since 314, which removed `ScriptedBot`.
+- Forecast cache (315): `value()` looks each position's `turn_forecast` up in its `Context` by `forecast_key` (the
+  `KEY_STATE_FIELDS` and, for each card in the engine's `forecast_zones()`, the `KEY_CARD_FIELDS`; 336: the board, the
+  always-on zones and any zone an effect's `reads_zones()` names, and every other `GameState`/`CardInstance` field is
+  listed with why it isn't read, which the suite checks), keyed by turn and dropping turns already past; a turn's rollouts
   share it, so a position forecast once isn't forecast again (about half of all lookups) and the games played are the
   same. `forecast_cache` turns it off; `check_forecasts` compares every
   hit with a fresh forecast and counts mismatches (`forecast_lookups`, `forecasts_computed`, `forecast_checks`,
@@ -658,8 +722,9 @@ Your people have one government at a time; its bonuses apply while it rules.
   option whose rollout values most (ties: deck order; one option: no rollout). Every `REVOLT_EVERY` (4) turns, at the
   end of the turn and not in the last 6, it revolts when a rollout that revolts to some government in the deck values
   more than staying. Inside a rollout it never revolts and chooses the government the rollout was opened for, else
-  the best by value. Strategies: generic, wide (+20 value per settled territory up to `admin_cap()`, 321) and tall (never plays a `settle` card
-  past 2 territories). `GenericBot.lookahead_turns` counts the rollout turns (the sim's `lookahead_turns`).
+  the best by value. Strategies: generic, wide (+20 value per settled territory up to `admin_cap()`, 321) and tall
+  (plays a `settle` card only when nothing else beats doing nothing, and never past 3 territories, 390).
+  `GenericBot.lookahead_turns` counts the rollout turns (the sim's `lookahead_turns`).
 - A government is never played from hand (155): `play_error` is "A government is chosen, not played.". When Anarchy
   runs out at the end of a turn, `pending()` carries the choice before the next turn starts and choosing finishes the
   turn; after `restore_order` the turn goes on.

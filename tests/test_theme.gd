@@ -2,8 +2,9 @@ extends "res://tests/lib/test_case.gd"
 ## The UI theme (backlog 106; 178: the Night shift look). AC1 records how things look, resolved through the real main scene's theme, and
 ## must pass unchanged before and after the cleanup. The rest check the palette (ui/palette.gd) and the theme built
 ## in code (ui/game_theme.gd, GameTheme.build()), loaded by path (held as Object) so this file parses before they
-## exist.
+## exist. 393: every section file in ui/theme/ is in GameTheme.SECTIONS, and each type variation has one section.
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const PALETTE_PATH := "res://ui/palette.gd"
 const GAME_THEME_PATH := "res://ui/game_theme.gd"
 
@@ -90,7 +91,15 @@ func test_panels_are_cut_square() -> void:
 	var main := open_main()
 	var overlay := UIKit.overlay(main)
 	var panel: PanelContainer = overlay.get_meta("panel")
-	check_box(stylebox(panel, "panel"), Palette.RAISED, Palette.EDGE, 2, 0, Vector2(24, 24), "overlay panel")
+	var surface := panel.get_theme_stylebox("panel")
+	check(Looks.texture_of(surface) != null, "overlay panel: on paper (341)")
+	var frame := Looks.frame_of(surface)
+	check(frame != null, "overlay panel: framed")
+	if frame != null:
+		eq(frame.border_color.to_html(), Palette.EDGE.to_html(), "overlay panel border")
+		eq(frame.border_width_left, 2, "overlay panel border width")
+		eq(frame.corner_radius_top_left, 0, "overlay panel corner radius")
+	eq(Vector2(surface.content_margin_left, surface.content_margin_top), Vector2(24, 24), "overlay panel content margins")
 	main.start_game(1)
 	var log := log_panel(main)
 	check(log != null, "the log's panel")
@@ -262,6 +271,24 @@ func literal_colours() -> Array[String]:
 	return found
 
 
+## The ui/ scripts other than the palette that write a BBCode colour as a literal: [color=#…] or [color=<name>] (395).
+func bbcode_literal_colours() -> Array[String]:
+	var found: Array[String] = []
+	var literal := RegEx.create_from_string("\\[color=(#|[a-z])")
+	for file in DirAccess.get_files_at("res://ui"):
+		if not file.ends_with(".gd") or "res://ui/" + file == PALETTE_PATH:
+			continue
+		var lines := FileAccess.get_file_as_string("res://ui/" + file).split("\n")
+		for i in lines.size():
+			if literal.search(lines[i]) != null:
+				found.append("ui/%s:%d" % [file, i + 1])
+	return found
+
+
+func test_no_bbcode_colour_literals_outside_the_palette() -> void:
+	eq(bbcode_literal_colours(), [] as Array[String], "BBCode colour literals outside ui/palette.gd")
+
+
 func test_no_colour_literals_outside_the_palette() -> void:
 	var found := literal_colours()
 	eq(found, [] as Array[String], "colour literals outside ui/palette.gd")
@@ -350,7 +377,7 @@ func test_overlay_panels_use_dark_panel_and_modals_the_sheet() -> void:
 			var panel: PanelContainer = (c as Modal).panel
 			eq(panel.theme_type_variation, &"Sheet", "%s uses Sheet" % c.get_script().get_global_name())
 			check(not panel.has_theme_stylebox_override("panel"), "%s: no stylebox of its own" % c.get_script().get_global_name())
-			eq(stylebox(panel, "panel").border_color.to_html(), Palette.TEXT.to_html(), "%s: an ink rule" % c.get_script().get_global_name())
+			eq(Looks.frame_of(panel.get_theme_stylebox("panel")).border_color.to_html(), Palette.TEXT.to_html(), "%s: an ink rule" % c.get_script().get_global_name())
 	close_main(main)
 
 
@@ -361,3 +388,36 @@ func test_ui_kit_no_longer_builds_the_theme() -> void:
 	check(not src.contains("func style_controls"), "style_controls moved to GameTheme")
 	var main_src := FileAccess.get_file_as_string("res://ui/main.gd")
 	check(main_src.contains("GameTheme.build()"), "main builds its theme with GameTheme")
+
+
+# --- 393: the theme's sections, one file each ---
+
+const SECTIONS_DIR := "res://ui/theme"
+
+
+func test_every_section_file_is_listed_and_every_listed_one_exists() -> void:
+	var listed: Array = GameTheme.SECTIONS.map(func(s: Script): return s.resource_path)
+	check(not listed.is_empty(), "GameTheme.SECTIONS lists the sections")
+	var files: Array = Array(DirAccess.get_files_at(SECTIONS_DIR)).filter(func(f: String): return f.ends_with(".gd")) \
+		.map(func(f: String): return SECTIONS_DIR + "/" + f)
+	eq(files.filter(func(f): return not listed.has(f)), [], "section files GameTheme.SECTIONS leaves out")
+	eq(listed.filter(func(f): return not FileAccess.file_exists(f)), [], "listed sections with no file")
+
+
+func test_each_look_has_one_section() -> void:
+	var owner := {}
+	var problems: Array[String] = []
+	check(not GameTheme.SECTIONS.is_empty(), "GameTheme.SECTIONS lists the sections")
+	for section: Script in GameTheme.SECTIONS:
+		var t := Theme.new()
+		section.call("apply", t)
+		var name := section.resource_path.get_file()
+		if t.get_type_list().is_empty():
+			problems.append("%s defines nothing" % name)
+		for type in t.get_type_list():
+			if t.get_type_variation_base(type) == &"":
+				continue
+			if owner.has(type):
+				problems.append("%s is defined by %s and %s" % [type, owner[type], name])
+			owner[type] = name
+	eq(problems, [] as Array[String], "each section's looks are its own")

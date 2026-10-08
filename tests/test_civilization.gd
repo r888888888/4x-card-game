@@ -4,14 +4,6 @@ extends "res://tests/lib/test_case.gd"
 ## upkeep +1 wealth) and Nomads (1 VP, upkeep score 1).
 
 
-## Loader errors for civ_db() plus extra cards.
-func card_errors(extra: Array) -> Array[String]:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_CIVS + extra}, resources(), "cards.json", errors, warnings, keywords())
-	return errors
-
-
 ## A card of type with one effect.
 func one_effect(id: String, type: String, effect: Dictionary) -> Dictionary:
 	return {"id": id, "name": id.capitalize(), "type": type, "effects": [effect]}
@@ -23,14 +15,16 @@ func starting_with(civ: Variant) -> Dictionary:
 
 # --- AC1: the civilization type and starting.civilization ---
 
-func test_civilization_cards_load() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := civ_db(errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	eq(warnings, [] as Array[String], "warnings")
-	eq(cards.tribe.type, "civilization", "Tribe type")
-	eq(cards.nomads.vp, 1, "Nomads VP")
+func test_civilizations_and_starting_civilization_load() -> void:
+	check_loads([
+		["the fixture civilizations", [], {"cards.tribe.type": "civilization", "cards.nomads.vp": 1}],
+		["start gain on a civilization", [one_effect("kin", "civilization",
+			{"op": "gain", "resource": "food", "amount": 1, "trigger": "start"})], {}],
+	], fixture_load.bind([TEST_CIVS]))
+	check_loads([
+		["no starting.civilization", {}, {}],
+		["starting.civilization tribe", starting_with("tribe"), {}],
+	], config_load.bind([TEST_CIVS]))
 
 
 func test_civilization_outside_its_place_is_a_load_error() -> void:
@@ -40,7 +34,7 @@ func test_civilization_outside_its_place_is_a_load_error() -> void:
 		["in territory_deck", {"territory_deck": {"tribe": 1}}, "config.json: territory_deck: 'tribe' is not a territory"],
 		["in research_deck", {"research_deck": {"tribe": 1}}, "config.json: research_deck: 'tribe' is not a tech"],
 		["in event_deck", {"event_deck": {"tribe": 1}}, "config.json: event_deck: 'tribe' is not a"],
-	], func(overrides): return config_errors(overrides, [TEST_CIVS]))
+	], config_load.bind([TEST_CIVS]))
 
 
 func test_starting_civilization_validation() -> void:
@@ -48,12 +42,7 @@ func test_starting_civilization_validation() -> void:
 		["unknown id", starting_with("zzz"), "config.json: starting.civilization: unknown card 'zzz'", "one_error"],
 		["not a civilization", starting_with("farm"), "config.json: starting.civilization: 'farm' is not a civilization", "one_error"],
 		["not a string", starting_with(3), "config.json: starting.civilization", "one_error"],
-	], func(overrides): return config_errors(overrides, [TEST_CIVS]))
-
-
-func test_starting_civilization_is_optional() -> void:
-	eq(config_errors({}, [TEST_CIVS]), [] as Array[String], "no starting.civilization")
-	eq(config_errors(starting_with("tribe"), [TEST_CIVS]), [] as Array[String], "starting.civilization tribe")
+	], config_load.bind([TEST_CIVS]))
 
 
 # --- AC2: the start trigger ---
@@ -64,8 +53,7 @@ func test_start_trigger_only_on_civilizations() -> void:
 		["on an action", [one_effect("feast", "action", gain)], "cards.json: card 'feast': effects[0]: trigger 'start' only works on civilizations"],
 		["on a building", [one_effect("hut", "building", gain)], "cards.json: card 'hut': effects[0]: trigger 'start' only works on civilizations"],
 		["on a tech", [one_effect("lore", "tech", gain)], "cards.json: card 'lore': effects[0]: trigger 'start' only works on civilizations"],
-	], card_errors)
-	eq(card_errors([one_effect("kin", "civilization", gain)]), [] as Array[String], "start gain on a civilization")
+	], fixture_load.bind([TEST_CIVS]))
 
 
 func test_start_effect_needing_a_target_or_choice_is_a_load_error() -> void:
@@ -74,7 +62,7 @@ func test_start_effect_needing_a_target_or_choice_is_a_load_error() -> void:
 			"cards.json: card 'kin': effects[0]: 'settle' can't trigger on start"],
 		["explore", [one_effect("kin", "civilization", {"op": "explore", "trigger": "start"})],
 			"cards.json: card 'kin': effects[0]: 'explore' can't trigger on start"],
-	], card_errors)
+	], fixture_load.bind([TEST_CIVS]))
 
 
 # --- AC3: setup ---

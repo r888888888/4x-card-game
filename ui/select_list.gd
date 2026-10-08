@@ -1,8 +1,8 @@
 class_name SelectList
 extends PanelContainer
-## The selectable list (backlog 217, guide §7 "Selectable list", the index card): rows printed on a recessed well, of
-## which one is selected. The selected row is pulled out as a sheet strip on a hard shadow (ListRow's pressed look)
-## with the signal index tab on its leading edge; the keyboard focus keeps its own ring, drawn only when a key (the
+## The selectable list (backlog 217, guide §7.16 "Selectable list"): rows printed on a recessed well, of which one is
+## selected. The selected row is marked in place (356): a sheet strip (ListRow's pressed look) with a lit indicator lamp
+## before its name, a ReadyLamp each row holds room for; the keyboard focus keeps its own ring, drawn only when a key (the
 ## arrows, Tab or Shift+Tab) moved the focus onto the row (220). A click, or Up and Down on a row, chooses: the row is selected and chosen fires. select() changes the selection without firing chosen.
 
 ## The player chose id's row.
@@ -28,15 +28,9 @@ func add_row(id: String, text: String) -> Button:
 	row.toggle_mode = true
 	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	row.size_flags_horizontal = Control.SIZE_FILL  # a list row: the column's width (100)
-	var tab := ColorRect.new()
-	tab.name = "IndexTab"
-	tab.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tab.visible = false
-	tab.anchor_bottom = 1.0
-	tab.offset_left = GameTheme.PULL  # on the pulled-out strip's leading edge
-	tab.offset_right = GameTheme.PULL + Tokens.SPACE_1
-	UIKit.painted(tab, func(): tab.color = Palette.ACCENT)
-	row.add_child(tab)
+	var lamp := ReadyLamp.attach(row)  # every row keeps the lamp's room; only the selected one shows it
+	lamp.set_lit(true, true)  # quietly: a selection, not news
+	lamp.visible = false
 	row.focus_entered.connect(func(): row.theme_type_variation = &"ListRow" if _keyed else &"ListRowQuiet")
 	row.focus_exited.connect(func(): row.theme_type_variation = &"ListRowQuiet")
 	row.gui_input.connect(func(event: InputEvent):
@@ -52,9 +46,14 @@ func add_row(id: String, text: String) -> Button:
 	return row
 
 
-## Adds a heading over the rows added after it (the Build modal's Buildings and Units, 297); not a row: ids() and the
-## arrows skip it.
+## Adds a heading over the rows added after it (the Build modal's Buildings and Units, 297), SPACE_5 below any rows
+## before it (356); not a row: ids() and the arrows skip it.
 func add_heading(text: String) -> Label:
+	if _box.get_child_count() > 0:
+		var gap := Control.new()
+		gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		gap.custom_minimum_size.y = Tokens.SPACE_4  # with the box's SPACE_1 on either side: SPACE_5
+		_box.add_child(gap)
 	var label := UIKit.heading(text)
 	_box.add_child(label)
 	return label
@@ -75,7 +74,7 @@ func select(id: String) -> void:
 	for row_id in _rows:
 		var row := _rows[row_id] as Button
 		row.set_pressed_no_signal(row_id == id)
-		row.get_node("IndexTab").visible = row_id == id
+		ReadyLamp.of(row).visible = row_id == id
 
 
 ## The rows' ids, in order.

@@ -39,43 +39,38 @@ Put anything you can only judge by eye (layout, feel, animation) under **Manual 
 ## Planned order
 
 Build in this order; IDs are creation order, not build order. Each item assumes the ones before it are done.
-The order of the 100+ items already closed is in [done/HISTORY.md](done/HISTORY.md).
+Everything planned so far is done (through 367: military, settlement tiers, the build menu, building upgrades, the
+generic sim bot, the 2026-10-06 review cleanup and the coast). The order of closed items is in
+[done/HISTORY.md](done/HISTORY.md).
 
-Barbarians and military (units are homed on a territory, using a worker there, and stationed where they defend):
-1. 160 unit cards garrisoned on a home territory
-2. 161 territory defence from units, walls, cities and terrain
-3. 162 barbarian raids, announced a turn ahead
-4. 163 move and disband units
-5. ~~168 the sim bot meets raids~~: superseded by 314 (the generic bot defends through its value)
-6. 164 Barracks training, then 165 veterans, then 166 upgrades
-7. 167 era units and era 2–3 raids
+Order chosen to minimize churn: finish what has red tests, then the three refactors that every later item would
+otherwise write against the old shape and then rewrite, then the features in the order their shared pieces appear.
 
+Finish first (red tests already written; 392 renames their calls when it lands):
+1. 324 day-mode load-error text (`fix/324-day-mode-load-error-text`, red-review)
+2. 384 simpler Anarchy (`feat/384-simpler-anarchy`, red-review)
 
-Settlement tiers (pop sets a territory's tier, which adds slots; governments tolerate tiers up to one):
-1. 281 settlement tiers add building slots, and buildings past the slots go idle
-2. 282 governments tolerate territories up to a tier; bigger ones add unrest
-3. 283 growth "where needed most" prefers a territory one pop short of its next tier
+Refactors (before the features, which would add to what they move):
+3. 392 main.gd's test hooks move to a test-side probe. First: 379's red tests already add three hooks to main
+   (`breakdown_key`, `breakdown_rows`, `counter`), and every UI item below adds more.
+4. 393 GameTheme split into one file per component. Before 379 (the Popover look), 382 (Ledger, FinePrint), 383 (the
+   sheet and meter) and 388 (pips) add looks to `game_theme.gd`, already past 500 lines.
+5. 394 engine areas, military first. Before 388 adds `unit_veteran_pips` to `Military` (a forward 394 would remove),
+   and before 385 adds an entry to `legal_actions`, whose dispatch 394 changes.
 
-Build menu (buildings and units leave the deck: techs unlock them, you build them onto a territory):
-1. 295 buildings are built from a build menu instead of bought
-2. 296 units are recruited from the build menu
-3. 299 preview what building an entry on a territory would change
-4. 297 Build… on a territory's view: the list-and-forecast modal, and "+ Build" on empty slots
-5. ~~298 the sim bot builds, recruits and keeps Settlers~~: superseded by 314 (`build` joins `legal_actions`); then a
-   balance item for costs and wealth
+Anarchy (builds on 384 while its code is fresh):
+6. 385 Renewal is a free action during Anarchy
+7. 386 a fifth Anarchy turn that doesn't end it loses the game (after 385)
 
-Building upgrades (upgrades build onto a building, add to it, and may need a settlement tier; makes tall worth it):
-1. 300 upgrades built onto buildings: no slot or worker, they add to their base, stack and chain
-2. 301 a building or upgrade may need a tier, and falls back below it (returns by itself)
-3. 304 the `gain_per_pop` op (independent; needed by 306)
-4. 302 ribbons on the territory view, "+ Upgrade", the Build modal's Upgrades heading (after 297)
-5. ~~303 the sim bot builds upgrades~~: superseded by 314
-6. 305 rural upgrades and realism fixes, 306 Temple and Library become urban upgrades, 307 new urban chains, 308 gap
-   buildings (then a balance item for the whole roster)
+Top bar (379 brings the `Popover` that 380 and 383 reuse):
+8. 379 click a resource counter for its next-upkeep change by source (`feat/379-resource-breakdown-popover` has its red
+   tests; move their main calls to the probe)
+9. 380 click Score or Pop for what makes it up
 
-Generic sim bot (from `spike/generic-bot`: one value function over every legal action instead of a rule per mechanic):
-1. 309 `turn_forecast`, 310 targets from any zone, 311 sample fork (independent engine queries)
-2. 312 `legal_actions` with a coverage check
-3. 313 `GenericBot` plays as the strategy `generic`
-4. 314 it replaces ScriptedBot (generic, wide, tall; rollouts in cheap mode; raids), closing 168, 298 and 303
-5. 315 forecast cache (then a balance item re-baselines the sim)
+Card faces and details:
+10. 382 one Unlocks line, a ledger of figures and gates as fine print (changes `rules_text` and `upgrade_rules_text`)
+11. 383 overflowing text cuts at a whole rule, hover shows the rest (after 381, 382's face and 379's Popover)
+12. 387 upgrade a building from its details modal (its rows read `upgrade_rules_text`, which 382 changes)
+
+Military UI:
+13. 388 veteran pips on unit cards (after 394, so the query goes on `engine.military`)

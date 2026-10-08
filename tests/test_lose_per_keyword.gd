@@ -88,17 +88,11 @@ func test_upkeep_lose_per_keyword_is_forecast_and_taken() -> void:
 # --- AC4, AC5: loader and card text ---
 
 func test_lose_per_keyword_loads_and_may_trigger_on_upkeep() -> void:
-	var r := load_action(STORM)
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	var upkeep := STORM.duplicate(true)
-	upkeep["trigger"] = "upkeep"
-	eq(fixture_load([{"id": "hut", "name": "Hut", "type": "building", "effects": [upkeep]}], [], [], GOLD).errors,
-		[] as Array[String], "on upkeep")
-	var no_amount := load_action(storm_with("amount", null))
-	eq(no_amount.errors, [] as Array[String], "amount is optional")
-	if no_amount.cards.has("x"):
-		eq(no_amount.cards.x.effects[0].get("amount"), 1, "amount defaults to 1")
+	check_loads([
+		["Storm", [action(STORM)], {}],
+		["on upkeep", [{"id": "hut", "name": "Hut", "type": "building", "effects": [STORM.merged({"trigger": "upkeep"})]}], {}],
+		["amount is optional and defaults to 1", [action(storm_with("amount", null))], {"cards.x.effects.0.amount": 1}],
+	], fixture_load.bind([], [] as Array[String], GOLD))
 
 
 func test_lose_per_keyword_validation() -> void:
@@ -109,7 +103,7 @@ func test_lose_per_keyword_validation() -> void:
 		["unknown keyword", storm_with("keywords", ["mountain", "swamp"]), [prefix, "unknown keyword 'swamp' in 'keywords'"]],
 		["missing resource", storm_with("resource", null), prefix + "missing 'resource'"],
 		["amount 0", storm_with("amount", 0), prefix + "'amount' must be an integer >= 1"],
-	], func(effect): return load_action(effect).errors)
+	], load_action)
 
 
 func test_lose_per_keyword_card_text() -> void:

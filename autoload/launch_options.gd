@@ -44,6 +44,12 @@ static func parse(args: PackedStringArray, civilizations: Array) -> Dictionary:
 	return out
 
 
+## The game's options (378): parse(user_args, civilizations), or no options when engine_args (Godot's own) run a script
+## (--script: the sim, the tests), whose arguments are that script's, not the game's.
+static func for_game(engine_args: PackedStringArray, user_args: PackedStringArray, civilizations: Array) -> Dictionary:
+	return parse(PackedStringArray() if engine_args.has("--script") else user_args, civilizations)
+
+
 ## Applies options to engine: a turns option replaces the config's turn limit for the games it starts.
 static func apply(engine: GameEngine, options: Dictionary) -> void:
 	if options.get("turns", 0) > 0:

@@ -2,10 +2,20 @@ extends "res://tests/lib/tech_case.gd"
 ## The build menu (295): config build_menu {card_id: {locked, once}}; build(card_id, territory) puts a new copy of an
 ## unlocked entry on a settled territory for an action and its cost, as playing it would; build_error, build_menu,
 ## build_targets; the unlock op opening an entry; once entries; the loader. Band (2 actions) rules, so actions run out.
+## In detail (from docs/testing.md, 331): The build menu (295): config `build_menu` ({card_id: {locked, once}}) and its
+## loader checks; `build` / `build_error` (an action and the discounted cost, a fresh copy on a territory,
+## `card_played`, each refusal), `build_menu`, `build_targets`; the `unlock` op opening an entry ("… can now be
+## built."); `once` entries; copies; `build_preview` (299: cost and before → after lines, only what changes, untouched
+## game). Band rules, so actions run out
 
 ## Played when built: +2 VP.
 const OBELISK := {"id": "obelisk", "name": "Obelisk", "type": "building", "cost": {"food": 1},
 	"effects": [{"op": "score", "amount": 2}]}
+## Played when built: adds a Scout to the deck (364, Fishing Huts adding a Net Fishing).
+const NET_LOFT := {"id": "net_loft", "name": "Net Loft", "type": "building",
+	"effects": [{"op": "create", "card": "scout", "zone": "deck"}]}
+## Costs two resources, so a price it can't meet names both (337).
+const TOLL_HOUSE := {"id": "toll_house", "name": "Toll House", "type": "building", "cost": {"food": 1, "wealth": 2}}
 ## Opens the Granary entry.
 const POTTERY_KILN := {"id": "kiln", "name": "Kiln", "type": "tech", "cost": {"insight": 2},
 	"effects": [{"op": "unlock", "card": "granary"}]}
@@ -17,13 +27,14 @@ const MENU := {"farm": {}, "obelisk": {}, "well": {}, "granary": {"locked": true
 
 
 ## A game with Band ruling (2 actions), population on (2 pop on the home), build_menu menu, Kiln and Pottery to learn,
-## and food food (wealth and insight 10). overrides last.
-func build_engine(food := 3, menu := MENU, overrides := {}) -> GameEngine:
+## and food food (wealth and insight 10). overrides last; extra cards join the fixtures.
+func build_engine(food := 3, menu := MENU, overrides := {}, extra := []) -> GameEngine:
 	var o := {"build_menu": menu, "population": POP,
 		"starting": {"resources": {"food": food, "wealth": 10, "insight": 10}, "tableau": ["capital"],
 			"territory": "homeland", "government": "band"}}
 	o.merge(overrides, true)
-	var e := tech_engine(["kiln", "pottery"], {"scout": 10}, o, [OBELISK, POTTERY_KILN, FARMERS] + TEST_GOVS)
+	var e := tech_engine(["kiln", "pottery"], {"scout": 10}, o,
+		[OBELISK, POTTERY_KILN, FARMERS, TOLL_HOUSE, NET_LOFT] + TEST_GOVS + extra)
 	e.resources.food = food
 	return e
 
@@ -89,6 +100,30 @@ func test_building_resolves_play_effects_and_pays_the_discounted_cost() -> void:
 	eq(sumer.resources.food, 2, "Farm costs 2 - 1 food")
 
 
+func test_each_building_built_adds_the_card_its_play_effect_creates_to_the_deck() -> void:
+	var e := build_engine(3, MENU.merged({"net_loft": {}}))
+	var home := home_uid(e)
+	var before := [card_ids(e.zone("deck")).count("scout"), ids_in(e, "hand"), ids_in(e, "discard")]
+	for i in 2:
+		check(e.build("net_loft", home), "build Net Loft %d: %s" % [i + 1, e.build_error("net_loft", home)])
+	eq(card_ids(e.zone("deck")).count("scout"), before[0] + 2, "two Scouts more in the deck")
+	eq(ids_in(e, "hand"), before[1], "hand unchanged")
+	eq(ids_in(e, "discard"), before[2], "discard unchanged")
+
+
+func test_a_building_with_a_unique_create_adds_its_card_once() -> void:
+	var loft := NET_LOFT.duplicate(true)
+	loft.id = "unique_loft"
+	loft.effects[0].card = "settler"  # one the player doesn't own: the deck is Scouts
+	loft.effects[0].unique = true
+	var e := build_engine(3, MENU.merged({"unique_loft": {}}), {}, [loft])
+	var home := home_uid(e)
+	var before := card_ids(e.zone("deck")).count("settler")
+	for i in 2:
+		check(e.build("unique_loft", home), "build Loft %d: %s" % [i + 1, e.build_error("unique_loft", home)])
+	eq(card_ids(e.zone("deck")).count("settler"), before + 1, "one Settler more, not two")
+
+
 func test_with_no_territory_named_it_builds_on_the_only_one_that_takes_it() -> void:
 	var e := build_engine(3)
 	check(e.build("farm"), "build with territory -1")
@@ -115,7 +150,7 @@ func test_build_refuses_without_a_slot_or_a_worker() -> void:
 	check(e.build("farm", home_uid(e)), "the home's one worker builds a Farm")
 	e.end_turn()
 	e.resources.food = 10
-	assert_refused(e, "farm", -1, "No territory with a free worker.")
+	assert_refused(e, "farm", -1, "No free worker.")
 	eq(e.build_targets("farm"), [] as Array[int], "no targets")
 	var full := build_engine(10, MENU, {"population": {"start": 7, "food_upkeep": 0, "vp_per_pop": 0}})
 	var temples := []
@@ -149,6 +184,16 @@ func test_build_refuses_when_the_game_is_over_or_a_decision_is_owed() -> void:
 	var explore := build_engine(3, MENU, {"territory_deck": {"hills": 1, "grassland": 1}})
 	check(explore.play_card(put_in_hand(explore, "explorer")), "play Explorer")
 	assert_refused(explore, "farm", home_uid(explore), "Choose a territory first.")
+
+
+# --- Backlog 337 AC3: short of two resources, play and build name both ---
+
+func test_short_of_two_resources_play_and_build_name_both() -> void:
+	var e := build_engine(0, MENU.merged({"toll_house": {}}))
+	e.resources.wealth = 0
+	var message := "Toll House needs 1 food, 2 wealth (you have 0 food, 0 wealth)."
+	eq(e.play_error(put_in_hand(e, "toll_house")), message, "play_error")
+	assert_refused(e, "toll_house", home_uid(e), message)
 
 
 # --- AC3: a tech unlocks an entry ---
@@ -214,25 +259,20 @@ func test_a_copy_keeps_what_is_unlocked_and_built() -> void:
 
 # --- AC5: the loader ---
 
-## The errors and warnings from parsing a config with build_menu menu (and overrides) against the fixtures.
+## The fixtures and a config with build_menu menu (and overrides) (config_load_on).
 func menu_load(menu: Variant, overrides := {}) -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var cards := tech_db([OBELISK, POTTERY_KILN], errors, warnings)
-	var raw := raw_config({"farm": 1}, {"build_menu": menu}.merged(overrides))
-	var config := DataLoader.parse_config(raw, resources(), cards, "config.json", errors, warnings)
-	return {"config": config, "errors": errors, "warnings": warnings}
+	return config_load_on(fixture_load([OBELISK, POTTERY_KILN], [TECHS]), {"build_menu": menu}.merged(overrides))
 
 
 func test_build_menu_loads_with_defaults() -> void:
-	var r := menu_load({"farm": {}, "granary": {"locked": true, "once": true}})
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	eq(r.config.build_menu, {"farm": {"locked": false, "once": false}, "granary": {"locked": true, "once": true}},
-		"normalized")
-	eq(menu_load({}).config.build_menu, {}, "an empty menu")
-	eq(DataLoader.parse_config(raw_config({"farm": 1}), resources(), tech_db(), "config.json", [], []).build_menu, {},
-		"no build_menu: {}")
+	check_loads([
+		["normalized", {"farm": {}, "granary": {"locked": true, "once": true}},
+			{"config.build_menu": {"farm": {"locked": false, "once": false}, "granary": {"locked": true, "once": true}}}],
+		["an empty menu", {}, {"config.build_menu": {}}],
+	], menu_load)
+	check_loads([
+		["no build_menu: {}", {}, {"config.build_menu": {}}],
+	], config_load.bind([TECHS]))
 
 
 func test_build_menu_validation() -> void:
@@ -245,7 +285,7 @@ func test_build_menu_validation() -> void:
 			"config.json: build_menu: 'farm' is also in the supply"],
 		["unknown field", [{"farm": {"price": 2}}, {}], "config.json: build_menu: 'farm': unknown field 'price'",
 			"warning_only"],
-	], func(args): return menu_load(args[0], args[1]))
+	], menu_load.callv)
 
 
 func test_an_unlock_may_name_a_build_menu_entry() -> void:
@@ -294,7 +334,7 @@ func test_a_preview_lists_only_what_changes() -> void:
 	var river := river_of(e)
 	eq(e.build_preview("well", river).get("lines"), [["free_slots", 2, 1], ["free_workers", 2, 1], ["actions_left", 2, 1]],
 		"a Well changes no forecast")
-	var d: int = e.defense(river)
+	var d: int = e.military.defense(river)
 	eq(e.build_preview("spears", river).get("lines"), [["free_workers", 2, 1], ["defense", d, d + 2],
 		["actions_left", 2, 1]], "a unit takes no slot and defends")
 	var free := preview_engine("")

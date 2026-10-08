@@ -56,7 +56,7 @@ func test_recruiting_a_unit_homes_and_stations_it_using_a_worker_but_no_slot() -
 	eq(e.free_workers(hills), 1, "precondition: one free worker on Hills")
 	e.state.actions_used = 1  # 1 of Band's 2 actions left
 	e.resources.food = 1
-	var defense := e.defense(hills)
+	var defense := e.military.defense(hills)
 	var outcomes: Array[Dictionary] = []
 	e.card_played.connect(func(o): outcomes.append(o))
 	check(e.build("levy", hills), "recruit a Levy on Hills: %s" % e.build_error("levy", hills))
@@ -68,7 +68,7 @@ func test_recruiting_a_unit_homes_and_stations_it_using_a_worker_but_no_slot() -
 	eq(e.resources.food, 0, "1 - 1 food")
 	eq(e.actions_left(), 0, "no actions left")
 	eq(outcomes.size(), 1, "card_played")
-	eq(e.defense(hills), defense + 2, "its strength defends Hills")
+	eq(e.military.defense(hills), defense + 2, "its strength defends Hills")
 
 
 # --- AC2: where a unit can go ---
@@ -81,7 +81,7 @@ func test_a_unit_entry_goes_on_any_territory_with_a_free_worker_and_nowhere_else
 	build_on(e, hills, ["farm"])  # Hills' one worker
 	eq(e.build_targets("levy"), [home] as Array[int], "Hills has no free worker left")
 	build_on(e, home, ["farm", "farm", "farm"])  # the home's three
-	eq(e.build_error("levy"), "No territory with a free worker.", "build_error")
+	eq(e.build_error("levy"), "No free worker.", "build_error")
 	var before := card_ids(e.zone("tableau"))
 	check(not e.build("levy"), "build refuses")
 	eq(card_ids(e.zone("tableau")), before, "nothing changes")
@@ -95,7 +95,7 @@ func test_a_recruited_unit_disbanded_leaves_play_and_can_be_recruited_again() ->
 	check(e.build("levy", hills), "recruit a Levy on Hills")
 	var levy := newest_levy(e)
 	var workers: int = e.free_workers(hills)
-	check(e.disband(levy), "disband it")
+	check(e.military.disband(levy), "disband it")
 	check(gone(e, levy), "it is in no zone (zone: '%s')" % e.zone_of(levy))
 	eq(e.free_workers(hills), workers + 1, "its worker is free again")
 	eq(e.build_error("levy", hills), "", "a Levy can be recruited again")

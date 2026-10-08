@@ -4,14 +4,9 @@ extends "res://tests/lib/test_case.gd"
 ## Bazaar (+2 wealth per city).
 
 
-## Loads one card named 'x' with the given cost and effects; returns {cards, errors}.
+## Loads TEST_CARDS plus one card named 'x' with the given cost and effects (fixture_load).
 func load_x(cost: Dictionary, effects: Array = [], type := "building") -> Dictionary:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var raw := {"cards": [{"id": "city", "name": "City", "type": "city"},
-		{"id": "x", "name": "X", "type": type, "cost": cost, "effects": effects}]}
-	var cards := DataLoader.parse_cards(raw, resources(), "cards.json", errors, warnings, keywords())
-	return {"cards": cards, "errors": errors}
+	return fixture_load([{"id": "x", "name": "X", "type": type, "cost": cost, "effects": effects}])
 
 
 ## Population on with the given food upkeep; starting resources and tableau as given.
@@ -25,17 +20,17 @@ func pop_overrides(food_upkeep: int, start_resources: Dictionary, tableau: Array
 # --- AC1: loader and card text ---
 
 func test_wealth_cost_and_gains_load() -> void:
-	var r := load_x({"food": 2, "wealth": 2}, [
-		{"op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep"},
-		{"op": "gain_per_tag", "resource": "wealth", "amount": 2, "tag": "city"}])
-	eq(r.errors, [] as Array[String], "loader errors")
-	if r.cards.has("x"):
-		eq(r.cards.x.cost, {"food": 2, "wealth": 2}, "cost")
+	check_loads([
+		["a wealth cost and gains", [{"food": 2, "wealth": 2}, [
+			{"op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep"},
+			{"op": "gain_per_tag", "resource": "wealth", "amount": 2, "tag": "city"}]], {"cards.x.cost": {"food": 2, "wealth": 2}}],
+	], load_x.callv)
 
 
-func test_unknown_resource_cost_is_still_an_error() -> void:
-	var r := load_x({"gold": 1})
-	has_msg(r.errors, "cards.json: card 'x': cost: unknown resource 'gold'")
+func test_bad_cost_is_a_load_error() -> void:
+	check_cases([
+		["an unknown resource", [{"gold": 1}], "cards.json: card 'x': cost: unknown resource 'gold'"],
+	], load_x.callv)
 
 
 func test_wealth_card_text() -> void:

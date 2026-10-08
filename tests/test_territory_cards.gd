@@ -4,6 +4,11 @@ extends "res://tests/lib/test_case.gd"
 ## its cards in order. A city or building on a territory has a view only while that territory's view (101) is open.
 ## Headless runs don't move the mouse for pushed events, so drops are checked through main.drag.target_at(point) (what
 ## a drop there targets) and main.try_play, and a lit card's click through main.on_picked.
+## In detail (from docs/testing.md, 331): Territories as plain cards in the Realm (102) on a TEST_CARDS game: one card
+## per territory then cards on no territory (`main.tableau.row`), no city or building card outside the territory view,
+## the live line (123: name, keywords, "▢ F   ⌂ P/H   ⚒ W   ⛨ D", 161; Frontier unchanged), drag targets
+## (`drag.target_at`) and targeting, no collapse or Grow in the Realm, a settled territory's card, many cards wrap
+## (078)
 
 
 ## The uids of the Realm's card views, in order.
@@ -12,17 +17,6 @@ func realm_uids(main: Node) -> Array[int]:
 	for view in main.views_in(main.tableau.row):
 		out.append(view.uid)
 	return out
-
-
-## A single click on uid's card view (the details_requested signal a Realm card sends after one click).
-func click(main: Node, uid: int) -> void:
-	var view: CardView = main.views[uid]
-	view.details_requested.emit(view)
-
-
-## Waits until cards have popped in and flown to their slots (so their rects are laid out).
-func settle_motion() -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(0.8).timeout
 
 
 func territory_of(e: GameEngine, uid: int) -> int:
@@ -46,7 +40,7 @@ func test_the_realm_shows_one_card_per_territory() -> void:
 			eq((main.views[uid] as CardView).slot_size(), CardView.BOARD_SIZE, "territory %d at board size (138)" % uid)
 		for id in ["capital", "farm"]:
 			check(not main.views.has(uid_of(e.zone("tableau"), id)), "no view for the %s" % id)
-		click(main, home)
+		open_details(main, home)
 		await wait_frames()
 		for id in ["capital", "farm"]:
 			check(main.views.has(uid_of(e.zone("tableau"), id)), "the %s has a view in the territory view" % id)
@@ -168,9 +162,7 @@ func test_the_realm_has_no_collapse_toggles_or_grow() -> void:
 			if b.is_visible_in_tree():
 				check(not (b.text.begins_with("Collapse all") or b.text.begins_with("Expand all")), "no '%s'" % b.text)
 		for b in UIKit.buttons_in(main.tableau):
-			check(not b.is_visible_in_tree(), "no button in the Realm: '%s'" % b.text)
-		for method in ["set_collapsed", "is_collapsed", "set_all_collapsed", "all_collapsed", "has_toggle", "group_summary"]:
-			check(not main.tableau.has_method(method), "TableauView has no %s" % method), \
+			check(not b.is_visible_in_tree(), "no button in the Realm: '%s'" % b.text), \
 		{"farm": 10}, {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}})
 
 
@@ -190,7 +182,7 @@ func test_settling_adds_a_territory_card_that_opens_with_its_city() -> void:
 		await wait_frames()
 		eq(realm_uids(main), [home, grass] as Array[int], "a new card for Grassland")
 		check(main.views[grass].face_text().contains("▢ "), "with its live line (123)")
-		click(main, grass)
+		open_details(main, grass)
 		await wait_frames()
 		var city := -1
 		for card in e.zone("tableau").cards:
@@ -224,9 +216,9 @@ const POP := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 0}}
 ## population off (161: D its defence).
 func live_line(e: GameEngine, uid: int) -> String:
 	if not e.population_on():
-		return "▢ %d   ⛨ %d" % [e.free_slots(uid), e.defense(uid)]
+		return "▢ %d   ⛨ %d" % [e.free_slots(uid), e.military.defense(uid)]
 	return "▢ %d   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [e.free_slots(uid), e.pop(uid), e.housing(uid), e.free_workers(uid),
-		e.defense(uid)]
+		e.military.defense(uid)]
 
 
 func test_a_settled_territory_card_shows_its_name_and_live_line_only() -> void:
@@ -264,7 +256,7 @@ func test_without_population_the_live_line_is_free_slots_and_defence() -> void:
 	await with_territories_main(func(main: Node):
 		var e := Game.engine
 		var home := home_uid(e)
-		eq((main.views[home] as CardView).face_text(), "Homeland\n▢ %d   ⛨ %d" % [e.free_slots(home), e.defense(home)],
+		eq((main.views[home] as CardView).face_text(), "Homeland\n▢ %d   ⛨ %d" % [e.free_slots(home), e.military.defense(home)],
 			"free slots and defence (161)"))
 
 
@@ -327,7 +319,7 @@ func test_a_rolled_keyword_shows_in_the_view_but_not_on_the_realm_card() -> void
 		e.changed.emit()
 		await wait_frames()
 		eq(keyword_texts(main, home), [] as Array[String], "no keyword on the Realm card, rolled or printed")
-		click(main, home)
+		open_details(main, home)
 		await wait_screen_transition()
 		var title: String = main.territory_view.title_text()
 		check(title.contains("Gold"), "the view's info line names the rolled Gold: %s" % title)

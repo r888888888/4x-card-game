@@ -4,6 +4,9 @@ extends RefCounted
 ## The runner creates a fresh instance for each test_* method, so tests never
 ## share state. Each test must make at least one assertion.
 
+## What UI tests read off the main screen (392): MainProbe.event_modal(main), not a method on main.
+const MainProbe := preload("res://tests/lib/main_probe.gd")
+
 ## Small card set used by rules tests. Add cards here when a test needs one;
 ## never make rules tests depend on data/cards.json (balance changes would break them).
 const TEST_CARDS := {"cards": [
@@ -60,10 +63,16 @@ const TEST_CARDS := {"cards": [
 	 "effects": [{"op": "lose_pop", "amount": 1, "trigger": "upkeep"}]},
 ]}
 
+## An action that gives back its action and takes a card from the discard into the hand (370). Not in TEST_CARDS: pass
+## it as an extra card.
+const RECALL_CARD := {"id": "recall", "name": "Recall", "type": "action",
+	"effects": [{"op": "gain_actions", "amount": 1}, {"op": "recall"}]}
+
 ## How many turns play_seed_1 plays of the real game (066).
 const SEED_1_TURNS := 20
 ## The real engine's turn_limit while play_seed_1 has shortened it (0 otherwise); close_main puts it back.
 var _real_turn_limit := 0
+var _window_size_before := Vector2i.ZERO  # open_game(big): the window size close_game restores
 ## The famine block raw_config adds to a population block that has none (backlog 083: required with population on).
 const FAMINE := {"card": "famine", "max_counters": 3}
 
@@ -155,6 +164,55 @@ func check_cases(cases: Array, load_input: Callable) -> void:
 			eq(errors.size(), 1, "%s: one error in %s" % [label, errors])
 		if kind == "warning_only":
 			eq(errors, [] as Array[String], "%s: errors" % label)
+
+
+## Table-driven loads (340), check_cases for accepted input. Each row is [label, input, expected]:
+## load_input.call(input) returns {cards, config?, errors, warnings}, and expected maps a dotted path ("cards.x.era",
+## "config.supply", "cards.x.is_permanent()") to the value it must equal. A row passes when it loads with no errors and
+## no warnings and every path's value equals the expected one; a failure names the row's label.
+func check_loads(rows: Array, load_input: Callable) -> void:
+	for row in rows:
+		var label: String = row[0]
+		var r: Dictionary = load_input.call(row[1])
+		for kind in ["errors", "warnings"]:
+			check(r[kind].is_empty(), "%s: %s: %s" % [label, kind, "; ".join(r[kind])])
+		var expected: Dictionary = row[2]
+		for path: String in expected:
+			var found := value_at(r, path)
+			if found.is_empty():
+				check(false, "%s: no '%s'" % [label, path])
+			else:
+				eq(found[0], expected[path], "%s: %s" % [label, path])
+
+
+## [the value at the dotted path in root], or [] when a segment is missing. A segment ending in "()" calls that method
+## with no arguments, a number indexes an array (or is an int key), and anything else is a key or property.
+func value_at(root: Variant, path: String) -> Array:
+	var value: Variant = root
+	for segment in path.split("."):
+		if segment.ends_with("()"):
+			var call := Expression.new()  # calls methods of built-in types too, without logging an error when missing
+			if call.parse("v." + segment, ["v"]) != OK:
+				return []
+			value = call.execute([value], null, false)
+			if call.has_execute_failed():
+				return []
+		elif value is Dictionary:
+			if value.has(segment):
+				value = value[segment]
+			elif segment.is_valid_int() and value.has(segment.to_int()):
+				value = value[segment.to_int()]
+			else:
+				return []
+		elif value is Array:
+			if not segment.is_valid_int() or segment.to_int() >= value.size():
+				return []
+			value = value[segment.to_int()]
+		elif value is Object and segment in value:
+			value = value.get(segment)
+		else:
+			return []
+	return [value]
 
 
 # --- Helpers ---
@@ -429,6 +487,11 @@ func fixture_load(extra := [], sets := [], resource_list: Array[String] = [], re
 	return {"cards": cards, "errors": errors, "warnings": warnings}
 
 
+## fixture_load([card], sets): TEST_CARDS, the sets and one more card.
+func card_load(card: Dictionary, sets := []) -> Dictionary:
+	return fixture_load([card], sets)
+
+
 ## fixture_load's cards, failing the test on a load error.
 func fixture_db(extra := [], sets := [], resource_list: Array[String] = []) -> Dictionary:
 	var r := fixture_load(extra, sets, resource_list)
@@ -445,6 +508,23 @@ func config_errors_for(cards: Dictionary, overrides: Dictionary, deck := {"farm"
 	raw.merge(overrides, true)
 	DataLoader.parse_config(raw, resources(), cards, "config.json", errors, warnings)
 	return errors
+
+
+## fixture_load([], sets) and a config parsed with overrides (see config_errors_for) against its cards: {cards, config,
+## errors, warnings}, the messages of both. For check_loads rows of config.
+func config_load(overrides: Dictionary, sets := []) -> Dictionary:
+	return config_load_on(fixture_load([], sets), overrides)
+
+
+## cards_load (a fixture_load result) plus a config parsed with overrides against its cards: {cards, config, errors,
+## warnings}, the messages of both.
+func config_load_on(cards_load: Dictionary, overrides: Dictionary) -> Dictionary:
+	var errors: Array[String] = cards_load.errors.duplicate()
+	var warnings: Array[String] = cards_load.warnings.duplicate()
+	var raw := raw_config({"farm": 1})
+	raw.merge(overrides, true)
+	var config := DataLoader.parse_config(raw, resources(), cards_load.cards, "config.json", errors, warnings)
+	return {"cards": cards_load.cards, "config": config, "errors": errors, "warnings": warnings}
 
 
 ## The errors from parsing a config with overrides (see config_errors_for) against fixture_db([], sets).
@@ -572,10 +652,10 @@ func mid_game() -> Node:
 ## Closes the drawn-event modal if one is up, whichever event the seed drew: a choice event's first open option,
 ## else OK.
 func close_event(main: Node) -> void:
-	if main.event_modal().is_empty():
+	if MainProbe.event_modal(main).is_empty():
 		return
-	var open_options: Array[Button] = main.event_option_buttons().filter(func(b: Button): return not b.disabled)
-	(open_options[0] if not open_options.is_empty() else main.event_modal_ok_button()).pressed.emit()
+	var open_options: Array[Button] = MainProbe.event_option_buttons(main).filter(func(b: Button): return not b.disabled)
+	(open_options[0] if not open_options.is_empty() else MainProbe.event_modal_ok_button(main)).pressed.emit()
 
 
 ## Calls visit(main, name) on each screen to check: the board mid-game, then each modal and screen open over it, the
@@ -622,7 +702,7 @@ func each_screen(visit: Callable) -> void:
 		var shown := false
 		for i in 10:
 			Game.engine.end_turn()
-			if not main.event_modal().is_empty():
+			if not MainProbe.event_modal(main).is_empty():
 				shown = true
 				break
 		check(shown, "precondition: an event is drawn within 10 turns of seed 1")
@@ -648,9 +728,25 @@ func visible_controls(root: Node) -> Array[Control]:
 	return found
 
 
-## Waits until a navigated screen's transition (Anim.SCREEN_TIME, 104) is over. Use with await.
+## Waits until a navigated screen's transition (a fade, Anim.SCREEN_TIME, 104; or a slide, 208) is over. Use with await.
 func wait_screen_transition() -> void:
-	await (Engine.get_main_loop() as SceneTree).create_timer(Anim.SCREEN_TIME + 0.15).timeout
+	var longest := maxf(Anim.SCREEN_TIME, maxf(Navigator.SLIDE_IN, Navigator.SLIDE_OUT))
+	await (Engine.get_main_loop() as SceneTree).create_timer(longest + 0.15).timeout
+
+
+## Runs body with the window at size, then puts it back (362: a scroll area with more content than fits). Use with
+## await.
+func with_window_size(size: Vector2i, body: Callable) -> void:
+	var window := (Engine.get_main_loop() as SceneTree).root
+	var before := window.size
+	window.size = size
+	await body.call()
+	window.size = before
+
+
+## Waits until cards have popped in and flown to their slots (so their rects are laid out).
+func settle_motion() -> void:
+	await (Engine.get_main_loop() as SceneTree).create_timer(0.8).timeout
 
 
 ## Waits n frames, so containers lay out (sizes and positions) before a UI test measures them. Use with await.
@@ -681,10 +777,109 @@ func open_main() -> Node:
 	return main
 
 
+## Main with seed 1 started (334). big: the window at 1920 × 1080 until close_game puts it back; freeze_sfx: the sound
+## clock frozen at 0 (236). Pair with close_game. Use with await.
+func open_game(big := false, freeze_sfx := false) -> Node:
+	if big:
+		var window := (Engine.get_main_loop() as SceneTree).root
+		_window_size_before = window.size
+		window.size = Vector2i(1920, 1080)
+	var main := open_main()
+	main.start_game(1)
+	await wait_frames()
+	if freeze_sfx:
+		main.sfx.set_clock(0.0)
+	return main
+
+
+## Frees an open_game main, and puts the window back to its size before a big open_game.
+func close_game(main: Node) -> void:
+	close_main(main)
+	if _window_size_before != Vector2i.ZERO:
+		(Engine.get_main_loop() as SceneTree).root.size = _window_size_before
+		_window_size_before = Vector2i.ZERO
+
+
+## The first visible button under root whose text starts with prefix, or null.
+func shown_button(root: Node, prefix: String) -> Button:
+	for b in UIKit.buttons_in(root):
+		if b.is_visible_in_tree() and b.text.begins_with(prefix):
+			return b
+	return null
+
+
+## Waits s seconds of game time.
+func wait_seconds(s: float) -> void:
+	await (Engine.get_main_loop() as SceneTree).create_timer(s).timeout
+
+
+## A real mouse move to point at on main's viewport, with the left button held or not.
+func move_mouse(main: Node, at: Vector2, held := false) -> void:
+	var event := InputEventMouseMotion.new()
+	event.position = at
+	event.global_position = at
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT if held else 0
+	main.get_viewport().push_input(event, true)
+
+
+## Moves the mouse well away from everything.
+func away(main: Node) -> void:
+	move_mouse(main, Vector2(2, 2))
+
+
+## Control c's centre, in global coordinates.
+func centre(c: Control) -> Vector2:
+	return c.get_global_rect().get_center()
+
+
+## How many hover ticks (Sfx.HOVER, 245) main's sfx has played.
+func hovers(main: Node) -> int:
+	return main.sfx.played().filter(func(r): return r.token == Sfx.HOVER).size()
+
+
+## A real click: presses and releases mouse button at point at on main's viewport.
+func click_point(main: Node, at: Vector2, button := MOUSE_BUTTON_LEFT) -> void:
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = button
+		event.pressed = pressed
+		event.position = at
+		event.global_position = at
+		main.get_viewport().push_input(event, true)
+
+
+## A real click at the centre of control (click_point).
+func click_control(main: Node, control: Control, button := MOUSE_BUTTON_LEFT) -> void:
+	click_point(main, control.get_global_rect().get_center(), button)
+
+
+## Opens uid's card details as one click on its view does, once the double-click window passes: no click, its
+## details_requested signal.
+func open_details(main: Node, uid: int) -> void:
+	var view: CardView = main.views[uid]
+	view.details_requested.emit(view)
+
+
+## The art plate on view's face (381), or null: a hand-size face has one, named Art.
+func art_plate(view: CardView) -> CardArt:
+	return view.find_child("Art", true, false) as CardArt
+
+
+## The first CardView under node (a modal's card), or null.
+func card_under(node: Node) -> CardView:
+	var found := node.find_children("*", "CardView", true, false)
+	return found[0] as CardView if not found.is_empty() else null
+
+
+## The uid of Hills in e's tableau, or -1.
+func hills_of(e: GameEngine) -> int:
+	return uid_of(e.zone("tableau"), "hills")
+
+
 ## Opens the menu on main's game and presses its Settings (206): the Settings modal on top. Use with await.
 func open_settings_modal(main: Node) -> void:
 	main.open_menu()
-	for b in main.menu_buttons():
+	for b in MainProbe.menu_buttons(main):
 		if b.text == "Settings":
 			b.pressed.emit()
 	await wait_frames()
@@ -707,6 +902,56 @@ func press_key(main: Node, keycode: Key) -> void:
 		event.physical_keycode = keycode
 		event.pressed = pressed
 		main.get_viewport().push_input(event)
+
+
+## One wheel notch (down, or up) at point on main's viewport (the centre of scroll when omitted), as the mouse sends
+## it: pressed, then released (356).
+func wheel_notch(main: Node, scroll: ScrollContainer, down := true, point := Vector2.INF) -> void:
+	wheel_turn(main, scroll, MOUSE_BUTTON_WHEEL_DOWN if down else MOUSE_BUTTON_WHEEL_UP, point)
+
+
+## One notch of wheel button (MOUSE_BUTTON_WHEEL_*, the sideways ones too, 363) at point, as wheel_notch.
+func wheel_turn(main: Node, scroll: ScrollContainer, button: MouseButton, point := Vector2.INF) -> void:
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = button
+		event.pressed = pressed
+		event.factor = 1.0
+		event.position = scroll.get_global_rect().get_center() if point == Vector2.INF else point
+		event.global_position = event.position
+		main.get_viewport().push_input(event, true)
+
+
+## The furthest scroll's scroll_vertical can go.
+func scroll_bottom(scroll: ScrollContainer) -> int:
+	var bar := scroll.get_v_scroll_bar()
+	return int(bar.max_value - bar.page)
+
+
+## The nearest ScrollContainer holding control, or null.
+func scroll_around(control: Node) -> ScrollContainer:
+	var node := control.get_parent()
+	while node != null and not node is ScrollContainer:
+		node = node.get_parent()
+	return node as ScrollContainer
+
+
+## Checks that scroll (what) is a SmoothScroll with room to scroll, and that one wheel notch down at point (its centre
+## when omitted), from the top, moves it Anim.SCROLL_STEP px (± 2): at once with Reduce motion, else gliding there
+## from rest (356, 362). Use with await, inside with_reduce_motion.
+func check_wheel_step(main: Node, scroll: ScrollContainer, what: String, point := Vector2.INF) -> void:
+	check(scroll is SmoothScroll, "%s: a SmoothScroll, not a %s" % [what, scroll.get_class()])
+	check(scroll_bottom(scroll) > Anim.SCROLL_STEP, "%s: room to scroll a step: %d" % [what, scroll_bottom(scroll)])
+	scroll.scroll_vertical = 0
+	await wait_frames()
+	wheel_notch(main, scroll, true, point)
+	var step := int(Anim.SCROLL_STEP)
+	if UIKit.calm():
+		eq(scroll.scroll_vertical, step, "%s: a step down at once" % what)
+		return
+	eq(scroll.scroll_vertical, 0, "%s: nothing moves in the notch's own frame" % what)
+	await wait_frames(240)
+	check(absi(scroll.scroll_vertical - step) <= 2, "%s: at rest one step down: %d" % [what, scroll.scroll_vertical])
 
 
 func close_main(main: Node) -> void:
@@ -736,11 +981,11 @@ func play_seed_1(main: Node, after_turn: Callable) -> void:
 	e.changed.disconnect(on_changed)
 
 
-## Plays e to its end by always doing the first of its legal_actions (312), but revolts, abandons, disbands and
-## discards unless a discard is owed (end_turn is listed last, so each turn plays, builds and buys first): a fast game
+## Plays e to its end by always doing the first of its legal_actions (312; a renewal with its first options), but
+## revolts, abandons, disbands and discards unless a discard is owed (end_turn is listed last, so each turn plays, builds and buys first): a fast game
 ## for UI tests (314: the sim's GenericBot takes ~30× longer), not a good one.
 func play_first_legal(e: GameEngine) -> void:
-	var skip := ["revolt", "abandon", "disband", "discard_card"]
+	var skip := ["revolt", "abandon", "military.disband", "discard_card"]
 	for step in 20000:
 		if e.is_over:
 			return
@@ -748,7 +993,11 @@ func play_first_legal(e: GameEngine) -> void:
 		var actions := e.legal_actions().filter(func(a): return not skip.has(a[0]) or (owed_discard and a[0] == "discard_card"))
 		if actions.is_empty():
 			return
-		e.callv(actions[0][0], actions[0].slice(1))
+		var action: Array = actions[0]
+		if action[0] == "renew":  # a choice of count among options (312): renew with the first count, as its error query
+			e.renew(action[1].slice(0, action[2]))
+		else:
+			LegalActions.apply(e, action)
 
 
 ## Records engine e's logged and noticed messages in order, as "log: …" and "notice: …" (116), and each notice's

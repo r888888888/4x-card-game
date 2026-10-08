@@ -12,8 +12,7 @@ const DECK := {"windfall": 1, "trade_winds": 1, "omen": 1, "raid": 1, "blight": 
 
 ## TEST_CARDS + TEST_EVENTS + ERA_2_EVENTS, parsed.
 func era_db(errors: Array[String] = [], warnings: Array[String] = []) -> Dictionary:
-	return DataLoader.parse_cards({"cards": TEST_CARDS.cards + TEST_EVENTS + ERA_2_EVENTS}, resources(), "cards.json",
-		errors, warnings, keywords())
+	return cards_of(fixture_load(ERA_2_EVENTS, [TEST_EVENTS]), errors, warnings)
 
 
 ## A game with event_deck DECK (or event_deck), main deck {scout: 10}; overrides replace config keys.
@@ -43,15 +42,10 @@ func test_an_event_may_have_an_era() -> void:
 
 func test_event_era_validation() -> void:
 	var load_event := func(fields: Dictionary) -> Dictionary:
-		var errors: Array[String] = []
-		var warnings: Array[String] = []
-		var x := {"id": "x", "name": "X", "type": "event"}
-		x.merge(fields, true)
-		DataLoader.parse_cards({"cards": [x]}, resources(), "cards.json", errors, warnings, keywords())
-		return {"errors": errors, "warnings": warnings}
+		return card_load({"id": "x", "name": "X", "type": "event"}.merged(fields, true))
 	check_cases([
-		["era 0", {"era": 0}, "cards.json: card 'x': era: must be an integer >= 1"],
-		["era not an integer", {"era": "two"}, "cards.json: card 'x': era: must be an integer >= 1"],
+		["era 0", {"era": 0}, "cards.json: card 'x': 'era' must be an integer >= 1, not 0"],
+		["era not an integer", {"era": "two"}, "cards.json: card 'x': 'era' must be an integer >= 1, not \"two\""],
 	], load_event)
 
 
@@ -120,7 +114,7 @@ func event_tooltip(event_deck: Dictionary) -> String:
 	Game.engine = event_era_engine({}, event_deck)
 	var main := open_main()
 	main.start_game(1)
-	var tooltip: String = main.event_panel().tooltip
+	var tooltip: String = MainProbe.event_panel(main).tooltip
 	close_main(main)
 	Game.engine = real
 	return tooltip

@@ -77,7 +77,7 @@ Ask in plain language:
 | Engine rules, effects, turn loop, scoring | Yes |
 | Loader validation (new fields, new error messages) | Yes |
 | New effect op | Yes (see the `add-effect` skill) |
-| Card/config balance numbers in `data/` | No new test; the suite must stay green. Balance is judged later, in a dedicated balance item (the `balance` skill), not per change |
+| Card/config balance numbers in `data/` | No new test; the suite must stay green. Balance is judged later, in a dedicated balance item (the `balance` skill), not per change; the sim runs only when the user asks |
 | UI layout / visuals | No test for the look; `test_ui_smoke` must stay green (catches script errors); logic moves to the engine (tested) + manual checklist |
 | Docs, comments, pure renames | No |
 
@@ -112,11 +112,13 @@ to see how it feels. Ask for one in plain language (*"Spike: what would a hex ma
 | `.claude/skills/tdd/` | Procedure: backlog item → merged change |
 | `.claude/skills/add-effect/` | Recipe for a new card effect op |
 | `.claude/skills/add-decision/` | Recipe for a new kind of decision the player owes (a `pending()` kind) |
-| `.claude/skills/balance/` | Procedure: compare balance (sim) between `main` and the checkout |
+| `.claude/skills/add-card-field/` | Recipe for a new field on cards (`TYPE_FIELDS`, `INT_FIELDS`, `CardTypeFields`) |
+| `.claude/skills/balance/` | Procedure: compare balance (sim) between `main` and the checkout; manual, run only when the user asks |
 | `.claude/skills/project-review/` | Procedure: whole-project architecture and test review → backlog items; `scan.sh` for the mechanical checks |
 | `.claude/settings.json` | Stop hook + permission to run tests without prompting |
 | `docs/backlog/` | Items, templates, status flow |
-| `docs/testing.md` | How tests are written and run |
+| `docs/testing.md` | How tests are run and written, and the helpers (kept under 25 KB) |
+| `docs/testing-index.md` | One row per test file (each file's `##` header says what it covers; no size cap) |
 | `scripts/test.sh` | Test entry point (re-imports new classes, filters, runs the files in parallel shards) |
 | `scripts/test-hook.sh` | Stop hook |
 | `tests/lib/test_case.gd` | Assertions, fixtures, helpers |

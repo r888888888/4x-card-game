@@ -19,35 +19,48 @@ const ADMINISTERS := "administers"
 ## The cards whose upkeep and modifiers apply: tableau cards that aren't idle, then the cards in ALWAYS_ON_ZONES
 ## (researched techs, the civilization, the government). Active events come on top (see total).
 ## One pass over the tableau (150): a building or unit is idle once its territory's earlier ones use up its pop, or a
-## building once they use up its slots (281), as is_idle says, without looking each one up.
+## building once they use up its slots (281), as is_idle says, without looking each one up. A card below its tier
+## falls back (301), and an upgrade works with its base (300), which comes before it in the tableau.
 static func working_cards(e: GameEngine) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	var tableau := e.zone("tableau").cards
 	var pop_on := e.population_on()
 	var workers := {}  # settled territory uid -> pop not yet working a building seen so far
 	var slots := {}  # settled territory uid -> slots not yet taken by a building seen so far
+	var sea := {}  # settled territory uid -> sea slots not yet taken (366; see Territories.slot_use)
+	var tier_of := {}  # settled territory uid -> the index of its tier (301)
 	if pop_on:
 		var tiers := Population.tiers(e)
 		for c in tableau:
 			if c.def.type == CardDef.TERRITORY:
 				workers[c.uid] = c.pop
+				tier_of[c.uid] = Population.tier_at_pop(e, c.pop)
 				slots[c.uid] = c.def.slots + Population.tier_slots(tiers, c.pop)
+				sea[c.uid] = Territories.sea_slots_of(e, c)
 		for c in tableau:
 			if c.def.type == CardDef.CITY and slots.has(c.territory_uid):
 				slots[c.territory_uid] += c.def.slots
+	var kept := {}  # uid -> true for the tableau cards kept so far
 	for c in tableau:
+		if c.base_uid >= 0 and not kept.has(c.base_uid):
+			continue
 		if pop_on and c.def.uses_worker():
 			var left: int = workers.get(c.territory_uid, 0)
 			workers[c.territory_uid] = left - 1
 			var room: int = 1
-			if c.def.type == CardDef.BUILDING:
+			if c.def.type == CardDef.BUILDING and sea.get(c.territory_uid, 0) > 0 and Territories.takes_sea_slot(e, c.def):
+				sea[c.territory_uid] -= 1
+			elif c.def.type == CardDef.BUILDING:
 				room = slots.get(c.territory_uid, 0)
 				slots[c.territory_uid] = room - 1
 			if left <= 0 or room <= 0:
 				continue
+		if c.def.tier != "" and tier_of.get(c.territory_uid, -1) < Fallback.need(e, c.def):
+			continue  # fallen back below its tier, keeping its worker and slot (301)
 		if c.def.project and Sites.unfinished(e, c):  # takes its worker and slot, but works once completed (286)
 			continue
 		out.append(c)
+		kept[c.uid] = true
 	for z in GameEngine.ALWAYS_ON_ZONES:
 		out.append_array(e.zone(z).cards)
 	return out

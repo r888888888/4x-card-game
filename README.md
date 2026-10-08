@@ -28,13 +28,13 @@ The game ends after 100 turns; your score is the VP on your tableau plus VP from
 The top bar shows food and wealth with the change the next upkeep brings in brackets ("Food: 2 (+1)"),
 net of what your pop eats; food turns red when pop would starve.
 
-The game opens on a title screen with "New game", "Settings" and "Exit". New game opens a screen where you click
+The game opens on a title screen with "New game", "Settings" and "Exit game". New game opens a screen where you click
 a civilization card to play as it (your last choice is remembered) and "Start" starts a game with the seed in the
 seed box, or a random one if it is empty (Enter works too). Settings holds "Reduce motion". "Back" or Esc returns
 to the title screen.
 
 "Menu" in the top bar (or Esc) opens the menu: "Restart" replays the seed in the seed box (same shuffle),
-"New game" leaves the game for the new game screen, and "Reduce motion" turns off decorative animation, and "Exit" quits the game. Esc first cancels
+"New game" leaves the game for the new game screen, and "Reduce motion" turns off decorative animation, and "Exit game" quits the game. Esc first cancels
 targeting or drops the card focus, then opens the menu; Esc again closes it.
 
 ## Edit cards
@@ -47,7 +47,11 @@ To see what an edit does to balance, run the headless simulator (a bot that valu
 ```bash
 scripts/sim.sh 20                         # mean / min / max of score, cities, pop, techs, supply buys, era over seeds 1-20
 scripts/sim.sh --compare ../main-checkout  # this checkout against another, game by game, seeds added where unclear
+scripts/sim.sh --level 1                  # levels 1-4 in place of seeds and strategy (also with --compare), see below
 ```
+Levels: 1 is one game (seed 1, the generic strategy, the config's starting civilization); 2 adds every strategy; 3
+every civilization too; 4 is seeds 1-10 of every strategy and civilization. `--civ` swaps the civilization at levels
+1 and 2.
 It plays the games on the performance cores but one (`SIM_PROCS=1 scripts/sim.sh 20` plays them in one), one parallel
 run at a time across checkouts, and caches each game's result by the code and data that played it (`SIM_CACHE=0` skips
 the cache). In Claude Code, `/balance` compares your changes with `main`. To run it (and the tests) in a Claude Code

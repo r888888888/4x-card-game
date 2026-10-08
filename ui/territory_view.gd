@@ -2,10 +2,10 @@ class_name TerritoryView
 extends VBoxContainer
 ## The territory view (backlog 101): one settled territory, under a sage title bar ("◂ Realm", then its name; 104,
 ## 241), shown in place of the Realm section. The territory is the box (105): a frame in the territory colour titled with
-## its name (its city name over its land's, 248) and info, its stats and pop meter, a row of its actions (Grow, 227;
-## then Rename…, 248, 252), then its city and buildings and an outline per free slot, then its units (160); its card
-## stays in the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav
-## stays empty while a game is on, 103), and grows out of the territory's card when it opens (104). A drop anywhere on
+## its name (its city name over its land's, 248) and info, its stats, pop meter and settlement tier (346), a row of its
+## actions (Grow, 227; then Rename…, 248, 252), then its city and buildings and an outline per free slot, then its units
+## (160); its card stays in the Realm. It keeps its own animated Navigator with the Realm as the root (a nested stack: the board's nav
+## stays empty while a game is on, 103), and slides in from the right when it opens, as Knowledge does (208, 359). A drop anywhere on
 ## it targets its territory. The board places the view's cards through refresh; navigated asks the board to refresh
 ## after it opens or closes.
 
@@ -14,6 +14,9 @@ signal navigated
 signal rename_requested(t: int)
 ## Build… (B) or a free slot's "+ Build" pressed: the board opens the Build modal on territory t (297).
 signal build_requested(t: int)
+## A building's "+ Upgrade" pressed: the board opens the Build modal on territory t with upgrade card_id on building
+## base selected (302).
+signal upgrade_requested(t: int, card_id: String, base: int)
 
 var uid := -1  # the territory shown, -1 while closed
 var header: ScreenHeader
@@ -32,9 +35,12 @@ var _stats: RichTextLabel  # the live line, drawn with icons (123)
 var _outlines: Array[Panel] = []  # one per free slot, after the cards in row
 var _units_caption: Label  # over units_row
 var _meter: HBoxContainer  # the pop meter (124): a pip per housing
+var _tier: Label  # after the meter: the settlement tier and the pop the next one needs (346); hidden with none
 var _pips: Array[TextureRect] = []  # the meter's pips: pop glyphs, the first _filled tinted POP, the rest dimmer (242)
 var _filled := 0
-var _outside_press := false  # the left button went down on the view outside the box (200)
+var _outside_press := false  # the left button went down outside the box (200, 327)
+var _hand_press: CardView  # the hand card that press landed on, let through so a drag can start (327)
+var _end_turn_press := false  # that press landed on End turn, let through with its release (348)
 var _turn := -1  # the turn close_if_stale last saw; -1 before a game's first refresh (290)
 var nav := Navigator.new()  # the play area's: the Realm at its root, this view and Knowledge (208) over it
 var _realm: Control
@@ -51,7 +57,7 @@ func _init(board: MainScreen, realm: Control) -> void:
 	header = ScreenHeader.new(nav, close, &"TERRITORY")
 	add_child(header)
 	back_button = header.back_button
-	mouse_filter = Control.MOUSE_FILTER_STOP  # a click on the view outside the box closes it (200)
+	mouse_filter = Control.MOUSE_FILTER_STOP  # clicks on the view stop here; handle_click closes it (200, 327)
 	frame = PanelContainer.new()
 	frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN  # as tall as its content: the board shows below it (200)
 	UIKit.painted(frame, func(): frame.add_theme_stylebox_override("panel", UIKit.panel_style(
@@ -90,6 +96,10 @@ func _init(board: MainScreen, realm: Control) -> void:
 	_meter.add_theme_constant_override("separation", Tokens.SPACE_1)
 	UIKit.painted(_meter, _tint_pips)
 	bar.add_child(_meter)
+	_tier = Label.new()
+	_tier.theme_type_variation = &"Caption"
+	_tier.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bar.add_child(_tier)
 	actions = HBoxContainer.new()
 	actions.add_theme_constant_override("separation", Tokens.SPACE_3)
 	body.add_child(actions)
@@ -124,14 +134,13 @@ func is_open() -> bool:
 	return Navigator.is_shown(self)
 
 
-## Shows territory t in place of the Realm, growing out of its card.
+## Shows territory t in place of the Realm, sliding in from the right (359).
 func open(t: int) -> void:
 	uid = t
-	var card: CardView = _board.views.get(t)
 	global_position = _realm.global_position  # where its container will put it: the Realm's place
 	size = _realm.size
 	var title := Game.engine.territory_name(t)
-	nav.push(self, null, title, card.get_global_rect() if card != null else Rect2())
+	nav.push(self, null, title, true)
 	navigated.emit()
 
 
@@ -159,18 +168,39 @@ func _realm_title() -> String:
 	return (_realm.get_child(0) as Label).text
 
 
-## A left click on the view outside the box (pressed and released there) goes back to the Realm, as Back does (200).
-func _gui_input(event: InputEvent) -> void:
+## A left click anywhere outside the box (pressed and released there) goes back to the Realm, as Back does, and does
+## nothing else (200, 327) unless it is on End turn, which still ends the turn (348). The press is held back from the board except on a hand card, so a drag from the hand still
+## reaches the territory; the release is held back, and the card forgets the press. Main calls this after the drag
+## controller and only with no modal or targeting over the board. Returns whether the event was used.
+func handle_click(event: InputEvent) -> bool:
 	var click := event as InputEventMouseButton
 	if click == null or click.button_index != MOUSE_BUTTON_LEFT or not is_open():
-		return
+		return false
 	var outside := not frame.get_global_rect().has_point(click.global_position)
 	if click.pressed:
 		_outside_press = outside
-	elif _outside_press and outside:
-		_outside_press = false
-		accept_event()
-		close()
+		_hand_press = _hand_card_at(click.global_position) if outside else null
+		_end_turn_press = outside and _board.sidebar.end_turn.get_global_rect().has_point(click.global_position)
+		return outside and _hand_press == null and not _end_turn_press
+	if not (_outside_press and outside):
+		return false
+	_outside_press = false
+	if is_instance_valid(_hand_press):
+		_hand_press.forget_press()
+	_hand_press = null
+	if _end_turn_press:
+		close.call_deferred()  # after End turn takes the release: the transition would swallow it (348)
+		return false
+	close()
+	return true
+
+
+## The hand card at global point, or null.
+func _hand_card_at(point: Vector2) -> CardView:
+	for view: CardView in _board.views.values():
+		if view.in_hand and view.is_visible_in_tree() and view.get_global_rect().has_point(point):
+			return view
+	return null
 
 
 ## Esc closes the view, B opens the Build modal (297). Returns whether the key was used.
@@ -192,13 +222,14 @@ static func is_territory(e: GameEngine, t: int) -> bool:
 
 
 ## The uids shown: the territory's city, buildings and units in tableau order ([] while closed). Its own card stays in the
-## Realm: the view is the territory (105).
+## Realm: the view is the territory (105). An upgrade has no card: it is a ribbon on its base's (302).
 func card_uids() -> Array[int]:
 	var out: Array[int] = []
 	if is_open():
-		for group in Game.engine.territory_groups():
+		var e := Game.engine
+		for group in e.territory_groups():
 			if group.territory == uid:
-				out.assign(group.cards.slice(1))
+				out.assign(group.cards.slice(1).filter(func(c): return e.upgrade_base(c) == -1))
 	return out
 
 
@@ -210,6 +241,11 @@ func title_text() -> String:
 
 func stats_text() -> String:
 	return _stats.get_meta("source", "")
+
+
+## The tier line shown beside the pop meter (346), or "" when none shows.
+func tier_text() -> String:
+	return _tier.text if _tier.visible else ""
 
 
 ## The territory a drop at global point would target: this one anywhere on the open view, else -1.
@@ -243,6 +279,8 @@ func refresh(e: GameEngine, place: Callable) -> void:
 		_stats.set_meta("source", line)
 		Icons.fill(_stats, line, Tokens.TYPE_BODY, Palette.TEXT_DIM)
 	_show_meter(e)
+	_tier.text = e.tier_line(uid)
+	_tier.visible = _tier.text != ""
 	var tableau := e.zone("tableau")
 	var territory := tableau.find(uid)
 	_name.text = e.territory_name(uid)
@@ -259,12 +297,53 @@ func refresh(e: GameEngine, place: Callable) -> void:
 	var cards := card_uids().filter(func(c): return not units.has(c))
 	for i in cards.size():
 		place.call(tableau.find(cards[i]), row, i)
-	_show_outlines(e.free_slots(uid))
+		(_board.views[cards[i]] as CardView).hoverable = true  # 342
+		_show_upgrades(e, cards[i])
+	_show_outlines(e.free_slots(uid) + e.free_sea_slots(uid))  # a free sea slot takes a port building (366)
 	_show_build(e)
 	for i in units.size():  # the units stationed here, in a row of their own (160)
 		place.call(tableau.find(units[i]), units_row, i)
 	_units_caption.visible = not units.is_empty()
 	units_row.visible = not units.is_empty()
+	_equalize_heights()
+
+
+## Keeps the cards one height while open: a card made by the last refresh is measured again once it has its width (349).
+func _process(_delta: float) -> void:
+	if is_open():
+		_equalize_heights()
+
+
+## Gives the view's cards and free-slot outlines the height of the tallest card, so a building's ribbons or a long
+## text don't make the rows ragged (345), like the supply row.
+func _equalize_heights() -> void:
+	var cards := _board.views_in(row) + _board.views_in(units_row)
+	var tallest := CardView.TABLEAU_SIZE.y
+	for view in cards:
+		tallest = maxf(tallest, view.get_combined_minimum_size().y)
+	for view in cards:
+		view.min_height = tallest
+	for outline in _outlines:
+		outline.custom_minimum_size.y = tallest
+
+
+## Building b's upgrades as ribbons on its card, depth first, and its "+ Upgrade" chip while it or an upgrade on it
+## could take another (302): the chip opens the Build modal on the first such upgrade.
+func _show_upgrades(e: GameEngine, b: int) -> void:
+	var view: CardView = _board.views.get(b)
+	if view == null:
+		return
+	var ribbons: Array[Dictionary] = []
+	for u in e.upgrade_tree(b):
+		var def := e.zone("tableau").find(u).def
+		ribbons.append({"uid": u, "name": def.name, "rules": e.upgrade_rules_text(def.id), "reason": e.fallen_back_reason(u)})
+	var on_chip := Callable()
+	for base in [b] + e.upgrade_tree(b):
+		var options := e.upgrades_for(base)
+		if not options.is_empty():
+			on_chip = func(): upgrade_requested.emit(uid, options[0], base)
+			break
+	view.set_upgrades(ribbons, on_chip, e.build_menu_error())
 
 
 ## Build… and the free slots' "+ Build" (297): shown while the build menu has entries, disabled with the reason while
@@ -307,6 +386,8 @@ func _show_outlines(n: int) -> void:
 		var key := UIKit.button("+ Build", func(): build_requested.emit(uid))  # 297
 		key.theme_type_variation = &"SlotButton"
 		key.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		key.mouse_entered.connect(_ink_outline.bind(outline, key, true))  # 342; the key ticks (KeySounds)
+		key.mouse_exited.connect(_ink_outline.bind(outline, key, false))
 		outline.add_child(key)
 		row.add_child(outline)
 		_outlines.append(outline)
@@ -314,13 +395,23 @@ func _show_outlines(n: int) -> void:
 		row.move_child(outline, -1)
 
 
-## Territory t's live line (123): "▢ F   ⌂ P/H   ⚒ W   ⛨ D" (free slots, pop / housing, free workers, defence 161), or
-## "▢ F   ⛨ D" with population off. The card in the Realm and the view's header both show it.
+## Inks a free slot's outline while the mouse is over its enabled "+ Build" key (342), like a hovered card's border.
+func _ink_outline(outline: Panel, key: Button, on: bool) -> void:
+	var style := outline.get_theme_stylebox("panel") as StyleBoxFlat
+	style.border_color = Palette.TEXT if on and not key.disabled else Palette.GHOST_EDGE
+
+
+## Territory t's live line (123): "▢ F   ⌂ P/H   ⚒ W   ⛨ D" (free slots, pop / housing, free workers, defence
+## 161), or "▢ F   ⛨ D" with population off; "⚓ S" (free sea slots, 366) follows "▢ F" on a territory with sea
+## slots. The card in the Realm and the view's header both show it.
 static func stats(e: GameEngine, t: int) -> String:
 	var s := e.territory_status(t)
+	var slots := "▢ %d" % s.free_slots
+	if s.has("sea_slots"):
+		slots += "   ⚓ %d" % s.free_sea_slots
 	if not e.population_on():
-		return "▢ %d   ⛨ %d" % [s.free_slots, e.defense(t)]
-	return "▢ %d   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [s.free_slots, s.pop, s.housing, s.free_workers, e.defense(t)]
+		return "%s   ⛨ %d" % [slots, e.military.defense(t)]
+	return "%s   ⌂ %d/%d   ⚒ %d   ⛨ %d" % [slots, s.pop, s.housing, s.free_workers, e.military.defense(t)]
 
 
 ## The pop meter's pips in order (124); none with population off.

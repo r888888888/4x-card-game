@@ -1,6 +1,8 @@
 extends "res://tests/lib/tech_case.gd"
 ## The pending-decision model (backlog 050): pending() describes what the player owes (an explore choice or a
 ## hand-limit discard; 140 dropped open research), and one blocking rule applies to every action.
+## In detail (from docs/testing.md, 331): `pending()` for each decision kind (explore, discard, renewal, government)
+## and the one blocking rule every action follows; 172: one `GameState.pending`, `pending()` a copy
 
 const POP_ON := {"population": {"start": 2, "food_upkeep": 0, "vp_per_pop": 1}}
 

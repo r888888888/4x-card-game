@@ -1,11 +1,19 @@
 extends "res://tests/lib/test_case.gd"
-## Index-card faces and machined card motion (179): every card is one sheet (RAISED, a CONTROL_BORDER rule, square)
-## with a band of its type colour under the name, a hard shadow only when lifted; a hovered card slides up without
-## growing, and a dragged one barely tilts. CardViews run in a plain Control tree (a slot and an effects layer).
+## Index-card faces and machined card motion (179): every card is one sheet (the mode's paper since 341, a
+## CONTROL_BORDER rule, square) with a band of its type colour under the name, on a soft shadow that grows as it lifts
+## (341); a hovered card slides up without growing, and a dragged one barely tilts. CardViews run in a plain Control tree (a slot and an effects layer).
 
 ## One TEST_CARDS card of each type the fixtures have.
 const BY_TYPE := {CardDef.ACTION: "bazaar", CardDef.BUILDING: "farm", CardDef.CITY: "capital",
 	CardDef.TERRITORY: "grassland", CardDef.EVENT: "famine"}
+
+const Looks := preload("res://tests/lib/surface_looks.gd")
+## A card's soft shadow (341 AC5) by lift: [offset, size, Night alpha, Day alpha].
+const SHADOWS := {
+	"rest": [Vector2(0, 4), 8, 0.35, 0.20],
+	"hovered": [Vector2(0, 8), 16, 0.45, 0.28],
+	"dragged": [Vector2(0, 14), 24, 0.50, 0.32],
+}
 
 var _engine: GameEngine
 
@@ -32,8 +40,15 @@ func fixture(id: String, in_hand := true, kind := "") -> Dictionary:
 	return {"root": root, "slot": slot, "layer": layer, "view": view}
 
 
+## view's rule and shadow: its surface's frame (341).
 func panel(view: CardView) -> StyleBoxFlat:
-	return view.get_theme_stylebox("panel") as StyleBoxFlat
+	return Looks.frame_of(view.get_theme_stylebox("panel"))
+
+
+## Checks view's surface shows the expected paper (Looks.mismatch).
+func check_paper(view: CardView, expected: Color, what: String) -> void:
+	var why := Looks.mismatch(view.get_theme_stylebox("panel"), expected)
+	check(why == "", "%s: %s" % [what, why])
 
 
 ## The card's type band, or null.
@@ -50,13 +65,13 @@ func reads(node: Node, text: String) -> bool:
 
 # --- AC1: one sheet face for every type ---
 
-func test_every_card_at_rest_is_a_raised_sheet_in_a_thin_rule() -> void:
+func test_every_card_at_rest_is_a_paper_sheet_in_a_thin_rule() -> void:
 	for type: String in BY_TYPE:
-		for in_hand in [true, false]:
-			var f := fixture(BY_TYPE[type], in_hand)
+		for kind in ["hand", "tableau", CardView.BOARD_REALM]:
+			var f := fixture(BY_TYPE[type], kind == "hand", kind if kind == CardView.BOARD_REALM else "")
 			var box := panel(f.view)
-			var what := "%s %s" % [type, "hand" if in_hand else "tableau"]
-			eq(box.bg_color.to_html(), Palette.RAISED.to_html(), "%s fill" % what)
+			var what := "%s %s" % [type, kind]
+			check_paper(f.view, Looks.paper(), what)
 			eq(box.border_color.to_html(), Palette.CONTROL_BORDER.to_html(), "%s border" % what)
 			eq(box.border_width_top, 2, "%s border width" % what)
 			eq(box.corner_radius_top_left, 0, "%s corner radius" % what)
@@ -66,7 +81,7 @@ func test_every_card_at_rest_is_a_raised_sheet_in_a_thin_rule() -> void:
 func test_a_dimmed_card_uses_the_dim_colours() -> void:
 	var f := fixture("farm")
 	(f.view as CardView).set_play_error("Not enough food.")
-	eq(panel(f.view).bg_color.to_html(), Palette.DIM_BG.to_html(), "dim fill")
+	check_paper(f.view, Looks.dimmed_paper(), "dimmed: paper under DIM_BG")
 	eq(panel(f.view).border_color.to_html(), Palette.DIM_BORDER.to_html(), "dim border")
 	(f.root as Node).free()
 
@@ -123,21 +138,43 @@ func test_a_frontier_territory_has_no_band() -> void:
 	(f.root as Node).free()
 
 
-# --- AC3: a hard shadow only when lifted ---
+# --- AC3 (341 AC5): a soft shadow, growing as the card lifts ---
 
-func test_a_card_at_rest_has_no_shadow_and_a_lifted_one_a_hard_one() -> void:
-	var f := fixture("farm")
-	var view: CardView = f.view
-	eq(panel(view).shadow_size, 0, "at rest: no shadow")
-	view.mouse_entered.emit()
+## Checks view's shadow is the soft one for lift in the current mode.
+func check_shadow(view: CardView, lift: String) -> void:
 	var box := panel(view)
-	eq(box.shadow_color.to_html(), Palette.SHADOW.to_html(), "hovered: SHADOW")
-	eq(box.shadow_offset, Vector2(4, 4), "hovered: offset (4, 4)")
-	eq(box.shadow_size, 1, "hovered: shadow size 1")
-	view.mouse_exited.emit()
-	view.begin_drag(f.layer, Vector2.ZERO)
-	eq(panel(view).shadow_offset, Vector2(8, 8), "dragged: offset (8, 8)")
-	eq(panel(view).shadow_size, 1, "dragged: shadow size 1")
+	var want: Array = SHADOWS[lift]
+	var alpha: float = want[3] if Palette.day else want[2]
+	var what := "%s %s" % ["day" if Palette.day else "night", lift]
+	eq(Color(box.shadow_color, 1.0), Color(Palette.SHADOW, 1.0), "%s: SHADOW" % what)
+	check(is_equal_approx(box.shadow_color.a, alpha), "%s: alpha %.2f, expected %.2f" % [what, box.shadow_color.a, alpha])
+	eq(box.shadow_offset, want[0], "%s: offset" % what)
+	eq(box.shadow_size, want[1], "%s: size" % what)
+	check(box.anti_aliasing, "%s: soft (anti-aliased)" % what)
+
+
+func test_a_cards_soft_shadow_grows_as_it_lifts_in_both_modes() -> void:
+	await with_temp_settings(func():
+		for day in [false, true]:
+			Settings.call("set_day_mode", day)
+			var f := fixture("farm")
+			var view: CardView = f.view
+			check_shadow(view, "rest")
+			view.mouse_entered.emit()
+			check_shadow(view, "hovered")
+			view.mouse_exited.emit()
+			view.begin_drag(f.layer, Vector2.ZERO)
+			check_shadow(view, "dragged")
+			(f.root as Node).free()
+		Settings.call("set_day_mode", false))
+
+
+func test_a_frontier_card_has_no_paper() -> void:
+	var f := fixture("grassland", false, CardView.BOARD_FRONTIER)
+	var box: StyleBox = (f.view as CardView).get_theme_stylebox("panel")
+	check(Looks.texture_of(box) == null, "no paper on a frontier card")
+	var frame := Looks.frame_of(box)
+	check(frame != null and frame.draw_center and frame.bg_color == Palette.FRONTIER_BG, "its flat frontier fill")
 	(f.root as Node).free()
 
 
@@ -177,10 +214,6 @@ func test_a_dragged_card_keeps_its_size_and_tilts_at_most_three_degrees() -> voi
 # --- AC5: no squash ---
 
 func test_the_squash_is_gone() -> void:
-	var view := CardView.new()
-	check(not view.has_method("squash"), "CardView.squash is gone")
-	view.free()
-	check(not CardMotion.new(null).has_method("squash"), "CardMotion.squash is gone")
 	var anim: Dictionary = (load("res://ui/anim.gd") as Script).get_script_constant_map()
 	for name in ["LAND_SQUASH", "LAND_TIME"]:
 		check(not anim.has(name), "Anim.%s is gone" % name)
@@ -245,3 +278,86 @@ func test_the_rest_of_a_card_face_keeps_its_font() -> void:
 					others.append(String(c.name))
 		eq(others, [] as Array[String], "%s: only the name is a CardTitle" % case[0])
 		f.root.free()
+
+
+# --- 382: the ledger, the rules and the fine print ---
+
+const LEDGER_CARDS := [
+	{"id": "assembly", "name": "Assembly", "type": "government", "actions": 3, "unrest_limit": 13,
+		"effects": [{"op": "score", "amount": 1, "trigger": "upkeep"}]},
+	{"id": "weaving", "name": "Weaving", "type": "tech", "cost": {"insight": 2}},
+	{"id": "dyeing", "name": "Dyeing", "type": "tech", "cost": {"insight": 3}, "prereq": "weaving",
+		"eureka": {"card": "farm", "count": 2, "off": 1}, "effects": [{"op": "unlock", "card": "farm"}]},
+	{"id": "mill", "name": "Mill", "type": "building", "requires": ["fresh_water"],
+		"effects": [{"op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep"}]},
+]
+
+
+## A CardView of card id from LEDGER_CARDS (or TEST_CARDS) set up as in_hand / kind, out of the tree; free it.
+func ledger_view(id: String, in_hand := true, kind := "") -> CardView:
+	var e := make_engine({"farm": 10}, {}, 1, LEDGER_CARDS)
+	var view := CardView.new()
+	view.setup(CardInstance.new(900, e.card_db[id]), e.card_db, in_hand, "", kind)
+	return view
+
+
+## The texts of node's Label children, in order.
+func label_texts_of(node: Node) -> Array:
+	return node.get_children().filter(func(c): return c is Label).map(func(l: Label): return l.text)
+
+
+func test_a_hand_face_shows_the_ledger_then_the_rules() -> void:
+	var view := ledger_view("assembly")
+	var ledger := view.find_child("Ledger", true, false) as GridContainer
+	check(ledger != null, "a Ledger grid")
+	if ledger != null:
+		eq(ledger.columns, 2, "label and figure")
+		eq(label_texts_of(ledger), ["Actions", "3", "Unrest limit", "13"], "its rows")
+		var first := ledger.get_child(0) as Label
+		var figure := ledger.get_child(1) as Label
+		eq([first.theme_type_variation, first.uppercase], [&"LedgerLabel", true], "labels in the caps look")
+		eq(figure.theme_type_variation, &"LedgerFigure", "figures in their look")
+		var rules := view.find_child("Rules", true, false)
+		check(rules != null and ledger.get_index() < rules.get_index(), "the ledger before the rules")
+	check(view.face_text().contains("⟳ +1 VP"), "the rules: %s" % view.face_text())
+	check(not view.face_text().contains("actions each turn"), "no sentence for the figure: %s" % view.face_text())
+	eq(view.find_child("FinePrint", true, false), null, "no gates, no fine print")
+	view.free()
+
+
+func test_a_hand_faces_gates_are_one_line_of_fine_print_at_the_foot() -> void:
+	var view := ledger_view("dyeing")
+	var fine := view.find_child("FinePrint", true, false) as Label
+	check(fine != null, "a FinePrint label")
+	if fine != null:
+		eq(fine.text, "Needs Weaving · Eureka: -1 insight with 2 Farms", "the gates joined")
+		eq([fine.theme_type_variation, fine.uppercase], [&"FinePrint", true], "the fine print's caps look")
+		var face := fine.get_parent()
+		eq(fine.get_index(), face.get_child_count() - 1, "at the foot")
+		var rules := view.find_child("Rules", true, false) as Control
+		check(rules != null and not rules.get_meta("source", "").contains("Needs Weaving"), "not among the rules")
+	view.free()
+
+
+func test_the_fine_print_look_is_14_px_caps_in_text_dim() -> void:
+	var theme := GameTheme.build()
+	eq(theme.get_font_size("font_size", &"FinePrint"), Tokens.TYPE_CAPTION, "14 px")
+	eq(theme.get_color("font_color", &"FinePrint"), Palette.TEXT_DIM, "TEXT_DIM")
+	eq(theme.get_font_size("font_size", &"LedgerLabel"), Tokens.TYPE_LABEL_CAPS, "ledger labels 14 px")
+
+
+func test_a_tableau_face_has_the_ledger_but_no_fine_print() -> void:
+	var gov := ledger_view("assembly", false)
+	check(gov.find_child("Ledger", true, false) != null, "the ledger")
+	gov.free()
+	var tech := ledger_view("dyeing", false)
+	eq(tech.find_child("FinePrint", true, false), null, "no fine print")
+	check(not tech.face_text().contains("Needs Weaving"), "nor its gates: %s" % tech.face_text())
+	tech.free()
+
+
+func test_a_realm_face_takes_its_line_from_the_rules() -> void:
+	var view := ledger_view("mill", false, CardView.BOARD_REALM)
+	check(view.face_text().contains("⟳ +1 food"), "the Mill's rule: %s" % view.face_text())
+	check(not view.face_text().contains("Needs"), "not its gate: %s" % view.face_text())
+	view.free()

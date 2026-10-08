@@ -1,6 +1,11 @@
 extends "res://tests/lib/test_case.gd"
 ## The navigation stack (backlog 103): Navigator on plain Controls, then the real main scene's start screens on it.
 ## Navigator is loaded by path (held as Object) so this file parses before ui/navigator.gd exists.
+## In detail (from docs/testing.md, 331): `Navigator` (103) on plain Controls: push hides the screen below, back and
+## Esc return to it (never past the root), focus given and given back, `set_root` / `clear`, one `changed` per step;
+## the title, new game and settings screens on `main.nav`; 104: titles, `ScreenHeader`, and an animated navigator's
+## transitions (fade, Reduce motion, back reverses with the screen below live at once, a new step finishes the running
+## one); 359: push's fourth argument slides (there is no wipe from a rect)
 
 const NAVIGATOR_PATH := "res://ui/navigator.gd"
 
@@ -225,7 +230,7 @@ func test_the_start_screens_are_on_the_navigator() -> void:
 	main.start_game(3)
 	eq(nav.depth(), 0, "a game on the board: nothing on the stack")
 	press_key(main, KEY_ESCAPE)
-	main.menu_buttons().filter(func(b): return b.text == "New game")[0].pressed.emit()
+	MainProbe.menu_buttons(main).filter(func(b): return b.text == "New game")[0].pressed.emit()
 	eq(nav.top(), main.new_game_screen.overlay, "menu New game: the new game screen")
 	eq(nav.depth(), 2, "over the title screen")
 	close_main(main)
@@ -289,26 +294,23 @@ func test_the_header_names_the_screen_below_and_the_path() -> void:
 	free_screens()
 
 
-func test_push_from_a_rect_grows_the_screen_out_of_it() -> void:
+# --- 359: push's fourth argument slides; there is no wipe from a rect ---
+
+func test_push_takes_no_rect_its_fourth_argument_slides() -> void:
 	await with_reduce_motion(false, func():
 		var nav := animated_nav()
 		if nav == null:
 			return
 		var s := sized_screens()
 		nav.set_root(s.A)
-		var from := Rect2(100, 120, 200, 160)
-		nav.push(s.B, null, "B", from)
-		check(s.B.visible, "shown at once")
-		check(s.B.scale.x < 0.5 and s.B.scale.y < 0.5, "starts small: %s" % s.B.scale)
-		var top_left: Vector2 = s.B.get_global_transform() * Vector2.ZERO
-		check(top_left.distance_to(from.position) < 2.0, "over the rect: %s vs %s" % [top_left, from.position])
+		nav.push(s.B, null, "B", true)
+		check(Navigator.offset_of(s.B).x > 0.0, "it slides in from the right: %s" % Navigator.offset_of(s.B))
 		await wait_screen_transition()
-		eq(s.B.scale, Vector2.ONE, "full size")
-		eq(s.B.modulate.a, 1.0, "opaque")
+		eq(Navigator.offset_of(s.B).x, 0.0, "in place")
 		free_screens())
 
 
-func test_push_without_a_rect_fades_in() -> void:
+func test_push_without_a_slide_fades_in() -> void:
 	await with_reduce_motion(false, func():
 		var nav := animated_nav()
 		if nav == null:
@@ -330,8 +332,8 @@ func test_with_reduce_motion_a_push_only_fades() -> void:
 			return
 		var s := sized_screens()
 		nav.set_root(s.A)
-		nav.push(s.B, null, "B", Rect2(100, 120, 200, 160))
-		eq(s.B.scale, Vector2.ONE, "no growing")
+		nav.push(s.B, null, "B", true)
+		eq(Navigator.offset_of(s.B), Vector2.ZERO, "no slide")
 		check(s.B.modulate.a < 0.5, "a fade")
 		await wait_screen_transition()
 		eq(s.B.modulate.a, 1.0, "opaque")
@@ -345,7 +347,7 @@ func test_back_reverses_the_push_and_the_screen_below_takes_input_at_once() -> v
 			return
 		var s := sized_screens()
 		nav.set_root(s.A)
-		nav.push(s.B, null, "B", Rect2(100, 120, 200, 160))
+		nav.push(s.B, null, "B")
 		await wait_screen_transition()
 		check(nav.back(), "back")
 		check(s.A.visible, "the screen below is shown at once")

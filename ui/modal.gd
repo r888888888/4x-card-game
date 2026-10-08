@@ -1,7 +1,7 @@
 class_name Modal
 extends ColorRect
 ## The base of every modal (backlog 153; a drafting sheet since 207): a scrim over the whole board with a sheet centred
-## on it. The sheet (panel, the Sheet variation: RAISED in a 2 px ink rule, cut square, on a hard 8,8 shadow) holds a
+## on it. The sheet (panel, the Sheet variation: paper in a 2 px ink rule, cut square, on a soft shadow, 341) holds a
 ## title block (a 4 px ink bar, the title at left and an optional context in caps at right), an optional aside (a card),
 ## the body (at most BODY_MAX_WIDTH wide) and a footer of buttons, right-aligned under a 1 px rule, the primary in the
 ## signal colour (251). Subclasses set title and context and fill body, aside and footer (add_footer_button) instead
@@ -11,7 +11,14 @@ extends ColorRect
 ## dismissed). Opening, the sheet rises RISE px into place and its scrim fades in (a stacked one's scrim shows at
 ## once); closing, it drops DROP px and fades with its scrim, taking no input while it goes. Reduce motion: fades only.
 
-const BODY_MAX_WIDTH := 640
+const BODY_MAX_WIDTH := 640  # a text sheet's body: the reading measure (guide §11.10)
+## A ledger sheet (344, guide §11.10): a list column beside a detail column as wide as a hand card, with no body cap.
+const LEDGER_LIST_WIDTH := Tokens.SPACE_9 * 4
+const LEDGER_GAP := Tokens.SPACE_6
+const LEDGER_DETAIL_WIDTH := int(CardView.HAND_SIZE.x)
+const LEDGER_ROWS := 12  # one-line rows the list shows before it scrolls
+const LEDGER_LIST_HEIGHT := 480  # LEDGER_ROWS one-line list rows (40 px each; the suite checks)
+const LEDGER_WIDTH := LEDGER_LIST_WIDTH + LEDGER_GAP + LEDGER_DETAIL_WIDTH
 const STACK_SHIFT := Vector2(8, 8)  # each level opens this far right and down of the one below: paper on paper
 const RISE := 24.0  # px below its place a sheet starts
 const DROP := 12.0  # px below its place a closing sheet ends

@@ -1,7 +1,8 @@
 extends "res://tests/lib/test_case.gd"
 ## The sound player (186): Sfx's tokens and levels from the style guide's §14.1, their files under assets/sounds/, the
 ## streams that play them, play() and its rules (tick rate, notification spacing, voices, Level 3 precedence), and the
-## contact timing (Anim.contact, Sfx.lead, Sfx.at_contact). The clock is set by hand (Sfx.set_clock).
+## contact timing (Anim.contact, Sfx.lead, Sfx.at_contact). The clock is set by hand (Sfx.set_clock). 357: the build
+## and recruit events.
 
 const GUIDE := "res://docs/design/mcm-style-guide.md"
 
@@ -74,6 +75,15 @@ func test_levels_and_buses() -> void:
 		[Settings.INTERFACE, Settings.INTERFACE, Settings.GAME], "buses")
 
 
+func test_the_build_sounds_are_events_in_the_guide() -> void:  # 357
+	var by_level := guide_tokens()
+	for token: StringName in [Sfx.MILESTONE_BUILD, Sfx.MILESTONE_RECRUIT]:
+		check(by_level[3].has(String(token)), "%s in the guide's Level 3 table" % token)
+		eq(Sfx.level(token), 3, "%s is Level 3" % token)
+		var files := Sfx.files(token)
+		check(files.size() == 1 and FileAccess.file_exists(files[0]), "%s has its file: %s" % [token, files])
+
+
 # --- AC2: files and streams ---
 
 func test_every_token_has_its_files() -> void:
@@ -85,7 +95,7 @@ func test_every_token_has_its_files() -> void:
 			var stem := String(token).replace(".", "_")
 			check(path.begins_with("res://assets/sounds/%s/%s" % ["events" if Sfx.level(token) == 3 else "ui", stem]),
 				"%s named for its token" % path)
-			var stream: Variant = load(path) if ResourceLoader.exists(path) else null
+			var stream: Resource = load(path) if ResourceLoader.exists(path) else null
 			check(stream is AudioStreamWAV, "%s loads as an AudioStreamWAV" % path)
 			if stream is AudioStreamWAV:
 				eq([stream.format, stream.mix_rate, stream.stereo, stream.loop_mode],

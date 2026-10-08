@@ -37,11 +37,6 @@ func training_engine(home_pop := 3) -> GameEngine:
 	return e
 
 
-## Hills' uid in e's tableau.
-func hills_of(e: GameEngine) -> int:
-	return uid_of(e.zone("tableau"), "hills")
-
-
 ## The first Levy's uid in e's tableau.
 func levy_of(e: GameEngine) -> int:
 	return uid_of(e.zone("tableau"), "levy")
@@ -50,12 +45,9 @@ func levy_of(e: GameEngine) -> int:
 # --- AC1: loading ---
 
 func test_training_loads_on_buildings() -> void:
-	var r := training_load()
-	eq(r.errors, [] as Array[String], "errors")
-	eq(r.warnings, [] as Array[String], "warnings")
-	if r.cards.has("drill_yard"):
-		eq(r.cards.drill_yard.training, 1, "Drill Yard")
-		eq(r.cards.sparring_ring.training, 2, "Sparring Ring")
+	check_loads([
+		["Drill Yard and Sparring Ring", [], {"cards.drill_yard.training": 1, "cards.sparring_ring.training": 2}],
+	], training_load)
 
 
 func test_bad_training_is_a_load_error() -> void:
@@ -71,41 +63,41 @@ func test_bad_training_is_a_load_error() -> void:
 # --- AC2: strength ---
 
 func test_working_training_building_adds_to_units_stationed_there() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var home := home_uid(e)
 	var levy := levy_of(e)
-	var before: int = e.defense(home)
+	var before: int = e.military.defense(home)
 	build_on(e, home, ["drill_yard"])
-	eq(e.unit_strength(levy), 3, "Levy 2 + Drill Yard 1")
-	eq(e.defense_parts(home).units, 3, "Homeland's units")
-	eq(e.defense(home) - before, 1, "Homeland's defence +1")
+	eq(e.military.strength(levy), 3, "Levy 2 + Drill Yard 1")
+	eq(e.military.defense_parts(home).units, 3, "Homeland's units")
+	eq(e.military.defense(home) - before, 1, "Homeland's defence +1")
 
 
 func test_training_buildings_on_a_territory_add_up() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	build_on(e, home_uid(e), ["drill_yard", "sparring_ring"])
-	eq(e.unit_strength(levy_of(e)), 5, "Levy 2 + Drill Yard 1 + Sparring Ring 2")
+	eq(e.military.strength(levy_of(e)), 5, "Levy 2 + Drill Yard 1 + Sparring Ring 2")
 
 
 # --- AC3: where ---
 
 func test_a_unit_moved_away_loses_its_training() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var levy := levy_of(e)
 	build_on(e, home_uid(e), ["drill_yard"])
-	check(e.move_unit(levy, hills_of(e)), "Levy moved to Hills: %s" % e.move_unit_error(levy, hills_of(e)))
-	eq(e.unit_strength(levy), 2, "untrained on Hills")
-	eq(e.defense_parts(hills_of(e)).units, 2, "Hills' units")
+	check(e.military.move(levy, hills_of(e)), "Levy moved to Hills: %s" % e.military.move_error(levy, hills_of(e)))
+	eq(e.military.strength(levy), 2, "untrained on Hills")
+	eq(e.military.defense_parts(hills_of(e)).units, 2, "Hills' units")
 
 
 func test_a_unit_moved_onto_a_training_territory_gains_it() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var home := home_uid(e)
@@ -113,31 +105,31 @@ func test_a_unit_moved_onto_a_training_territory_gains_it() -> void:
 	build_on(e, home, ["drill_yard"])
 	var recruit := put_in_hand(e, "levy")
 	check(e.play_card(recruit, hills), "Levy recruited on Hills: %s" % e.play_error(recruit, hills))
-	eq(e.unit_strength(recruit), 2, "untrained on Hills")
-	check(e.move_unit(recruit, home), "Levy moved to Homeland: %s" % e.move_unit_error(recruit, home))
-	eq(e.unit_strength(recruit), 3, "trained on Homeland")
+	eq(e.military.strength(recruit), 2, "untrained on Hills")
+	check(e.military.move(recruit, home), "Levy moved to Homeland: %s" % e.military.move_error(recruit, home))
+	eq(e.military.strength(recruit), 3, "trained on Homeland")
 
 
 func test_an_idle_training_building_trains_nobody() -> void:
-	var e: Object = training_engine(1)
+	var e := training_engine(1)
 	if e == null:
 		return
 	build_on(e, home_uid(e), ["drill_yard"])
 	check(e.is_idle(uid_of(e.zone("tableau"), "drill_yard")), "Drill Yard idle (the Levy has the only worker)")
-	eq(e.unit_strength(levy_of(e)), 2, "untrained")
+	eq(e.military.strength(levy_of(e)), 2, "untrained")
 
 
 # --- AC4: edges ---
 
 func test_unit_strength_is_printed_strength_without_training() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
-	eq(e.unit_strength(levy_of(e)), 2, "Levy")
+	eq(e.military.strength(levy_of(e)), 2, "Levy")
 
 
 func test_unit_strength_is_0_for_an_idle_unit_or_a_non_unit() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var home := home_uid(e)
@@ -145,10 +137,10 @@ func test_unit_strength_is_0_for_an_idle_unit_or_a_non_unit() -> void:
 	build_on(e, home, ["drill_yard"])
 	set_home_pop(e, 0)
 	check(e.is_idle(levy), "Levy idle")
-	eq(e.unit_strength(levy), 0, "idle Levy")
+	eq(e.military.strength(levy), 0, "idle Levy")
 	var in_hand := put_in_hand(e, "levy")
 	for uid in [in_hand, home, uid_of(e.zone("tableau"), "drill_yard"), 9999]:
-		eq(e.unit_strength(uid), 0, "unit_strength of %d" % uid)
+		eq(e.military.strength(uid), 0, "unit_strength of %d" % uid)
 
 
 # --- AC5: text ---
@@ -165,7 +157,7 @@ func test_training_text() -> void:
 # --- Manual check support: the details and the face ---
 
 func test_trained_unit_details_explain_its_strength() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var levy := levy_of(e)
@@ -178,15 +170,15 @@ func test_trained_unit_details_explain_its_strength() -> void:
 
 
 func test_strength_tag_shows_only_on_a_trained_unit() -> void:
-	var e: Object = training_engine()
+	var e := training_engine()
 	if e == null:
 		return
 	var home := home_uid(e)
 	var levy := levy_of(e)
-	eq(e.unit_strength_tag(levy), "", "untrained")
+	eq(e.military.strength_tag(levy), "", "untrained")
 	build_on(e, home, ["drill_yard"])
-	eq(e.unit_strength_tag(levy), "Strength 3", "trained")
+	eq(e.military.strength_tag(levy), "Strength 3", "trained")
 	for uid in [home, uid_of(e.zone("tableau"), "drill_yard"), put_in_hand(e, "levy"), 9999]:
-		eq(e.unit_strength_tag(uid), "", "tag of %d" % uid)
+		eq(e.military.strength_tag(uid), "", "tag of %d" % uid)
 	set_home_pop(e, 0)
-	eq(e.unit_strength_tag(levy), "", "idle")
+	eq(e.military.strength_tag(levy), "", "idle")

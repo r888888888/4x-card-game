@@ -1,7 +1,8 @@
 extends "res://tests/lib/anarchy_case.gd"
 ## Revolution (backlogs 148, 155): with a government ruling and no Anarchy you may revolt at any time; Anarchy falls at
 ## the next turn's start, before upkeep, with counters by the unrest share of the fallen limit (test_anarchy_length.gd).
-## The summary the civilization modal's confirmation shows (205). The bot's revolts: test_bot_lookahead.gd (159).
+## The summary the civilization modal's confirmation shows (205). The upkeep forecast after a revolt leaves out the
+## falling government (332). The bot's revolts: test_bot_lookahead.gd (159).
 ## Fixtures: tests/lib/anarchy_case.gd (Chiefs, limit 5; Kings, limit 7; TEST_GOVS' Council, no limit).
 
 
@@ -78,19 +79,17 @@ func test_without_an_unrest_block_there_is_no_revolution() -> void:
 
 # --- The revolt field is gone (Design notes) ---
 
-func test_an_events_revolt_field_is_unknown() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	DataLoader.parse_cards({"cards": TEST_CARDS.cards + [{"id": "reform", "name": "Reform", "type": "event",
-		"revolt": true}]}, RESOURCES, "cards.json", errors, warnings, keywords())
-	eq(errors, [] as Array[String], "errors")
-	has_msg(warnings, "unknown field 'revolt'")
+func test_retired_revolt_field_is_a_load_warning() -> void:
+	check_cases([
+		["an event's revolt", [{"id": "reform", "name": "Reform", "type": "event", "revolt": true}],
+			"unknown field 'revolt'", "warning_only"],
+	], fixture_load.bind([], RESOURCES))
 
 
 # --- AC7: the forecast (the bot's revolt rule moved to 159) ---
 
 func test_revolt_forecast_is_the_counters_a_revolution_would_bring() -> void:
-	var e: Object = revolt_engine(2)
+	var e := revolt_engine(2)
 	eq(e.revolt_forecast(), 2, "unrest 2 of Chiefs' 5")
 	var with_altar := revolt_engine(3)
 	build_on(with_altar, home_uid(with_altar), ["altar"])
@@ -108,7 +107,7 @@ const SUMMARY := ["Anarchy falls at the start of next turn.", "It lasts up to 3 
 
 
 func test_revolt_summary_describes_the_coming_anarchy_with_this_games_numbers() -> void:
-	var e: Object = anarchy_engine({"drain_pct": 20, "renewal": 1})
+	var e := anarchy_engine({"drain_pct": 20, "renewal": 1})
 	e.resources["unrest"] = 3  # of Chiefs' 5: 3 counters
 	e.resources["food"] = 6
 	e.resources["wealth"] = 3
@@ -117,20 +116,77 @@ func test_revolt_summary_describes_the_coming_anarchy_with_this_games_numbers() 
 
 
 func test_a_summary_leaves_out_what_the_config_lacks() -> void:
-	var e: Object = anarchy_engine({"drain_pct": null, "renewal": null})
+	var e := anarchy_engine({"drain_pct": null, "renewal": null})
 	e.resources["unrest"] = 3
 	var lines: Array = e.revolt_summary()
 	eq(lines, [SUMMARY[0], SUMMARY[1], SUMMARY[2], SUMMARY[3], SUMMARY[6]], "no drain, no renewal")
 
 
 func test_no_summary_while_revolt_is_refused() -> void:
-	var e: Object = anarchy_engine({"drain_pct": 20, "renewal": 1})
+	var e := anarchy_engine({"drain_pct": 20, "renewal": 1})
 	check(e.revolt(), "revolt")
 	check(e.revolt_error() != "", "precondition: refused now")
 	eq(e.revolt_summary(), [], "nothing to confirm")
 
 
 func test_anarchy_id_names_the_configs_anarchy_government() -> void:
-	var e: Object = anarchy_engine()
+	var e := anarchy_engine()
 	eq(e.anarchy_id(), "anarchy", "the config's unrest.anarchy (the revolution's confirmation shows its flavor, 205)")
 	eq(make_engine({"farm": 5}).anarchy_id(), "", "none without an unrest block")
+
+
+# --- 332: the upkeep forecast after a revolution leaves out the falling government ---
+
+## Tithes (government, limit 5, ⟳ +3 wealth), Creed (government, limit 5, insight −1 per gain) and Academy (building,
+## ⟳ +2 insight).
+const TITHES := {"id": "tithes", "name": "Tithes", "type": "government", "unrest_limit": 5,
+	"effects": [{"op": "gain", "resource": "wealth", "amount": 3, "trigger": "upkeep"}]}
+const CREED := {"id": "creed", "name": "Creed", "type": "government", "unrest_limit": 5,
+	"modifiers": {"insight_per_gain": -1}}
+const ACADEMY := {"id": "academy", "name": "Academy", "type": "building",
+	"effects": [{"op": "gain", "resource": "insight", "amount": 2, "trigger": "upkeep"}]}
+
+
+## An anarchy game ruled by gov (one of the 332 fixtures), no drain.
+func ruled_by(gov: String) -> GameEngine:
+	var starting := {"resources": {"food": 10, "wealth": 10, "insight": 10}, "tableau": ["capital"],
+		"territory": "homeland", "government": gov}
+	var e := anarchy_engine({}, {"starting": starting}, [TITHES, CREED, ACADEMY])
+	eq(ruling(e), gov, "ruling")
+	return e
+
+
+func test_bug_332_forecast_leaves_out_the_upkeep_of_a_government_about_to_fall() -> void:
+	var e := ruled_by("tithes")
+	eq(e.upkeep_forecast().wealth, 3, "before the revolt: Tithes' +3 wealth")
+	check(e.revolt(), "revolt: %s" % e.revolt_error())
+	eq(e.upkeep_forecast().wealth, 0, "after the revolt: Tithes falls before upkeep")
+	var wealth: int = e.resources.wealth
+	e.end_turn()
+	eq(e.resources.wealth, wealth, "turn 2's upkeep gained no wealth")
+
+
+func test_bug_332_forecast_leaves_out_the_modifiers_of_a_government_about_to_fall() -> void:
+	var e := ruled_by("creed")
+	build_on(e, home_uid(e), ["academy"])
+	eq(e.upkeep_forecast().insight, 1, "before the revolt: Academy's 2 less Creed's 1")
+	e.revolt()
+	eq(e.upkeep_forecast().insight, 2, "after the revolt: Academy's 2")
+
+
+func test_bug_332_forecast_after_a_revolt_changes_nothing() -> void:
+	var e := ruled_by("tithes")
+	e.revolt()
+	var recorded := record_messages(e)
+	var resources := e.resources.duplicate()
+	var log_lines := e.log_lines.duplicate()
+	var zone_uids := {}
+	for z in GameEngine.ZONES:
+		zone_uids[z] = e.zone(z).cards.map(func(c): return c.uid)
+	e.upkeep_forecast()
+	eq([ruling(e), e.anarchy(), e.state.revolt_pending], ["tithes", -1, true], "Tithes rules, revolt still pending")
+	eq(e.resources, resources, "resources")
+	for z in GameEngine.ZONES:
+		eq(e.zone(z).cards.map(func(c): return c.uid), zone_uids[z], "%s uids" % z)
+	eq(e.log_lines, log_lines, "log")
+	eq(recorded, [] as Array[String], "no messages")

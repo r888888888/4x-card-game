@@ -116,4 +116,4 @@ func test_cost_per_territory_validation() -> void:
 		["unrest", with_step.call({"unrest": 1}), ["card 'x'", "cost_per_territory", "unrest can't be paid"]],
 		["on a project", [{"id": "x", "name": "X", "type": "building", "cost": {"wealth": 10}, "project": true,
 			"cost_per_territory": {"wealth": 1}}], ["card 'x'", "cost_per_territory", "project"]],
-	], func(extra): return fixture_load(extra, [], WITH_UNREST))
+	], fixture_load.bind([], WITH_UNREST))

@@ -16,14 +16,11 @@ func test_order_relief_is_c_times_c_plus_1_wealth_for_the_counters_left() -> voi
 		eq(e.order_relief(), {"wealth": row[1]}, "%d counters" % row[0])
 
 
-func test_unrest_relief_is_no_longer_read() -> void:
-	var errors: Array[String] = []
-	var warnings: Array[String] = []
-	var config := DataLoader.parse_config(anarchy_raw({"relief": {"wealth": 6}}), RESOURCES, anarchy_db(),
-		"config.json", errors, warnings)
-	eq(errors, [] as Array[String], "errors")
-	has_msg(warnings, "config.json: unrest: unknown field 'relief'")
-	check(not config.unrest.has("relief"), "not in the normalized block")
+func test_retired_unrest_fields_are_load_warnings() -> void:
+	check_cases([
+		["relief is no longer read", anarchy_raw({"relief": {"wealth": 6}}), "config.json: unrest: unknown field 'relief'",
+			"warning_only"],
+	], raw_config_load)
 
 
 # --- AC5: restore_order_error ---
@@ -84,7 +81,7 @@ func test_a_government_chosen_mid_turn_counts_its_actions_at_once() -> void:
 func test_the_restore_order_button_shows_in_anarchy_beside_relieve_famine() -> void:
 	await with_main(anarchy_engine(), func(main: Node):
 		var e := Game.engine
-		var restore: Button = main.restore_order_button()
+		var restore: Button = MainProbe.restore_order_button(main)
 		await wait_frames()
 		check(not restore.is_visible_in_tree(), "hidden outside Anarchy")
 		e.resources["unrest"] = 5
@@ -95,7 +92,7 @@ func test_the_restore_order_button_shows_in_anarchy_beside_relieve_famine() -> v
 		check(restore.is_visible_in_tree(), "shown in Anarchy")
 		check(restore.disabled, "disabled on its first turn")
 		eq(restore.tooltip_text, "Order can't be restored on Anarchy's first turn.", "the reason in the tooltip")
-		eq(restore.get_parent(), main.relieve_button().get_parent(), "beside Relieve famine")
+		eq(restore.get_parent(), MainProbe.relieve_button(main).get_parent(), "beside Relieve famine")
 		e.end_turn()
 		await wait_frames()
 		eq(restore.text, "Restore order (12 wealth)", "3 counters left: 12")

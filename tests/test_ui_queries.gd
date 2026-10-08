@@ -1,6 +1,9 @@
 extends "res://tests/lib/tech_case.gd"
 ## Engine queries for rules the UI used to work out itself (backlog 049): playable_error, end_turn_error,
 ## supply_error, upcoming_era_unlocks and territory_groups.
+## In detail (from docs/testing.md, 331): Engine queries the UI relies on: `playable_error`, `end_turn_error`,
+## `supply_error`, `upcoming_era_unlocks`, `territory_groups`, `territory_summary`, `needs_target_choice`, `tech_eras`,
+## `open_supply_piles` (094); `hand_limit`, `research_on` (175); `zone_of` (176); `play_shortfall` (180)
 
 
 ## A game on Grassland (2 slots) with plenty of food and a hand of Farms. With hills, Hills is settled too.
@@ -11,14 +14,6 @@ func grassland_engine(hills: bool) -> GameEngine:
 	})
 	if hills:
 		settle(e, ["hills"])
-	return e
-
-
-## A game with an explore choice open (Hills and Grassland revealed).
-func choice_engine() -> GameEngine:
-	var e: GameEngine = make_engine({"farm": 10}, {"territory_deck": {"hills": 1, "grassland": 1}})
-	check(e.play_card(put_in_hand(e, "explorer")), "play Explorer")
-	check(e.pending().get("kind") == GameEngine.PENDING_EXPLORE, "a choice is open")
 	return e
 
 
@@ -62,7 +57,7 @@ func test_end_turn_error_is_empty_normally() -> void:
 
 func test_end_turn_error_names_what_blocks_it_and_end_turn_does_nothing() -> void:
 	var cases := [
-		["explore choice", choice_engine(), "Choose a territory first."],
+		["explore choice", explore_engine(), "Choose a territory first."],
 		["discard owed", discard_engine(), "Discard down to 7 cards first."],
 		["game over", over_engine(), "The game is over."],
 	]
@@ -84,7 +79,7 @@ func test_supply_error_allows_browsing_normally_and_while_discarding() -> void:
 
 
 func test_supply_error_blocks_during_choices_and_after_the_game() -> void:
-	eq(choice_engine().supply_error(), "Choose a territory first.", "explore choice")
+	eq(explore_engine().supply_error(), "Choose a territory first.", "explore choice")
 	eq(over_engine().supply_error(), "The game is over.", "game over")
 
 
@@ -194,8 +189,10 @@ func tree_of_era(e: GameEngine, n: int) -> Array:
 func test_tech_eras_list_each_era_with_its_status_and_techs() -> void:
 	var e := era_unlocks_engine({"2": {"pop": 8}})
 	eq(e.tech_eras(), [
-		{"era": 1, "name": e.era_name(1), "reached": true, "unlocks": {}, "techs": tree_of_era(e, 1)},
-		{"era": 2, "name": e.era_name(2), "reached": false, "unlocks": {"pop": 8}, "techs": tree_of_era(e, 2)},
+		{"era": 1, "name": e.era_name(1), "reached": true, "unlocks": {}, "opens": "",
+			"techs": tree_of_era(e, 1)},
+		{"era": 2, "name": e.era_name(2), "reached": false, "unlocks": {"pop": 8}, "opens": "Opens at 8 pop",
+			"techs": tree_of_era(e, 2)},
 	], "era 1 reached, era 2 unlocks at 8 pop")
 	eq(tree_of_era(e, 2).map(func(t): return t.id), ["optics"], "era 2 holds Optics")
 
@@ -206,6 +203,18 @@ func test_tech_eras_unlocks_are_empty_when_reached_or_only_a_tech_adds_the_era()
 	e = era_unlocks_engine({"2": {"pop": 8}})
 	e.add_era(2)
 	eq(e.tech_eras().map(func(x): return [x.era, x.reached, x.unlocks]), [[1, true, {}], [2, true, {}]], "era 2 reached")
+
+
+## Backlog 337 AC1: the engine writes how an era not reached opens.
+func test_tech_eras_say_how_an_era_not_reached_opens() -> void:
+	var opens := func(era_unlocks: Dictionary) -> Array:
+		return era_unlocks_engine(era_unlocks).tech_eras().map(func(x): return x.opens)
+	eq(opens.call({"2": {"pop": 8, "wealth": 30}}), ["", "Opens at 8 pop or 30 wealth"], "pop or wealth")
+	eq(opens.call({"2": {"pop": 8}}), ["", "Opens at 8 pop"], "pop only")
+	eq(opens.call({}), ["", "Opens through a tech"], "no unlock")
+	var e := era_unlocks_engine({"2": {"pop": 8}})
+	e.add_era(2)
+	eq(e.tech_eras().map(func(x): return x.opens), ["", ""], "era 2 reached")
 
 
 func test_tech_eras_is_empty_without_a_research_deck() -> void:

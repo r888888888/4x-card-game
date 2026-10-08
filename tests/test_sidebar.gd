@@ -2,7 +2,14 @@ extends "res://tests/lib/test_case.gd"
 ## The right sidebar (backlog 202) in the real main scene at 1920×1080: the civilization's name and its government at
 ## the board's right edge, full height under the top strip, opening the civilization modal. Hooks: main.sidebar
 ## (heading, name_button, government_button).
+## In detail (from docs/testing.md, 331): The right sidebar (202) in the real `main.tscn`: the civilization's name and
+## government link (`main.sidebar`: `heading`, `name_button`, `government_button`), at the right edge under the top
+## strip with the Realm and hand to its left (1280×720, 1920×1080), opening the civilization modal (click, Enter),
+## following Anarchy, no top-bar button, in the focus order after the strip, hidden on the start screens; the mock's
+## frame (221): the top bar on a full-bleed ruled `Strip`, the open `Rail` with a hairline, the government as a
+## `CapsLink`, the Realm heading level with the rail's rule
 
+const Looks := preload("res://tests/lib/surface_looks.gd")
 const TOLERANCE := 1.0
 
 var _old_window_size := Vector2i.ZERO
@@ -51,7 +58,7 @@ func test_the_sidebar_runs_down_the_right_edge_with_the_realm_and_hand_to_its_le
 		var main: Node = await open_at(size)
 		var rail: Rect2 = (main.sidebar as Control).get_global_rect()
 		var viewport: Vector2 = main.get_viewport_rect().size
-		var strip: Rect2 = (main.counter(GameEngine.FOOD) as Control).get_parent().get_global_rect()
+		var strip: Rect2 = (MainProbe.counter(main, GameEngine.FOOD) as Control).get_parent().get_global_rect()
 		check(viewport.x - rail.end.x <= Tokens.SPACE_4 + TOLERANCE, "%s: at the right edge: ends at %d of %d" % [size, rail.end.x, viewport.x])
 		check(rail.position.y >= strip.end.y - TOLERANCE, "%s: under the top strip: %d, strip ends %d" % [size, rail.position.y, strip.end.y])
 		check(viewport.y - rail.end.y <= Tokens.SPACE_4 + TOLERANCE, "%s: full height: ends at %d of %d" % [size, rail.end.y, viewport.y])
@@ -83,8 +90,8 @@ func test_under_anarchy_the_sidebar_reads_anarchy() -> void:
 	var e := Game.engine
 	check(e.revolt(), "revolt: %s" % e.revolt_error())
 	e.end_turn()
-	if not main.event_modal().is_empty():
-		main.event_modal_ok_button().pressed.emit()
+	if not MainProbe.event_modal(main).is_empty():
+		MainProbe.event_modal_ok_button(main).pressed.emit()
 	await wait_frames()
 	check(e.anarchy() != -1 and e.government() == -1, "precondition: Anarchy, no government (253)")
 	eq(main.sidebar.government_button.text, "ANARCHY ›", "the sidebar names Anarchy while no government rules")
@@ -105,7 +112,7 @@ func test_the_top_bar_has_no_civilization_button() -> void:
 
 ## main's top strip, the TopBar holding the counters (218: they sit in a row of their own inside it).
 func top_strip(main: Node) -> Node:
-	var node: Node = main.counter(GameEngine.FOOD)
+	var node: Node = MainProbe.counter(main, GameEngine.FOOD)
 	while node != null and not node is TopBar:
 		node = node.get_parent()
 	return node
@@ -155,10 +162,11 @@ func test_the_top_bar_sits_on_a_full_bleed_strip_ruled_underneath() -> void:
 		var r := strip.get_global_rect()
 		eq(r.position, Vector2.ZERO, "%s: from the window's top-left corner" % size)
 		check(absf(r.size.x - viewport.x) <= TOLERANCE, "%s: the window's full width: %d of %d" % [size, r.size.x, viewport.x])
-		var box := strip.get_theme_stylebox("panel") as StyleBoxFlat
-		check(box != null, "%s: a flat box" % size)
+		var grain := Looks.mismatch(strip.get_theme_stylebox("panel"), Looks.grain(Palette.RAISED))
+		check(grain == "", "%s: grain under RAISED (341): %s" % [size, grain])
+		var box := Looks.frame_of(strip.get_theme_stylebox("panel"))
+		check(box != null, "%s: a framed box" % size)
 		if box != null:
-			eq(box.bg_color, Palette.RAISED, "%s: RAISED" % size)
 			eq(box.border_color, Palette.TEXT, "%s: a TEXT rule" % size)
 			eq([box.border_width_left, box.border_width_top, box.border_width_right, box.border_width_bottom], [0, 0, 0, 3],
 				"%s: 3 px along the bottom only" % size)
@@ -171,11 +179,11 @@ func test_the_rail_is_open_on_the_board_with_a_hairline_to_its_left() -> void:
 		var bar: Control = main.sidebar
 		var viewport: Vector2 = main.get_viewport_rect().size
 		eq(bar.theme_type_variation, &"Rail", "%s: the Rail look" % size)
-		var box := bar.get_theme_stylebox("panel") as StyleBoxFlat
-		check(box != null, "%s: a flat box" % size)
+		var grain := Looks.mismatch(bar.get_theme_stylebox("panel"), Looks.grain(Palette.BACKGROUND))
+		check(grain == "", "%s: the board's grain, so a sliding screen passes under it (224, 341): %s" % [size, grain])
+		var box := Looks.frame_of(bar.get_theme_stylebox("panel"))
+		check(box != null, "%s: a framed box" % size)
 		if box != null:
-			check(not box.draw_center or box.bg_color.a == 0.0 or box.bg_color == Palette.BACKGROUND,
-				"%s: no fill of its own, or the board's (224: a sliding screen passes under it)" % size)
 			eq(box.border_color, Palette.HAIRLINE, "%s: a HAIRLINE rule" % size)
 			eq([box.border_width_left, box.border_width_top, box.border_width_right, box.border_width_bottom], [1, 0, 0, 0],
 				"%s: 1 px on the left only" % size)

@@ -53,6 +53,11 @@ func describe(_card_db: Dictionary) -> String:
 	return op
 
 
+## The name of the card this effect unlocks, for the face's one Unlocks line (382); "" for any other effect.
+func unlocked_name(_card_db: Dictionary) -> String:
+	return ""
+
+
 ## Full rules text for the tooltip, without the trigger prefix. Defaults to describe.
 func describe_long(card_db: Dictionary) -> String:
 	return describe(card_db)
@@ -92,6 +97,13 @@ func referenced_cards() -> Array[String]:
 ## Checks referenced cards once every card is loaded (e.g. their type); problems go to errors.
 func check_references(_card_db: Dictionary, _errors: Array[String]) -> void:
 	pass
+
+
+## The zones whose cards this effect counts when it resolves, so a turn forecast reads them (336): gain_per_tag's zone.
+## An op that counts a zone's cards overrides it; ops that count only the board (TurnLoop.FORECAST_ZONES, read by
+## every forecast) needn't.
+func reads_zones() -> Array[String]:
+	return []
 
 
 ## The zone whose cards this effect targets, or "" if it needs no target.

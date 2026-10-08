@@ -4,6 +4,11 @@ extends "res://tests/lib/test_case.gd"
 ## Hooks: main.sidebar's name_button and government_button (202; the top-bar button until then) open the modal;
 ## main.identity_modal shows both: shown() is the
 ## names shown, top to bottom ([] while closed), body_text() the modal's text without markup, close_button, close().
+## In detail (from docs/testing.md, 331): The civilization and government in the real `main.tscn` (088, 115, 119): one
+## top-bar button naming both, the modal showing the civilization then the government (rules, then flavor; the quote
+## only in details since 231; "No bonus."), Esc / Close, above the log drawer, one or neither, a new government, no
+## empty lines; End turn on screen at 1920×1080; uses `identity_button()` and `identity_modal` (`shown()`,
+## `body_text()`, `close_button`)
 
 
 ## The real card id of the civilization or government in play, or "".
@@ -34,7 +39,7 @@ func with_engine(engine: GameEngine, body: Callable) -> void:
 func test_no_civilization_or_government_rows_in_the_play_area() -> void:
 	var main := open_main()
 	main.start_game(1)
-	for h in main.section_headings():
+	for h in MainProbe.section_headings(main):
 		check(not h.text in ["Civilization", "Government"], "no %s heading" % h.text)
 	check(not main.views.has(Game.engine.civilization()), "no view for the civilization")
 	check(not main.views.has(Game.engine.government()), "no view for the government")
@@ -72,7 +77,7 @@ func test_esc_and_close_close_it_and_it_blocks_the_board_keys() -> void:
 	eq(Game.engine.turn, 1, "E doesn't end the turn while it is open")
 	press_key(main, KEY_ESCAPE)
 	eq(modal.shown(), [], "Esc closes it")
-	check(not main.menu_buttons()[0].is_visible_in_tree(), "and doesn't open the menu")
+	check(not MainProbe.menu_buttons(main)[0].is_visible_in_tree(), "and doesn't open the menu")
 	main.sidebar.government_button.pressed.emit()
 	modal.close_button.pressed.emit()
 	eq(modal.shown(), [], "Close closes it")

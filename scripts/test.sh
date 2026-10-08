@@ -17,7 +17,8 @@ if [[ ! -f "$stamp" ]] || [[ -n "$(find . -name '*.gd' -newer "$stamp" -not -pat
 fi
 
 jobs="${TEST_JOBS:-$(scripts/cpus.sh || sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
-work="$(mktemp -d "${TMPDIR:-/tmp}/4x-tests.XXXXXX")"
+tmp="${TMPDIR:-/tmp}"
+work="$(mktemp -d "${tmp%/}/4x-tests.XXXXXX")"  # no "//" in the shards' user folders (330)
 trap 'rm -rf "$work"' EXIT
 
 niceness=0
@@ -50,9 +51,31 @@ for ((i = 0; i < jobs; i++)); do
 	fi
 done
 
+filter=""
+balance=0
+for arg in "$@"; do if [[ "$arg" == --balance ]]; then balance=1; else filter="$arg"; fi; done
+
+# The Python tools' unittest tests (scripts/tests/, 397) run with the main suite; the filter matches their names.
+if ((balance == 0)); then
+	python3 -m unittest discover -s scripts/tests -t scripts/tests ${filter:+-k "$filter"} >"$work/py" 2>&1
+	ran="$(sed -n -E 's/^Ran ([0-9]+) tests?.*/\1/p' "$work/py")"
+	if [[ "$ran" =~ ^[0-9]+$ ]] && ((ran > 0)); then
+		tests=$((tests + ran))
+		if ! grep -q -E '^OK' "$work/py"; then
+			cat "$work/py"
+			py_failures="$(sed -n -E 's/^FAILED \((.*)\)$/\1/p' "$work/py" | grep -o -E '[0-9]+' | awk '{n += $1} END {print n}')"
+			failures=$((failures + ${py_failures:-1}))
+			status=1
+		fi
+	elif ! grep -q -E '^(Ran 0 tests|NO TESTS RAN)' "$work/py"; then
+		cat "$work/py"
+		echo "FAIL scripts/tests crashed before its summary (output above)" >&2
+		failures=$((failures + 1))
+		status=1
+	fi
+fi
+
 if ((tests == 0)); then
-	filter=""
-	for arg in "$@"; do [[ "$arg" == --balance ]] || filter="$arg"; done
 	echo "No tests matched filter '$filter'." >&2
 	status=1
 fi

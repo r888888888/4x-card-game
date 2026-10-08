@@ -1,6 +1,12 @@
 extends "res://tests/lib/test_case.gd"
 ## The shape of ui/ (backlog 052): each UI component lives in its own script, and no UI script
 ## reads engine state that an engine query covers. Checks the source files; behavior is covered by the UI smoke test.
+## In detail (from docs/testing.md, 331): The shape of `ui/`: one script per component (and `CardView`'s content and
+## motion in `CardFace` and `CardMotion`), no engine internals (`state`, the RNG, the log lines; 175: the config) read
+## in `ui/`; 175: one `ActionButton`, `main.gd` asks `hand_input_error()`; 176: `BoardViews` and `BoardLayout`,
+## `main.gd` within 500 lines, `zone_of` in the UI; 183: no `const` holds a Palette colour; 316: the card handlers in
+## `CardActions`, not `main.gd`, which has room under 450 lines; 392: no test hooks on `main.gd` (tests read main's
+## components through tests/lib/main_probe.gd)
 
 const MAIN_PATH := "res://ui/main.gd"
 const CARD_ACTIONS_PATH := "res://ui/card_actions.gd"  # 316: the card handlers, out of main
@@ -129,6 +135,7 @@ func test_ui_asks_the_engine_for_targeting_tech_eras_and_open_piles() -> void:
 	var tree := source("res://ui/knowledge_screen.gd")
 	check(tree.contains("tech_eras()"), "knowledge_screen.gd builds from tech_eras()")
 	check(not tree.contains(".config") and not tree.contains("tech_tree()"), "knowledge_screen.gd reads no config or tech_tree()")
+	check(not tree.contains("Opens at"), "knowledge_screen.gd shows tech_eras()' opens, writing no \"Opens at\" (337)")
 	var supply := source("res://ui/supply_screen.gd")
 	check(supply.contains("open_supply_piles()") and not supply.contains("supply_locked"),
 		"supply_screen.gd shows open_supply_piles() and filters nothing itself")
@@ -272,3 +279,62 @@ func test_main_has_room_under_its_limit() -> void:
 	var lines := source(MAIN_PATH).count("\n")
 	check(lines <= 450, "ui/main.gd: %d lines, want at most 450 (316)" % lines)
 
+
+
+# --- 392: main.gd holds no test hooks ---
+
+const HOOK_FREE_DIRS := ["res://ui", "res://sim", "res://engine", "res://autoload"]
+## main.gd's public methods that aren't test hooks although only the engine or Godot calls them.
+const MAIN_ENTRY_POINTS := ["quit_hook"]
+
+
+## The .gd files under dir and its subfolders.
+func scripts_under(dir: String) -> Array[String]:
+	var out: Array[String] = []
+	for file in DirAccess.get_files_at(dir):
+		if file.ends_with(".gd"):
+			out.append(dir + "/" + file)
+	for sub in DirAccess.get_directories_at(dir):
+		out.append_array(scripts_under(dir + "/" + sub))
+	return out
+
+
+## Whether a script other than tests calls main's method name: ".name(" in any script under HOOK_FREE_DIRS but main
+## and those defining a name of their own (there ".name(" is most likely theirs: TopBar's Counter.forecast_text), or in
+## main itself a bare call or a callable ("name(", "name)", "name,", "name.bind") outside its definition.
+func called_outside_tests(name: String, main_lines: PackedStringArray) -> bool:
+	var dotted := RegEx.create_from_string("\\." + name + "\\(")
+	var defines := RegEx.create_from_string("(?m)^(static )?func " + name + "\\(")
+	for dir in HOOK_FREE_DIRS:
+		for path in scripts_under(dir):
+			var text := source(path)
+			if path != MAIN_PATH and defines.search(text) == null and dotted.search(text) != null:
+				return true
+	var bare := RegEx.create_from_string("(^|[^.\\w])" + name + "(\\(|\\)|,|\\.bind)")
+	for line in main_lines:
+		if not line.begins_with("func " + name + "(") and not line.strip_edges().begins_with("#") and bare.search(line) != null:
+			return true
+	return false
+
+
+## main.gd's public methods that only tests use: a "Test hook" doc comment, or no caller outside tests/.
+func main_test_hooks() -> Array[String]:
+	var lines := source(MAIN_PATH).split("\n")
+	var found: Array[String] = []
+	var doc := ""
+	for line in lines:
+		if line.begins_with("##"):
+			doc += line
+			continue
+		var name := ""
+		if line.begins_with("func ") and not line.begins_with("func _"):
+			name = line.trim_prefix("func ").get_slice("(", 0)
+		if name != "" and not MAIN_ENTRY_POINTS.has(name):
+			if doc.contains("Test hook") or not called_outside_tests(name, lines):
+				found.append(name)
+		doc = ""
+	return found
+
+
+func test_main_has_no_test_hooks() -> void:
+	eq(main_test_hooks(), [] as Array[String], "ui/main.gd's test hooks (move them to tests/lib/main_probe.gd)")
