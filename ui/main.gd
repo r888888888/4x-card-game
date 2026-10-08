@@ -283,6 +283,7 @@ func _build_layout() -> void:
 	var layout := BoardLayout.new(self, _restart, _close_menu, _push_new_game_screen)
 	board = layout.board
 	top_bar = layout.top_bar
+	add_child(top_bar.popover)  # above the board, under the modals' later layers (379)
 	play_area = layout.play_area
 	relief = layout.relief
 	menu = layout.menu

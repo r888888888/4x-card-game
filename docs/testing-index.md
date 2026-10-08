@@ -139,6 +139,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_revolution.gd` | Revolution (148, 155) |
 | `tests/test_rules.gd` | `GameEngine` rules: setup, playing cards, the turn loop, scoring, game end |
 | `tests/test_scaffolding.gd` | No red-phase scaffolding left (333; `tests/lib/scaffolding_checks.gd`) |
+| `tests/test_score_breakdown.gd` | Score and pop breakdowns by source, and their popover (380; UI) |
 | `tests/test_screen_header.gd` | The screens' `ScreenHeader` and transitions (104, 118; UI) |
 | `tests/test_script_size.gd` | Script size limits (`tests/lib/script_sizes.gd`) |
 | `tests/test_sea_slots.gd` | Sea slots (366) |
@@ -200,6 +201,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_unrest.gd` | Unrest (144) |
 | `tests/test_upgrade_ribbons.gd` | Upgrades on screen (302; UI); the details' Upgrades section (387) |
 | `tests/test_upgrades.gd` | Building upgrades (300); `upgrade_rows` (387) |
+| `tests/test_upkeep_breakdown.gd` | Upkeep and unrest-limit breakdowns by source, and the counters' popover (379; UI) |
 | `tests/test_vellum.gd` | Targeting under vellum (210; UI) |
 | `tests/test_veterans.gd` | Veteran units (165) |
 | `tests/test_veteran_pips.gd` | Veteran pips on unit cards, lit as a tally after a raid (388; UI) |

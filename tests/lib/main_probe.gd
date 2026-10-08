@@ -95,6 +95,16 @@ static func counter(main: MainScreen, key: String) -> Control:
 	return main.top_bar.counter(key)
 
 
+## The resource whose breakdown popover is open, or "" (TopBar.breakdown_key, 379).
+static func breakdown_key(main: MainScreen) -> String:
+	return main.top_bar.breakdown_key()
+
+
+## The open breakdown popover's lines as [left, right], or [] while closed (TopBar.breakdown_rows, 379).
+static func breakdown_rows(main: MainScreen) -> Array:
+	return main.top_bar.breakdown_rows()
+
+
 ## The top bar's forecast for key, apart from its figure (TopBar.forecast_text, 201).
 static func forecast_text(main: MainScreen, key: String) -> String:
 	return main.top_bar.forecast_text(key)

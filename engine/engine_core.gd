@@ -56,6 +56,7 @@ var config: Dictionary  # normalized by DataLoader.parse_config
 var state := GameState.new()
 var play_target := -1  # target uid of the card being played; -1 outside play_card
 var _outcome: Dictionary = {}  # the card_played outcome being built; empty outside play_card
+var _insight_gains := 0  # insight gains made on this engine; UpkeepBreakdown credits insight_per_gain per gain (379)
 var _setting_up := false  # new_game is setting the game up: no milestones; false outside new_game
 
 var seed_value: int:
@@ -147,6 +148,7 @@ func set_unrest(n: int) -> int:
 func gain(resource: String, amount: int, source: CardInstance) -> void:
 	if resource == INSIGHT:
 		amount = maxi(0, amount + Modifiers.total(self, Modifiers.INSIGHT_PER_GAIN))
+		_insight_gains += 1
 	if resource == UNREST:
 		amount = set_unrest(resources.get(UNREST, 0) + amount)
 	else:
