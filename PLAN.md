@@ -301,7 +301,10 @@ Breakdown (379, `engine/upkeep_breakdown.gd`): `upkeep_breakdown(resource)` list
 `{label, count, amount}` in upkeep order (crowding, overextension, working cards, events), then what pop eats, then
 Anarchy's drain; each row is what its step actually changed (`TurnLoop.resolve_upkeep` reports each step), so
 `upkeep_forecast` is the rows' sums. `unrest_limit_breakdown()` lists the limit's government and modifiers. Clicking a
-top bar resource counter (or Enter on it) opens them in a `ui/popover.gd` under it.
+top bar resource counter (or Enter on it) opens them in a `ui/popover.gd` under it. Score and Pop open
+`score_breakdown()` and `pop_breakdown()` the same way (380, `engine/score_breakdown.gd`): each card's VP, the VP from
+effects and from pop, summing to `score()`; each territory's pop. Both kinds build their rows on a `Ledger`
+(`engine/ledger.gd`).
 `turn_forecast()` (309, `TurnLoop.forecast`) is the whole next turn's start for bots: `{score, pop, starve, <resource>:
 change}` after upkeep, feeding (food never below 0), era unlocks (their unrest), Anarchy's fall and drain and the raids
 that strike (pillage or repel), not the draw, the renewal or the new event. `TurnLoop.start_turn` runs the same steps

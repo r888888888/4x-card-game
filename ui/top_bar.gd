@@ -5,15 +5,16 @@ extends HBoxContainer
 ## (115) Buy Cards, Knowledge, Log and Menu (the civilization, the government and End turn are in the Sidebar: 202, 203). Any
 ## change to Food, Wealth, Insight, Unrest, Score or Pop rolls that counter's figure in place (181, 218). The turn plate
 ## and the counters sit Tokens.SPACE_5 apart in a row of their own, the mock's strip (218); the buttons SPACE_3.
-## Clicking a resource counter, or Enter on it, opens its breakdown popover: next upkeep's change by source (379).
+## Clicking a resource counter, or Enter on it, opens its breakdown popover: next upkeep's change by source (379);
+## Score and Pop open what makes them up (380).
 
 const GLYPH := Tokens.TYPE_NUMERAL  # a counter's glyph (180): the size of its figure (242)
 # Keys for counter() beside the resources (GameEngine.FOOD, WEALTH, INSIGHT, UNREST) (177).
 const SCORE := "score"
 const POP := "pop"
 const TURN := "turn"
-## The counters whose click opens a breakdown popover (379).
-const BREAKDOWNS: Array[String] = [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST]
+## The counters whose click opens a breakdown popover (379, 380).
+const BREAKDOWNS: Array[String] = [GameEngine.FOOD, GameEngine.WEALTH, GameEngine.INSIGHT, GameEngine.UNREST, SCORE, POP]
 
 var menu_button: Button  # "Menu" (its key, Esc, is in its tooltip: 120)
 var log_button: Button  # "Log": opens the log drawer (115); its key, L, is in its tooltip (120)
@@ -81,7 +82,7 @@ func reset_counters() -> void:
 	close_breakdown()
 
 
-## The resource whose breakdown popover is open, or "" (379).
+## The counter whose breakdown popover is open (a resource, SCORE or POP), or "" (379, 380).
 func breakdown_key() -> String:
 	return _popover_key if popover.is_open() else ""
 
@@ -200,9 +201,16 @@ func forecast_text(key: String) -> String:
 	return (_counters[key] as Counter).forecast_text() if _counters.has(key) else ""
 
 
-## The popover's sections for resource key (379): next upkeep's rows and their net; Unrest adds its limit's rows and
+## The popover's sections for counter key: Score's and Pop's sources and their total (380); for a resource (379), next
+## upkeep's rows and their net; Unrest adds its limit's rows and
 ## total. On the last turn, one line saying there is no next upkeep.
 func _breakdown(e: GameEngine, key: String) -> Array:
+	if key == SCORE or key == POP:
+		var rows := []
+		for row: Dictionary in e.score_breakdown() if key == SCORE else e.pop_breakdown():
+			rows.append([_row_label(row), _figure(row.amount)])
+		var total := e.score() if key == SCORE else e.total_pop()
+		return [{"heading": "Score" if key == SCORE else "Pop", "rows": rows, "total": ["Total", _figure(total)]}]
 	var forecast := e.upkeep_forecast()
 	if forecast.is_empty():
 		return [{"heading": "Next upkeep", "rows": [["No next upkeep: this is the last turn.", ""]], "total": []}]
@@ -242,6 +250,11 @@ func _on_counter_input(event: InputEvent, key: String) -> void:
 ## "Farm ×2", or the label alone for one copy.
 static func _row_label(row: Dictionary) -> String:
 	return row.label + (" ×%d" % row.count if row.count > 1 else "")
+
+
+## n as it stands, a real minus when negative ("2", "−1").
+static func _figure(n: int) -> String:
+	return str(n).replace("-", "−")
 
 
 ## n with its sign, a real minus for a loss ("+2", "−1", "+0").
