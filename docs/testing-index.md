@@ -80,6 +80,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_focus_ring.gd` | The focus ring waits for Tab (230) |
 | `tests/test_food_upkeep.gd` | Pop eating food at upkeep, and a first shortfall's one death |
 | `tests/test_forecast.gd` | `upkeep_forecast` |
+| `tests/test_frees_worker.gd` | An upgrade with `frees_worker`: its base uses no worker but keeps its slot (415) |
 | `tests/test_gain_actions.gd` | The `gain_actions` op (128) |
 | `tests/test_gain_per_keyword.gd` | The `gain_per_keyword` op (081) |
 | `tests/test_gain_per_pop.gd` | The `gain_per_pop` op (304) |
