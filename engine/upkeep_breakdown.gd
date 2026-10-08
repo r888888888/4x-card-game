@@ -29,11 +29,18 @@ static func ledger(e: GameEngine) -> Dictionary:
 			books[r].add(label, card, delta)
 		last.resources = f.resources.duplicate()
 		last.gains = f._insight_gains)
+	var due := TurnLoop.building_upkeep_due(f)
 	if e.population_on():
 		books[GameEngine.FOOD].add(POP_EATS, null, -f.total_pop() * e.config.population.food_upkeep)
 	var pop_before := f.total_pop()
 	if e.population_on():
 		Population.feed(f)
+	var held := {GameEngine.WEALTH: f.resources.get(GameEngine.WEALTH, 0), GameEngine.UNREST: f.resources.get(GameEngine.UNREST, 0)}
+	TurnLoop.pay_building_upkeep(f, due)
+	for r in held:
+		if books.has(r):
+			var label := TurnLoop.BUILDINGS_UPKEEP if r == GameEngine.WEALTH else TurnLoop.UPKEEP_SHORT
+			books[r].add(label, null, f.resources.get(r, 0) - held[r])
 	var rows := {}
 	for r in books:
 		rows[r] = (books[r] as Ledger).rows()

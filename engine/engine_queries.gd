@@ -235,6 +235,12 @@ func unrest_limit_breakdown() -> Array[Dictionary]:
 	return UpkeepBreakdown.limit_rows(_as_engine())
 
 
+## The wealth the working base buildings owe at upkeep (405): the sum of their upkeep. Idle, fallen-back and unfinished
+## buildings owe nothing, nor do upgrades and projects.
+func building_upkeep_due() -> int:
+	return TurnLoop.building_upkeep_due(_as_engine())
+
+
 ## The unrest the next upkeep adds for big territories (282): +1 per tier each settled territory is above the ruling
 ## government's tolerated tier. 0 with unrest or tiers off, no government, or one that tolerates any size.
 func size_unrest() -> int:

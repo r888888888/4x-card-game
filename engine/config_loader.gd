@@ -28,7 +28,8 @@ const UPGRADE_ONLY_BUILT := "'%s' is an upgrade; build it from the build menu"
 ## territory_value, raid_min_size, raid_gap: raid pacing (257), each 0 when unset,
 ## raid_hoard_step, raid_plunder_pct: how raids grow with the food and wealth held (374), each 0 (off) when unset,
 ## raid_plunder_era_pct: the plunder share's extra points per era after the first (377), 0 (off) when unset,
-## veteran_max: the most veteran counters a unit can gain by repelling raids (165), 0 (no veterans) when unset}.
+## veteran_max: the most veteran counters a unit can gain by repelling raids (165), 0 (no veterans) when unset,
+## building_upkeep: each working base building's wealth upkeep unless it sets its own (405), 0 when unset}.
 static func parse_config(raw: Variant, resources: Array[String], cards: Dictionary, src: String, errors: Array[String], warnings: Array[String]) -> Dictionary:
 	if not (raw is Dictionary):
 		errors.append("%s: must be a JSON object" % src)
@@ -48,6 +49,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		"raid_plunder_pct": Fields.read_int(raw, "raid_plunder_pct", errs, 0, 0),
 		"raid_plunder_era_pct": Fields.read_int(raw, "raid_plunder_era_pct", errs, 0, 0),
 		"veteran_max": Fields.read_int(raw, "veteran_max", errs, 0, 0),
+		"building_upkeep": Fields.read_int(raw, "building_upkeep", errs, 0, 0),
 		"hand_limit": 0,
 		"deck_model": Fields.read_string(raw, "deck_model", errs, DECK_MODELS, "fixed"),
 		"starting": {"resources": {}, "tableau": [], "territory": "", "civilization": "", "government": ""},
@@ -71,6 +73,7 @@ static func parse_config(raw: Variant, resources: Array[String], cards: Dictiona
 		if not config.keywords.has(k):
 			errs.append("terrains: '%s' is not in 'keywords'" % k)
 	_check_terrains(cards, config.terrains, errs)
+	CardTypeFields.resolve_upkeep(cards, config.building_upkeep)
 	if config.raid_plunder_pct > 100:
 		errs.append("'raid_plunder_pct' must be an integer from 0 to 100, not %d" % config.raid_plunder_pct)
 
@@ -443,3 +446,4 @@ static func _parse_counts(deck: Dictionary, field: String, cards: Dictionary, re
 		else:
 			out[id] = n
 	return out
+
