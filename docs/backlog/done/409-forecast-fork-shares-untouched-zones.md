@@ -2,7 +2,7 @@
 id: 409
 title: Forecasts fork only the zones they can change
 type: feature
-status: ready
+status: wontfix
 branch: feat/409-forecast-fork-shares-untouched-zones
 ---
 
@@ -60,3 +60,11 @@ fall and drain, raids) can change: deck, hand, territory_deck, frontier, reveal,
   exactly; the run is faster, by the share the measurement predicted.
 
 ## Log
+- 2026-10-08: Measured before building, as the Design notes ask (scratch script, GenericBot on the real data, seeds
+  1–3 at turns 20, 40 and 60, run with the user's OK). The shared zones hold 28–41% of the cards (182–249 in all;
+  the territory deck is most of them), and copying them is 27–38% of a fork (105–172 µs of 363–487). Forecast forks
+  are about 40% of the bot's forks and forks about 25–30% of bot time after 408, so the item would save about 3–4% of
+  sim time. Shelved at the user's choice: not worth a shared-zone flag, a refusal path and a forecast-only fork.
+  The discard, event discard, trashed and removed piles grow large too (up to 42, 38, 25 and 3) but a forecast adds
+  to them, so sharing them would need copy-on-write. If fork cost matters later, spec copy-on-write zones, which would
+  also cheapen the bot's candidate-action forks (the other ~60%).

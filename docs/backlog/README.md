@@ -72,7 +72,7 @@ Top bar (379 brings the `Popover` that 380 and 383 reuse):
 Sim speed (from the 2026-10-08 profile; before the food rebalance, whose balance runs it speeds up):
 10. 408 the fallen-back cards in one pass, so `score()` stops dominating bot time (measured −13.5% from one line,
     30–40% expected in all)
-11. 409 forecasts fork only the zones they can change (measure first; ~4–5% expected)
+11. 409 forecasts fork only the zones they can change (wontfix 2026-10-08: measured ~3–4% of sim time; see its Log)
 
 Food and building upkeep (prioritised 2026-10-08, ahead of the claimants):
 12. 405 buildings cost wealth upkeep; a shortfall adds unrest (engine)
