@@ -2,7 +2,7 @@
 id: 411
 title: A building's Upgrades row squeezes its status to one letter a line
 type: bug
-status: review
+status: done
 branch: fix/411-upgrade-status-wraps-per-letter
 ---
 
