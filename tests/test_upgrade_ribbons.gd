@@ -5,7 +5,8 @@ extends "res://tests/lib/test_case.gd"
 ## hatched} per ribbon); on BuildModal: upgrade_row_id(card_id, base) (static), face_text(). 354: an upgrade row's
 ## flavor is its own. 387: a building's details list its upgrades and build them; hooks on CardDetailsModal:
 ## upgrade_rows(), upgrades_shown().
-## 410: a building's card has no "+ Upgrade" chip; a click on it opens those details.
+## 410: a building's card has no "+ Upgrade" chip but a badge while it has an upgrade not yet built (hook on CardView:
+## upgrade_badge(), null when none); a click on it opens those details.
 
 const TIERS := [
 	{"id": "hamlet", "name": "Hamlet", "pop": 0, "slots": 0},
@@ -204,14 +205,44 @@ func test_a_building_that_could_take_an_upgrade_shows_no_chip() -> void:
 		eq(ribbon_names(main, chapel), ["Sanctum"], "the Chapel still shows the Sanctum's ribbon"))
 
 
-func test_no_chip_while_a_decision_is_owed() -> void:
+## Whether card uid's view shows its upgrade badge.
+func badge_shown(main: Node, uid: int) -> bool:
+	var badge: Control = view_of(main, uid).upgrade_badge()
+	return badge != null and badge.is_visible_in_tree()
+
+
+func test_a_building_with_an_upgrade_not_yet_built_carries_the_badge() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(3)
+		var farm := put_home(e, "farm")
+		var chapel := put_home(e, "chapel")
+		await open_home(main)
+		check(badge_shown(main, farm), "the Farm could take a Plough or a Ditch")
+		var badge: Control = view_of(main, farm).upgrade_badge()
+		if badge != null:
+			eq(badge.text, "▲", "the badge's mark")
+			check(badge.tooltip_text != "", "with a tooltip")
+		check(badge_shown(main, chapel), "the Chapel's Sanctum needs a Village, but it is an upgrade to come")
+		build_it(e, "plough", farm)
+		build_it(e, "ditch", farm)
+		await refresh(main)
+		check(not badge_shown(main, farm), "the Farm carries both")
+		set_home_pop(e, 8)
+		build_it(e, "cathedral", build_it(e, "sanctum", chapel))
+		await refresh(main)
+		check(not badge_shown(main, chapel), "the Chapel carries its whole chain"))
+
+
+func test_the_badge_shows_whatever_stops_the_upgrade_now() -> void:
 	await with_main(ribbon_engine(), func(main: Node):
 		var e := home_at(8)
 		var farm := put_home(e, "farm")
 		await open_home(main)
+		e.resources.food = 0
 		check(e.play_card(put_in_hand(e, "explorer")), "play Explorer: a territory choice is owed")
-		await wait_frames()
-		check(not button_texts(main, farm).has("+ Upgrade"), "no chip on the Farm"))
+		await refresh(main)
+		check(badge_shown(main, farm), "no food and a decision owed: the badge still shows")
+		check(not button_texts(main, farm).has("+ Upgrade"), "and no chip"))
 
 
 func test_a_click_on_a_building_opens_its_details_which_build_its_upgrade() -> void:
