@@ -2,7 +2,7 @@
 id: 384
 title: Interregnum - Anarchy lasts a fixed 3 turns
 type: feature
-status: in-progress
+status: review
 branch: feat/384-simpler-anarchy
 ---
 
@@ -20,31 +20,31 @@ The 3 turns are the stage for what follows: the honeymoon ([399](399-honeymoon.m
 Fixtures are `tests/lib/anarchy_case.gd`'s: Chiefs (limit 5), Kings (limit 7), Feast (order, −2 unrest); the unrest
 block with `anarchy_turns: 3` and no `renewal` unless a criterion says so.
 
-- [ ] AC1 (a fixed 3 turns): Given Anarchy falling at turn 2's start with 5 unrest, `event_counters(anarchy uid)` is 3 on
+- [x] AC1 (a fixed 3 turns): Given Anarchy falling at turn 2's start with 5 unrest, `event_counters(anarchy uid)` is 3 on
   turn 2, 2 on turn 3 and 1 on turn 4; at the end of turn 4 Anarchy leaves for `removed` and the government choice is
   owed before turn 5 starts (as today when counters ran out); after choosing Kings, unrest is 0 and turn 5 starts.
   Given a revolution declared with 1 unrest, Anarchy also lasts 3 turns (it falls at turn 2's start and ends at turn
   4's end).
-- [ ] AC2 (unrest doesn't change its length): Given Anarchy on its first turn with 5 unrest and Feast in hand, when
+- [x] AC2 (unrest doesn't change its length): Given Anarchy on its first turn with 5 unrest and Feast in hand, when
   Feast is played unrest is 3 and the counters stay 3; Anarchy still ends at the end of its 3rd turn. Given unrest
   raised to 12 during Anarchy (no government, so no limit caps it), Anarchy still ends after its 3rd turn and choosing
   Chiefs sets unrest to 0.
-- [ ] AC3 (action cards only): Given Anarchy ruling, `play_error` is "" for a non-order action card from `TEST_CARDS` and
+- [x] AC3 (action cards only): Given Anarchy ruling, `play_error` is "" for a non-order action card from `TEST_CARDS` and
   for Feast; for a unit or a government in hand it is `"Anarchy: only action cards can be played."` and `play_card`
   changes nothing. Growing, buying from the supply and researching are still refused with `NOTHING_BUILT`.
-- [ ] AC4 (no buying out): Given Anarchy ruling with 4 unrest and 30 wealth, `legal_actions()` has no entry that ends
+- [x] AC4 (no buying out): Given Anarchy ruling with 4 unrest and 30 wealth, `legal_actions()` has no entry that ends
   Anarchy (no `restore_order`), and ending the turn leaves 30 wealth. The engine has no `restore_order`,
   `restore_order_error` or `order_relief`, the board no Restore order button, and the sim no `restored` metric.
-- [ ] AC5 (no drain): Given Anarchy ruling (or a revolution pending) with 10 food and 10 wealth and nothing else
+- [x] AC5 (no drain): Given Anarchy ruling (or a revolution pending) with 10 food and 10 wealth and nothing else
   changing them, when the next turn starts food and wealth are still 10, and `upkeep_forecast()` and `turn_forecast()`
   show no food or wealth lost to Anarchy.
-- [ ] AC6 (no action limit): Given Anarchy ruling (no government) and two Feasts in hand, `actions_left()` is −1
+- [x] AC6 (no action limit): Given Anarchy ruling (no government) and two Feasts in hand, `actions_left()` is −1
   (unlimited) and both Feasts can be played in the same turn.
-- [ ] AC7 (the revolt summary): Given Chiefs ruling and a revolution possible, `revolt_summary()` has the lines
+- [x] AC7 (the revolt summary): Given Chiefs ruling and a revolution possible, `revolt_summary()` has the lines
   "It lasts 3 turns.", "You can play action cards; nothing can be grown, bought or researched." and "When it ends,
   choose a government; unrest drops to 0.", and no line about calming, actions per turn, stores eaten or buying order;
   with no revolution possible it is `[]`, as today.
-- [ ] AC8 (loader): `unrest.anarchy_turns` is required, an integer ≥ 1 (else an error naming it); `max_counters`,
+- [x] AC8 (loader): `unrest.anarchy_turns` is required, an integer ≥ 1 (else an error naming it); `max_counters`,
   `drain_pct` and `allowed_tag` are no longer known fields of the unrest block (an unknown-field warning, like any
   other), and the block loads without them; the real data loads with no errors or warnings.
 
@@ -90,6 +90,9 @@ block with `anarchy_turns: 3` and no `renewal` unless a criterion says so.
 | AC8 | `test_anarchy`: `test_the_unrest_block_loads_with_its_defaults`, `test_unrest_block_validation`; `test_size_unrest::test_tolerates_loads_and_shows_in_the_government_text`; `test_real_data_loads` (green phase changes `data/config.json`) |
 
 ## Manual check
+Steps: `godot --path . -- --seed 5`; open the civilization modal, Revolt (read its summary), confirm, then end turns.
+- [ ] No Restore order button below the Realm while Anarchy rules; action cards in hand stay playable, others don't.
+- [ ] After its third turn the Government overlay opens, and the chosen government starts with 0 unrest.
 - [ ] Anarchy's card reads well and fits its face; its event panel counts 3, 2, 1.
 - [ ] The Revolt modal's summary reads well with the new lines.
 - [ ] Balance worry (for the user to run): every Anarchy now costs 3 turns, a calm revolution included (today about
@@ -105,3 +108,11 @@ block with `anarchy_turns: 3` and no `renewal` unless a criterion says so.
 - 2026-10-08: red tests rewritten for the 3-turn design. A government in hand under Anarchy now gets the Anarchy
   message (AC3), not "A government is chosen, not played." `anarchy_case.gd`'s `UNREST_BLOCK` keeps `max_counters`
   and `allowed_tag` during red only, so today's loader still loads; green removes them.
+- 2026-10-08: green. Setups fixed in three new tests (no criterion changed): the no-drain game starts with no Capital
+  (its ⟳ +2 food broke "nothing else changing them"), the 3-turn test puts Kings in the government deck, and
+  `test_cabinet_doors` ends 2 turns, not 3, to leave Anarchy one turn from its end. `test_government_deck`'s
+  "no limit: unrest unchanged" now expects 0 (unrest drops to 0 whatever the government). Merging main brought 379's
+  upkeep breakdown, whose drain row and its test (`test_anarchy_drain_is_the_last_row`) went too, with
+  `Ledger.add`'s `key` argument that only the drain row used.
+- Follow-up: `Feast` and `Assembly of Elders` keep the `order` tag, which no rule reads now; the GenericBot rollouts'
+  revolt weighing sees the 3-turn cost through `turn_forecast` (balance worry in the Manual check).
