@@ -290,8 +290,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Shipped set (131): six terrains (grassland, forest, hills, mountain, desert, marsh) times the features fresh water,
   flood plain (always with fresh water) and coastal; every keyword is on at least 2 territory types. Slots/housing come
   from a terrain base plus +1 housing per feature (flood plain also −1 slot, min 1), until a balance pass.
-- Buildings may list `requires` (keyword ids, any-of; on another type it is ignored with a warning, and on a unit it is
-  an error, 338). Any effect may have a `keyword`; it then applies
+- Buildings may list `requires` (keyword ids, any-of; events too, 416; on another type it is ignored with a warning,
+  and on a unit or a raid it is an error, 338). Any effect may have a `keyword`; it then applies
   only when its card's territory has that keyword (text: "… (on Flood Plain)").
 
 ## The deck model
@@ -595,7 +595,9 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
 - The turn's event (237: last in each turn start from turn 2, after upkeep, feeding, the Anarchy check and the
   hand draw; none on turn 1 or after the final turn): draws the top event,
   shuffling `event_discard` back in when the deck is empty or holds only raids that can't be drawn yet (266; nothing
-  when both are empty), makes it active with
+  when both are empty). Preconditions (416): an event whose `requires` no settled territory meets, or a raid with no
+  target, goes to `event_discard` unseen (no `event_drawn`, no effects) and the next event is drawn; with no event
+  met in either pile, no event that turn. The drawn event is made active with
   `turns_left` = its `discard.turns`, and resolves its `play` effects. Then `event_drawn(outcome)` reports it (079:
   `{uid, id, gained, lost, vp, drawn, created}`, before `changed`); the UI pops up a modal with the event and
   `outcome_summary(outcome)` ("No immediate effect" when empty), except when the game just ended. Play outcomes
@@ -608,8 +610,8 @@ The framework for solo opposition. Harmful ops (072), the Famine (083), eras (07
   (never with `discard`), and only a raid's effects may use the triggers `repel` and `pillage` (upkeep-safe ops only).
   When drawn it is announced: its play effects resolve and its target is fixed (`raid_target(uid)`, kept in the
   event's `territory_uid`) on the settled territory with any of `targets` (any territory when `targets` is empty) with
-  the lowest `defense`, then the most pop, then tableau order. A raid that finds no such territory fizzles (372): it goes
-  straight to `event_discard`, resolving nothing and starting no `raid_gap`, but is still the turn's event. It skips upkeep and two event phases later (257: at turn T+2's
+  the lowest `defense`, then the most pop, then tableau order. A raid that would find no such territory is never drawn
+  (372, 416: it goes to `event_discard` unseen, see Preconditions above). It skips upkeep and two event phases later (257: at turn T+2's
   start when drawn on turn T, before the new event is drawn; `raid_turns_left(uid)` counts 2, 1), it strikes: repelled when the target's defence ≥ its strength (its `repel` effects), else
   pillaged (its `pillage` effects, the units stationed there to the discard, `pop` pop lost, never below 0); then it
   goes to `event_discard` and `raid_resolved(outcome)` reports `{uid, id, target, strength, defense, repelled, units_lost,

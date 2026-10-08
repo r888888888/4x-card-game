@@ -2,7 +2,7 @@
 id: 416
 title: Events whose preconditions aren't met are discarded unseen
 type: feature
-status: in-progress
+status: review
 branch: feat/416-event-preconditions
 ---
 
@@ -11,27 +11,27 @@ An event that can't apply to the realm (Beached Whale with no coast, Sea Raiders
 the turn's event: it is quietly discarded and the next event is drawn, so every event the player sees means something.
 
 ## Acceptance criteria
-- [ ] AC1: Given a `TEST_CARDS` event with `"requires": ["coastal"]` on top of the event deck and an ordinary event
+- [x] AC1: Given a `TEST_CARDS` event with `"requires": ["coastal"]` on top of the event deck and an ordinary event
   under it, and no settled territory with `coastal`, when the turn's event is drawn, then the requires event is in
   `event_discard`, the ordinary event is in `active_events`, `event_drawn` is emitted once (for the ordinary event),
   and the requires event's play effects did not resolve.
-- [ ] AC2: Given the same event and a settled territory with `coastal` (any one of the listed keywords is enough), when
+- [x] AC2: Given the same event and a settled territory with `coastal` (any one of the listed keywords is enough), when
   the turn's event is drawn, then it is active and its play effects resolve. A territory still on the frontier
   (unsettled) does not count.
-- [ ] AC3: Given a raid whose `targets` match no settled territory on top of the event deck (raids allowed) and an
+- [x] AC3: Given a raid whose `targets` match no settled territory on top of the event deck (raids allowed) and an
   ordinary event under it, when the turn's event is drawn, then the raid goes to `event_discard` without
   `event_drawn` for it, no raid target, no `raid_gap` started (`last_raid_turn` unchanged), and the ordinary event is
   the turn's event. This replaces 372's fizzle (a raid with no target was still the turn's event).
-- [ ] AC4: Given a raid while raids aren't allowed (257 pacing), when drawn, then it still goes to the event deck's
+- [x] AC4: Given a raid while raids aren't allowed (257 pacing), when drawn, then it still goes to the event deck's
   bottom, not the discard (pacing is unchanged; the precondition is checked only for a card pacing lets through).
-- [ ] AC5: Given an event deck holding only unmet events and an event discard holding one ordinary event, when the
+- [x] AC5: Given an event deck holding only unmet events and an event discard holding one ordinary event, when the
   turn's event is drawn, then the unmet events go to the discard, the discard is shuffled in once, and an event whose
   precondition holds becomes the turn's event; given no such event in either pile, then no event that turn (no
   `event_drawn`) and the draw ends (each card is checked at most once per pile pass, no loop).
-- [ ] AC6: Loader: `requires` on an event is accepted (known keyword ids, the building rules); an unknown keyword is a
+- [x] AC6: Loader: `requires` on an event is accepted (known keyword ids, the building rules); an unknown keyword is a
   load error naming the card and field. `requires` on a raid is a load error (its `targets` are its precondition).
   The card text and tooltip show the requirement as for buildings.
-- [ ] AC7 (content invariant): every shipped event whose play or upkeep effects are all `gain_per_keyword` /
+- [x] AC7 (content invariant): every shipped event whose play or upkeep effects are all `gain_per_keyword` /
   `lose_per_keyword` on keywords K has `requires` covering K (it would do nothing without them).
 
 ## Out of scope
@@ -73,3 +73,10 @@ the turn's event: it is quietly discarded and the next event is drawn, so every 
   appears, and no modal or notice mentions a discarded event.
 
 ## Log
+- Red: AC2's met cases and AC4 (pacing) already passed; they guard the behaviour kept.
+- Green: `test_data_loader::test_requires_on_a_card_that_is_not_a_building_is_ignored_with_a_warning` listed events
+  among the types whose `requires` is ignored; AC6 changes that rule, so `EVENT` left its list (missed at the red
+  checkpoint). The "only applies to buildings" warning still names buildings only, the table's first type.
+- No log line for a discarded event: the player sees nothing of it.
+- Balance worry: inland realms no longer draw the coastal events (helpful and harmful), nor Drought without
+  desert/grassland; they draw more of the rest. `scripts/sim.sh --level 3 --compare <main checkout>` would show it.
