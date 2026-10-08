@@ -355,7 +355,7 @@ the token's alpha, `shadow_size` its blur, anti-aliased (`Surfaces.lift`).
 
 Cards are **index cards**, not app tiles: square corners, `sheet` face, 2 px `ink` border (Night: `rule`), and
 a **type band**: a 6 px plane-coloured strip across the top under the name, carrying the type glyph at its right
-end. On a hand-size face the card's **art plate** (§19) follows the band: 5:2, full width, 1 px `ink` frame.
+end. On a hand-size face the card's **art plate** (§19) follows the band: 16:9, full width, 1 px `ink` frame.
 Rules text below a hairline. VP bottom-right with the starburst. Printed on paper, on a soft `shadow.card` at rest,
 `shadow.card-hover` when hovered and `shadow.card-drag` when dragged (341).
 
@@ -1921,10 +1921,11 @@ Mood is set by value, not by new hues: a good event is mostly paper and light pl
 ### 19.5 Format and composition
 
 - **The file:** `assets/cards/<card id>.png`, 1536 × 1024 px (3:2), sRGB, no alpha, no border or frame.
-- **The crop:** every view shows a centred **5:2 band**: the middle 60 % of the height (rows 205–819 of the master).
-  The top and bottom fifths are bleed (sky, ground, pattern); nothing that matters goes there. The 3:2 master leaves
+- **The crop:** the hand plate shows a centred **16:9 view**: the middle 84 % of the height (rows 80–944 of the
+  master, 402). Compose for the middle 60 % (rows 205–819), so the subject survives any crop: the top and bottom
+  fifths are bleed (sky, ground, pattern); nothing that matters goes there, though the plate now shows most of it. The 3:2 master leaves
   room for larger crops later (a full-card view, a civilization poster).
-- **The thumbnail test:** the plate is 240 × 96 px on a card. Shrink the band to 120 × 48: the subject must still read.
+- **The thumbnail test:** the plate is 240 × 135 px on a card. Shrink the view to 120 × 68: the subject must still read.
   One subject, one silhouette, three major shapes at most.
 - **Asymmetric:** the subject sits on a third, never centred by default (§2). Governments are the exception: an
   emblem is a single-message moment.
@@ -1950,8 +1951,8 @@ Mood is set by value, not by new hues: a good event is mostly paper and light pl
 ### 19.7 In the game
 
 - **Where:** hand-size faces (264 × 360: the hand, the details modal's card, the Build modal, the event pop-up,
-  Renewal) carry the plate under the type band, 240 × 96 px, framed by a 1 px `ink` rule. The hand card grew 40 px
-  for it (from 320), so most cards' rules and a reason strip still fit; the rest follow §6.7's overflow rules. Realm, tableau and supply-pile faces
+  Renewal) carry the plate under the type band, 240 × 135 px (16:9, 402), framed by a 1 px `ink` rule. The hand card grew 40 px
+  for it (from 320); the plate's growth to 135 px (402) came from the rules' room, so longer cards follow §6.7's overflow rules. Realm, tableau and supply-pile faces
   carry none: at their size a picture costs a line of rules (§1 tenet 1).
 - **Missing art:** a placeholder plate in the type's plane colour with one of the period motifs (a sun on a horizon,
   rings, a split disc, steps; picked by the card's id, so a card keeps its motif), with nothing printed on it (the file

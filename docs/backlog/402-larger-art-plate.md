@@ -2,7 +2,7 @@
 id: 402
 title: A larger art plate that keeps most of the picture
 type: feature
-status: in-progress
+status: review
 branch: feat/402-larger-art-plate
 ---
 
@@ -13,14 +13,14 @@ The card stays 264 × 360: the extra 39 px come from the room for rules, and 383
 fits. (The user's choices, 2026-10-08: 16:9 over 2:1 and the full 3:2; the text gives the room, the card doesn't grow.)
 
 ## Acceptance criteria
-- [ ] AC1: Given a hand-size face of any card, when it is laid out, then its art plate (`Art`, right after the band) is
+- [x] AC1: Given a hand-size face of any card, when it is laid out, then its art plate (`Art`, right after the band) is
   135 px tall and fills the face's width (240 px on a 264 px card); `CardArt.HAND_HEIGHT` is 135. The card is still
   264 × 360.
-- [ ] AC2: Given a 1536 × 1024 picture in a 240 × 135 plate, `CardArt.cover_region` is the picture's full width and its
+- [x] AC2: Given a 1536 × 1024 picture in a 240 × 135 plate, `CardArt.cover_region` is the picture's full width and its
   middle 864 rows (rows 80 to 944): 84.4 % of its height, centred.
-- [ ] AC3: Given a hand-row card whose rules don't all fit (383's Long), when its sheet rises, then it rises at most the
+- [x] AC3: Given a hand-row card whose rules don't all fit (383's Long), when its sheet rises, then it rises at most the
   plate and its gap, 143 px (135 + 8), and the rules still shown are whole (383's AC1 and AC3 hold at the new size).
-- [ ] AC4: Smaller faces (tableau, board) still have no plate, and the details, Build, event, raid and Renewal modals
+- [x] AC4: Smaller faces (tableau, board) still have no plate, and the details, Build, event, raid and Renewal modals
   show the hand-size face with the 135 px plate.
 
 ## Out of scope
@@ -61,3 +61,8 @@ fits. (The user's choices, 2026-10-08: 16:9 over 2:1 and the full 3:2; the text 
 
 ## Log
 - 2026-10-08: specced after 383. The user chose 16:9 (240 × 135) and keeping the card at 264 × 360.
+- 2026-10-08: built. `CardArt.HAND_HEIGHT` 96 → 135; the sheet's rise cap follows (143) with no code change. Medium
+  is still cut at rest and whole once risen. 383's `Tail` fixture no longer fit 4 short rules at rest (3 now), so it
+  was trimmed to 3 rules with the user's approval; the test still shows a paragraph that doesn't fit hidden whole.
+  Docs: card-art.md, the guide's §6 card anatomy, §19.5 and §19.7, the card-art skill's composition rule. The id
+  clash with the court rank item was resolved by renumbering that one to 413.

@@ -47,7 +47,7 @@ For each new or changed card, write its row (new rows in the list's order):
   with the hex values from the list's **Inks** paragraph. Revise only the subject, from the brief:
   - for history: the culture and date the card belongs to (its civilization, or where and when the thing it shows
     began), with buildings, dress, tools and ships of that place and time. Put them in `culture` and `date`;
-  - for the style guide's §19 (read §19.1–19.6): one scene, the subject inside the middle 60 % of the height, the
+  - for the style guide's §19 (read §19.1–19.6): one scene, the subject inside the middle 60 % of the height (the hand plate shows the middle 84 %, 402), the
     type's treatment (§19.6);
   - for the generator's **weak spots**, which it gets wrong often enough to cost a redraw:
     - counts: an exact count above four of the same figure (columns, soldiers, sheaves) fails, so ask for "a row of"
