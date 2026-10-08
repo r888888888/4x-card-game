@@ -1,8 +1,9 @@
 class_name CardFace
 extends VBoxContainer
 ## The content of one card (backlog 086): title, type line with the cost on a hand card, rules, a territory's info
-## line and VP, plus the gold info lines and the reason strip that CardView adds. CardView owns the panel around it,
-## the tooltip and the border.
+## line and VP, plus the gold info lines and the reason strip that CardView adds. On a hand-size face everything under
+## the band is a CardSheet: the art plate, then the text on a sheet that keeps the card's size, cutting its rules at a
+## whole one (383). CardView owns the panel around it, the tooltip and the border.
 
 # A shape per type, so types can be told apart without colour. Drawn as icons (see Icons).
 const TYPE_MARKS := {
@@ -23,6 +24,7 @@ const STAMP_TILT := -0.07  # radians: an upgrade's tier stamp, set down by hand 
 
 var rules_tip := ""  # the full card text; CardView starts every tooltip with it
 var board := false  # a board face (build_board, 138): one line per field, the rest in the details
+var sheet: CardSheet  # a hand-size face's art and text sheet (383); null on smaller faces
 
 
 func _init() -> void:
@@ -47,11 +49,15 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	if in_hand and Game.engine != null:
 		show_shortfall(Game.engine.play_shortfall(card.uid))
 	_add_band(color)
-	if in_hand:  # a hand-size face carries the card's art plate under its band (381); smaller faces don't
+	var into: Container = self
+	if in_hand:  # a hand-size face carries the card's art plate under its band (381), its text on a sheet (383)
 		var art := CardArt.new()
 		art.name = "Art"
 		art.setup(def.id, color)
 		add_child(art)
+		sheet = CardSheet.new(art)
+		add_child(sheet)
+		into = sheet.body
 
 	var type_row := HBoxContainer.new()
 	type_row.name = "TypeRow"
@@ -66,16 +72,18 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 	var subtitle_label := rich_label(subtitle, Tokens.TYPE_BODY_S, Palette.TEXT_DIM)
 	subtitle_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	type_row.add_child(subtitle_label)
-	add_child(type_row)
+	into.add_child(type_row)
 
 	_set_rules_tip(card, card_db)
 	var face := def.face(card_db)  # the ledger, the rules and the fine print (382)
 	if not face.ledger.is_empty():
-		add_child(_ledger(face.ledger))
+		into.add_child(_ledger(face.ledger))
 	var lines := Array(face.rules)
 	if base_name != "":  # an upgrade adds: each line led by "Also" (302)
 		lines = lines.map(func(line: String): return "Also " + line)
-	if not lines.is_empty():  # territories have none; an empty label would still take a line
+	if not lines.is_empty() and sheet != null:
+		sheet.add_rules(PackedStringArray(lines))
+	elif not lines.is_empty():  # territories have none; an empty label would still take a line
 		var rules := rich_label("\n".join(PackedStringArray(lines)), Tokens.TYPE_BODY)
 		rules.name = "Rules"
 		rules.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -86,12 +94,12 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 		info_label.name = "PrintedInfo"
 		info_label.size_flags_vertical = Control.SIZE_EXPAND_FILL  # sits at the bottom of the card
 		info_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-		add_child(info_label)
+		into.add_child(info_label)
 
 	if in_hand and not face.fine.is_empty():  # the gates, at the foot of a hand-size face only, above the VP (382)
-		_add_fine_print(face.fine)
+		_add_fine_print(face.fine, into)
 	if def.vp > 0:
-		add_child(label("%d VP" % def.vp, Tokens.TYPE_BODY, Palette.GAIN))
+		into.add_child(label("%d VP" % def.vp, Tokens.TYPE_BODY, Palette.GAIN))
 	var tier := e.card_tier_name(def.id) if base_name != "" else ""
 	if tier != "":  # the tier an upgrade needs, as a stamp (302)
 		var stamp := Label.new()
@@ -101,7 +109,7 @@ func build(card: CardInstance, card_db: Dictionary, in_hand: bool, color: Color)
 		stamp.theme_type_variation = &"TierStamp"
 		stamp.size_flags_horizontal = Control.SIZE_SHRINK_END
 		stamp.rotation = STAMP_TILT
-		add_child(stamp)
+		into.add_child(stamp)
 
 
 ## A two-column grid of a card's figures (382): each label in caps, then its figure.
@@ -126,13 +134,13 @@ func _ledger(rows: Array) -> GridContainer:
 	return grid
 
 
-## The card's gates as one line of fine print under a hairline (382).
-func _add_fine_print(gates: PackedStringArray) -> void:
+## The card's gates as one line of fine print under a hairline (382), added to into.
+func _add_fine_print(gates: PackedStringArray, into: Container) -> void:
 	var rule := ColorRect.new()
 	rule.color = Palette.HAIRLINE
 	rule.custom_minimum_size.y = 1
 	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(rule)
+	into.add_child(rule)
 	var fine := Label.new()
 	fine.name = "FinePrint"
 	fine.text = " · ".join(gates)
@@ -140,7 +148,7 @@ func _add_fine_print(gates: PackedStringArray) -> void:
 	fine.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	fine.theme_type_variation = &"FinePrint"
 	fine.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(fine)
+	into.add_child(fine)
 
 
 ## Shows ribbons (UpgradeRibbon per upgrade, 302) at the foot of the card, then chip if any; replaces those shown.
@@ -223,11 +231,11 @@ func set_band_color(color: Color) -> void:
 		band.color = color
 
 
-## Dims the art plate with its card (381); nothing on a face without one.
+## Dims the art plate and the sheet's paper with its card (381, 383); nothing on a face without them.
 func set_art_dimmed(on: bool) -> void:
-	var art := get_node_or_null("Art") as CardArt
-	if art != null:
-		art.set_dimmed(on)
+	if sheet != null:
+		(sheet.art as CardArt).set_dimmed(on)
+		sheet.set_dimmed(on)
 
 
 ## A small pill in color naming what a board card is (138).
@@ -317,13 +325,22 @@ static func territory_info(card: CardInstance) -> String:
 func text() -> String:
 	var lines: PackedStringArray = []
 	for child in find_children("*", "", true, false):
-		if child is CanvasItem and not child.visible:  # e.g. a settled territory's empty keyword line
+		if not _shown(child):  # e.g. a settled territory's empty keyword line, a hidden rule, a foot not needed
 			continue
 		if child is Label:
 			lines.append(child.text)
 		elif child is RichTextLabel:
 			lines.append(child.get_meta("source", child.get_parsed_text()))
 	return "\n".join(lines)
+
+
+## Whether node and everything above it on the face are visible.
+func _shown(node: Node) -> bool:
+	while node != self:
+		if node is CanvasItem and not node.visible:
+			return false
+		node = node.get_parent()
+	return true
 
 
 ## Shows a unit's veteran pips (388): total discs, the first filled lit in the unit colour, the rest dim; none at

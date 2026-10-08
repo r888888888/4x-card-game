@@ -181,7 +181,7 @@ func test_a_row_refused_for_want_of_a_worker_explains_in_its_tooltip() -> void:
 		eq((modal.list.row("granary") as Button).tooltip_text, detail, "the row's tooltip is the detail"))
 
 
-func test_a_hand_card_with_no_free_worker_explains_in_its_tooltip() -> void:
+func test_a_hand_card_with_no_free_worker_says_why_on_its_strip() -> void:
 	await with_main(modal_engine(), func(main: Node):
 		var e := Game.engine
 		build_on(e, home_uid(e), ["farm", "farm", "farm"])
@@ -189,8 +189,9 @@ func test_a_hand_card_with_no_free_worker_explains_in_its_tooltip() -> void:
 		e.changed.emit()
 		await wait_frames()
 		eq(e.play_error(farm), "No free worker.", "refused")
-		var tip: String = (main.views[farm] as CardView).tooltip_text
-		check(tip.contains("No free worker.") and tip.contains(e.play_error_detail(farm)), "reason and detail: %s" % tip))
+		var view: CardView = main.views[farm]
+		check(reason_text(view).contains("No free worker."), "the reason on its strip: %s" % reason_text(view))
+		eq(view.tooltip_text, "", "no tooltip: the detail is in the rules popover (383)"))
 
 
 # --- AC4: "+ Build" on free slots ---

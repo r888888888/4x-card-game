@@ -34,6 +34,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_card_details.gd` | `def_details` / `card_details`: rules, live state and terms (056, 289) |
 | `tests/test_card_faces.gd` | Index-card faces and card motion (179); the ledger and fine print (382) |
 | `tests/test_card_landing.gd` | How a card lands (117) |
+| `tests/test_card_overflow.gd` | Overflowing hand-card text: whole rules, the sheet's rise, the meter and rules popover (383; UI) |
 | `tests/test_card_slots.gd` | Card slots (UI) start at their card's resting height (075) |
 | `tests/test_card_text.gd` | Card text generated from effects: the face (ledger, rules, fine print; 382) and the long form |
 | `tests/test_changed.gd` | The `changed` signal |

@@ -34,6 +34,7 @@ const SECTIONS: Array[Script] = [
 	preload("res://ui/theme/tooltips.gd"),
 	preload("res://ui/theme/popover.gd"),
 	preload("res://ui/theme/flags.gd"),
+	preload("res://ui/theme/card_foot.gd"),
 ]
 
 

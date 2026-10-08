@@ -865,6 +865,12 @@ func art_plate(view: CardView) -> CardArt:
 	return view.find_child("Art", true, false) as CardArt
 
 
+## The text of view's reason strip (why a hand card can't be played, 383), or "" with no strip.
+func reason_text(view: CardView) -> String:
+	var strip := view.find_child("Reason", true, false)
+	return "" if strip == null else (strip.get_child(0) as RichTextLabel).get_parsed_text()
+
+
 ## The first CardView under node (a modal's card), or null.
 func card_under(node: Node) -> CardView:
 	var found := node.find_children("*", "CardView", true, false)

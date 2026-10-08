@@ -2,7 +2,7 @@
 id: 383
 title: Overflowing card text cuts at a whole rule; hover pulls it over the art, then a meter opens the full rules
 type: feature
-status: ready
+status: review
 branch: feat/383-card-text-overflow-hover
 ---
 
@@ -17,27 +17,27 @@ full rules open beside the card, with no click. This replaces the plain tooltip 
 ## Acceptance criteria
 <!-- UI tests: a fixture card with 10 one-line rules ("long") and one with 2 ("short"), hand-size faces at
 264 × 360. Timers are driven by the test (as other timed UI tests do), never by waiting. -->
-- [ ] AC1: Given a hand-size face for "long", when it is laid out, then the card stays 360 px tall, every rules line
+- [x] AC1: Given a hand-size face for "long", when it is laid out, then the card stays 360 px tall, every rules line
   shown is wholly inside the rules area (none partly visible), and a foot named `Over` reads "+N more" where N is the
   number of hidden lines; "short" has no foot. A rule that is one paragraph is cut after its last whole sentence that
   fits (N counts the hidden sentences); a rule that can't fit even its first line is hidden whole.
-- [ ] AC2: On a hand card the foot also reads "details I"; on the card in the details, Build, event, raid or Renewal
+- [x] AC2: On a hand card the foot also reads "details I"; on the card in the details, Build, event, raid or Renewal
   modal it reads only "+N more", and those cards never react to hover (their full text is beside them).
-- [ ] AC3: Given "long" in the hand, when the pointer rests on it for `Anim.OVERFLOW_INTENT` (0.12 s) without moving,
+- [x] AC3: Given "long" in the hand, when the pointer rests on it for `Anim.OVERFLOW_INTENT` (0.12 s) without moving,
   then its text sheet (type line, ledger, rules, foot, fine print) rises over the art plate by exactly the height
   the hidden content needs, capped at the plate plus its gap (104 px), easing over `Anim.OVERFLOW_SLIDE` (0.12 s),
   and the rules and foot are cut again for the larger area. A pointer that leaves or moves before 0.12 s changes
   nothing; leaving after restores the rest layout. "short" never moves beyond its hover lift.
-- [ ] AC4: Given rules still hidden after the sheet rises, when the pointer stays, then the foot's meter fills from 0
+- [x] AC4: Given rules still hidden after the sheet rises, when the pointer stays, then the foot's meter fills from 0
   to its full width over `Anim.OVERFLOW_WAIT` (1.1 s), and when full a rules popover opens beside the card (right of
   it, or left when the right edge has no room for it) holding the card's name and its long-form rules
   (`rules_tooltip`), then its play error and detail if any. If everything fits after the rise, no meter runs and no
   popover opens.
-- [ ] AC5: The popover is not a modal: the pointer may move from the card onto it without closing it; leaving both,
+- [x] AC5: The popover is not a modal: the pointer may move from the card onto it without closing it; leaving both,
   Esc, or a press anywhere closes it. A press on the card at any step (waiting, rising, filling, open) cancels the
   step and the press goes on to select, drag or double-click as today. Hand cards no longer set `tooltip_text`;
   tableau, Realm and supply-pile cards keep their tooltips.
-- [ ] AC6: Focusing a hand card with the keyboard raises its sheet at once (no meter; `I` opens the details as today).
+- [x] AC6: Focusing a hand card with the keyboard raises its sheet at once (no meter; `I` opens the details as today).
   With Reduce motion the sheet moves without easing, the meter fills in three equal steps, and the popover appears
   without its slide.
 
@@ -76,7 +76,12 @@ full rules open beside the card, with no click. This replaces the plain tooltip 
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_…` |
+| AC1 | `test_card_overflow::test_a_long_card_keeps_its_size_and_shows_only_whole_rules`, `test_a_short_card_has_no_foot`, `test_a_one_paragraph_rule_is_cut_after_its_last_whole_sentence`, `test_a_paragraph_whose_first_sentence_cannot_fit_is_hidden_whole`, `test_a_rule_that_does_not_fit_after_others_is_hidden_whole` |
+| AC2 | `test_card_overflow::test_a_hand_row_card_foot_adds_details_i`, `test_a_hand_size_face_off_the_hand_row_reads_only_more_and_never_peeks`, `test_in_the_real_hand_the_foot_says_details_and_the_details_card_does_not` |
+| AC3 | `test_card_overflow::test_the_overflow_timings_are_anim_constants`, `test_resting_on_a_long_card_raises_its_sheet_to_the_cap`, `test_a_medium_card_rises_only_as_far_as_its_hidden_rules_need`, `test_leaving_or_moving_before_the_intent_changes_nothing`, `test_leaving_after_the_rise_restores_the_rest_layout`, `test_a_short_card_never_rises` |
+| AC4 | `test_card_overflow::test_still_hidden_rules_fill_the_meter_then_open_the_popover`, `test_the_popover_adds_the_play_error_and_its_detail`, `test_the_popover_opens_right_of_the_card_or_left_without_room`, `test_no_meter_or_popover_when_everything_fits_once_risen` |
+| AC5 | `test_card_overflow::test_the_pointer_may_cross_onto_the_popover_and_leaving_both_closes_it`, `test_esc_or_a_press_anywhere_closes_the_popover`, `test_a_press_on_the_card_cancels_any_step_and_still_drags`, `test_hand_cards_set_no_tooltip_and_other_cards_keep_theirs`; changed: `test_actions::test_top_bar_counts_actions_and_spent_hands_dim`, `test_build_modal::test_a_hand_card_with_no_free_worker_says_why_on_its_strip` (was `…_explains_in_its_tooltip`) |
+| AC6 | `test_card_overflow::test_keyboard_focus_raises_the_sheet_at_once_with_no_meter`, `test_reduce_motion_jumps_the_sheet_steps_the_meter_and_places_the_popover` |
 
 ## Manual check
 - [ ] Hand with Sailing, Code of Laws, Theocracy, Anarchy and a Farm (`godot --path . -- --civ sumer --seed 5`, then
@@ -90,3 +95,24 @@ full rules open beside the card, with no click. This replaces the plain tooltip 
 <!-- Decisions and surprises during implementation, newest last. -->
 - 2026-10-06: specced from `spike/card-art`. The user chose option I with the meter cue (1.1 s), the popover only
   when rules stay hidden, and the hover only on hand cards.
+- 2026-10-07: red tests. The interface they set: `CardView.peek` (a `CardPeek`: `advance(delta)`, `rise()`, `meter()`,
+  `popover`, `manual_clock` so tests drive time) and `CardView.peek_on(layer)` (a hand-row card; BoardViews calls it
+  with main's fx layer, so modal faces never peek); the face's `Rules` box (one label per rule) and `Over` foot;
+  `Popover.text()`. Long has 16 rules, not the comment's 10: 10 one-line rules would all fit once risen (about 6 at
+  rest + 4 risen + the foot's line), so no meter would run. Two tests that read a hand card's tooltip move to its reason
+  strip (`reason_text`, new in test_case.gd: the strip's label keeps no `source` meta, so `face_text` can't read it).
+- 2026-10-07: green. New in `ui/`: `RulesCut` (the rules box: whole rules, or a paragraph's whole sentences, in the
+  room given), `CardSheet` (the text sheet after the plate; it rises by drawing up over it, so the plate stays right
+  after the band as 381 tests; owns the foot, its meter and the cut for where the sheet is going), `CardPeek` (the
+  hover steps on a test-drivable clock), `Popover` (for 379 too) and theme sections `card_foot` and `popover`.
+  `CardFace.text()` now skips anything under a hidden node (hidden rules, a foot not needed). A card leaving the tree
+  closes its popover.
+- 2026-10-07: the approved Reduce-motion test sampled the meter at 0.7 s and expected 2/3, but 0.7 s is 64 % of 1.1 s:
+  no equal three-step meter shows 2/3 there. The user approved moving the samples to 0.3, 0.4, 0.8 and 1.11 s.
+- 2026-10-08: follow-ups. The specimen (`docs/design/mcm-specimen.html`) doesn't yet show a card that rises and fills;
+  the guide's §6.7 and §11.11 already describe it. Next item, 402: a 16:9 art plate (240 × 135) on the same 264 × 360 card
+  (the user's call, 2026-10-08); `CardSheet.cap()` follows the plate's height, so the rise grows with it.
+- 2026-10-08: merged main (379, 380 landed first with their own `Popover`, a ledger anchored under a counter). 383's
+  tab beside a card is now `RulesPopover` (`ui/rules_popover.gd`), using 379's theme looks (`Popover`,
+  `PopoverHeading`, and `PopoverText` for its lines; 383's `PopoverBody` is gone). The heading now uses 379's heading
+  font.
