@@ -20,7 +20,8 @@ static func need(e: GameEngine, def: CardDef) -> int:
 
 ## Whether settled territory territory_uid is too small for def's tier.
 static func below_tier(e: GameEngine, def: CardDef, territory_uid: int) -> bool:
-	return Population.tier(e, territory_uid) < need(e, def)
+	var needs := need(e, def)  # first: most cards need no tier, and the territory's tier costs a search (408)
+	return needs >= 0 and Population.tier(e, territory_uid) < needs
 
 
 ## Why def can't go on territory_uid for its tier: "Forum needs a Town (Homeland is a Village)."; "" when it can.
@@ -60,6 +61,40 @@ static func fallen_back(e: GameEngine, card: CardInstance) -> bool:
 	return reason(e, card) != ""
 
 
+## The tableau cards that have fallen back (reason non-empty), worked out in one pass (408): uid -> true. Each
+## territory's tier and the idle cards (Population.idle_uids) are read once, not per card.
+static func fallen_uids(e: GameEngine) -> Dictionary:
+	var out := {}
+	if not e.population_on():
+		return out
+	var idle := Population.idle_uids(e)
+	var tier_of := {}  # settled territory uid -> the index of its tier
+	var by_uid := {}
+	for c in e.zone("tableau").cards:
+		by_uid[c.uid] = c
+		if c.def.type == CardDef.TERRITORY:
+			tier_of[c.uid] = Population.tier_at_pop(e, c.pop)
+	var seen := {}  # uid -> whether it has fallen back, for the cards worked out so far
+	for c in e.zone("tableau").cards:
+		if _fallen(e, c, by_uid, idle, tier_of, seen):
+			out[c.uid] = true
+	return out
+
+
+## Whether card has fallen back, as reason says: below its own tier, or its base idle or fallen back. seen memoizes.
+static func _fallen(e: GameEngine, card: CardInstance, by_uid: Dictionary, idle: Dictionary, tier_of: Dictionary,
+		seen: Dictionary) -> bool:
+	if seen.has(card.uid):
+		return seen[card.uid]
+	var needs := need(e, card.def)
+	var fallen: bool = needs >= 0 and tier_of.get(card.territory_uid, -1) < needs
+	var base: CardInstance = by_uid.get(card.base_uid)
+	if not fallen and base != null:
+		fallen = idle.has(base.uid) or _fallen(e, base, by_uid, idle, tier_of, seen)
+	seen[card.uid] = fallen
+	return fallen
+
+
 ## Whether card works: neither idle nor fallen back.
 static func works(e: GameEngine, card: CardInstance) -> bool:
 	return not Population.is_idle(e, card.uid) and not fallen_back(e, card)
@@ -68,8 +103,9 @@ static func works(e: GameEngine, card: CardInstance) -> bool:
 ## The uids of the cards on settled territory territory_uid that have fallen back, in tableau order.
 static func fallen_on(e: GameEngine, territory_uid: int) -> Array[int]:
 	var out: Array[int] = []
+	var fallen := fallen_uids(e)
 	for card in e.zone("tableau").cards:
-		if card.territory_uid == territory_uid and card.def.type == CardDef.BUILDING and fallen_back(e, card):
+		if card.territory_uid == territory_uid and card.def.type == CardDef.BUILDING and fallen.has(card.uid):
 			out.append(card.uid)
 	return out
 

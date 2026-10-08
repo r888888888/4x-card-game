@@ -11,12 +11,10 @@ func turn_limit() -> int:
 
 
 ## Printed VP on the tableau and in ALWAYS_ON_ZONES, VP from effects, and vp_per_pop for each pop (when population
-## is on). A card that has fallen back scores nothing (300, 301). The sum of score_breakdown's rows (380).
+## is on). A card that has fallen back scores nothing (300, 301). What score_breakdown's rows sum to (380), added up
+## without building them (408).
 func score() -> int:
-	var total := 0
-	for row in score_breakdown():
-		total += row.amount
-	return total
+	return ScoreBreakdown.total(_as_engine())
 
 
 ## What makes up score() (380): [{label, count, amount}], each card's VP (copies one row) on the tableau then in
