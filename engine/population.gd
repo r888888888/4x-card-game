@@ -16,8 +16,9 @@ static func housing(e: GameEngine, territory_uid: int) -> int:
 	if territory == null:
 		return 0
 	var total := territory.def.housing + Modifiers.total(e, Modifiers.HOUSING)
+	var fallen := Fallback.fallen_uids(e)
 	for card in e.zone("tableau").cards:
-		if card.def.type == CardDef.BUILDING and card.territory_uid == territory_uid and not Fallback.fallen_back(e, card):
+		if card.def.type == CardDef.BUILDING and card.territory_uid == territory_uid and not fallen.has(card.uid):
 			total += card.def.housing
 	return maxi(1, total)
 
@@ -38,8 +39,9 @@ static func smallest_with_room(e: GameEngine) -> Array[CardInstance]:
 		return out
 	var tableau := e.zone("tableau").cards
 	var built := {}  # territory uid -> the housing of the buildings on it (see housing)
+	var fallen := Fallback.fallen_uids(e)
 	for card in tableau:
-		if card.def.type == CardDef.BUILDING and not Fallback.fallen_back(e, card):
+		if card.def.type == CardDef.BUILDING and not fallen.has(card.uid):
 			built[card.territory_uid] = built.get(card.territory_uid, 0) + card.def.housing
 	var extra := Modifiers.total(e, Modifiers.HOUSING)
 	for card in tableau:
@@ -209,6 +211,42 @@ static func is_idle(e: GameEngine, uid: int) -> bool:
 	if Territories.workers_on(e, card.territory_uid).find(card) >= pop(e, card.territory_uid):
 		return true
 	return card.def.type == CardDef.BUILDING and Territories.slot_use(e, card.territory_uid).unslotted.has(card)
+
+
+## The tableau cards is_idle says are idle, in one pass (408): uid -> true. Each territory's pop goes to its
+## worker-using cards in tableau order, and its slots (sea slots first for a building that takes one, 366) to its
+## buildings; a card past either is idle. {} with population off.
+static func idle_uids(e: GameEngine) -> Dictionary:
+	var out := {}
+	if not e.population_on():
+		return out
+	var tableau := e.zone("tableau").cards
+	var tiers := tiers(e)
+	var workers := {}  # settled territory uid -> pop not yet given to a card seen so far
+	var slots := {}  # settled territory uid -> slots not yet taken by a building seen so far
+	var sea := {}  # settled territory uid -> sea slots not yet taken
+	for c in tableau:
+		if c.def.type == CardDef.TERRITORY:
+			workers[c.uid] = c.pop
+			slots[c.uid] = c.def.slots + tier_slots(tiers, c.pop)
+			sea[c.uid] = Territories.sea_slots_of(e, c)
+	for c in tableau:
+		if c.def.type == CardDef.CITY and slots.has(c.territory_uid):
+			slots[c.territory_uid] += c.def.slots
+	for c in tableau:
+		if not c.def.uses_worker():
+			continue
+		var left: int = workers.get(c.territory_uid, 0)
+		workers[c.territory_uid] = left - 1
+		var room := 1
+		if c.def.type == CardDef.BUILDING and sea.get(c.territory_uid, 0) > 0 and Territories.takes_sea_slot(e, c.def):
+			sea[c.territory_uid] -= 1
+		elif c.def.type == CardDef.BUILDING:
+			room = slots.get(c.territory_uid, 0)
+			slots[c.territory_uid] = room - 1
+		if left <= 0 or room <= 0:
+			out[c.uid] = true
+	return out
 
 
 ## The refusal of a building or unit for want of a free worker (347); no_worker_detail explains it.
