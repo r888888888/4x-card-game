@@ -1122,6 +1122,19 @@ func test_civilization_start_gifts_are_obtainable_cards_in_the_discard() -> void
 	check(gifts > 0, "some civilization starts with a card")
 
 
+## Backlog 407: no listed civilization starts with a building on its home (Sumer's starting Farm was the last); the
+## loader still allows one (133, its TEST_CARDS tests).
+func test_no_civilization_starts_with_a_building() -> void:
+	var r := load_real()
+	var built: Array[String] = []
+	for id in r.config.get("civilizations", []):
+		for effect in r.cards[id].effects:
+			if effect.op == "create" and effect.trigger == "start" and effect.zone == "tableau" \
+					and r.cards[effect.card_id].type == CardDef.BUILDING:
+				built.append("%s starts with %s" % [id, effect.card_id])
+	eq(built, [] as Array[String], "civilizations that start with a building")
+
+
 ## Backlog 107: a game starts as each listed civilization. Since 295 its home takes most of the build menu's open
 ## entries (was: most starting-deck building copies).
 func test_every_listed_civilization_has_its_own_home_that_takes_most_open_entries() -> void:

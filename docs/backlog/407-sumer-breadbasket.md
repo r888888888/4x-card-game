@@ -2,7 +2,7 @@
 id: 407
 title: Sumer as the breadbasket - drop the starting Farm and +1 housing
 type: feature
-status: ready
+status: red-review
 branch: feat/407-sumer-breadbasket
 ---
 
@@ -45,7 +45,8 @@ PLAN.md: the civilizations line (107) and 133's note that Sumer starts with a Fa
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_content::test_no_civilization_starts_with_a_building` (new); `test_content::test_real_data_loads_without_warnings` and the loader's 133 `TEST_CARDS` tests (unchanged) |
+| AC2 | `test_revolt_modal`, `test_day_mode`, `test_identity_cards`, `test_settings_modal` (seed-5 Sumer games; unchanged) |
 
 ## Manual check
 - [ ] `sumer` in `data/cards.json` has no Farm `create` and no `modifiers`. Its card face reads Start: Research, ⟳ +1
@@ -57,3 +58,6 @@ PLAN.md: the civilizations line (107) and 133's note that Sumer starts with a Fa
   against the other five, and how many farm-tagged buildings it builds.
 
 ## Log
+
+- 2026-10-08: red test written: the real data's one civilization starting with a building is Sumer. AC2's tests are
+  existing ones that must pass unchanged (`test_settings_modal` also starts a seed-5 Sumer game).
