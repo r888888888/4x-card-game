@@ -43,12 +43,14 @@ Everything planned so far is done (through 412: Anarchy and the honeymoon, the t
 areas, the top-bar breakdowns, sim speed, card faces, veteran pips, abandoning buildings, building upkeep and the
 food rebalance). The order of closed items is in [done/HISTORY.md](done/HISTORY.md).
 
-Sumer (ships right after 406, so it never plays long on 406's numbers):
+Sumer and the farms (407 ships right after 406, so Sumer never plays long on 406's numbers):
 1. 407 Sumer as the breadbasket (content)
+2. 414 Irrigation Canals and Salt Pans boost the farms and huts on their own territory (`gain_per_tag` learns
+   `where: here`; after 407, which also counts farms)
 
 Rival claimants (a `spike/rival-claimants` may come first):
-2. 400 the `strength` modifier
-3. 401 claimants dealt at the fall, backed each Anarchy turn; the best-backed takes the court
-4. 413 the court's passive, once per rank, rising every 10 turns
-5. 403 claimant eras and the incumbent: successors per era, loyal wins keep rank
-6. 404 the claimants: five factions for wide, tall, research, coastal and military play (content; art after)
+3. 400 the `strength` modifier
+4. 401 claimants dealt at the fall, backed each Anarchy turn; the best-backed takes the court
+5. 413 the court's passive, once per rank, rising every 10 turns
+6. 403 claimant eras and the incumbent: successors per era, loyal wins keep rank
+7. 404 the claimants: five factions for wide, tall, research, coastal and military play (content; art after)
