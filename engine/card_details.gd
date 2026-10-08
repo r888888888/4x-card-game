@@ -119,6 +119,9 @@ static func _tech_cost_text(e: GameEngine, tech: CardInstance) -> String:
 	return "Costs %d insight now (%s)" % [e.tech_cost(tech.uid), ", ".join(parts)]
 
 
+const FREES_A_WORKER := "Frees a worker"  # an upgrade's frees_worker term (415)
+
+
 ## Unique terms, in order of first use: the rules, then the card type's mechanics. Leaves out Glossary.BASIC.
 static func _terms(e: GameEngine, def: CardDef, keywords: Array[String]) -> Array[Dictionary]:
 	var names: Array[String] = []
@@ -152,6 +155,9 @@ static func _terms(e: GameEngine, def: CardDef, keywords: Array[String]) -> Arra
 		seen[term] = true
 		var text := Glossary.text(term)
 		out.append({"term": term, "text": text if text != "" else _keyword_text(e, n)})
+	if def.frees_worker and e.card_db.has(def.upgrade_of):  # it names its base, so it is no Glossary term (415)
+		out.append({"term": FREES_A_WORKER, "text": "Its %s needs no worker: it works with no pop there, and that pop can "
+			% e.card_db[def.upgrade_of].name + "work another building."})
 	return out
 
 

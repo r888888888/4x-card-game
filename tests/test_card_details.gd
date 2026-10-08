@@ -8,22 +8,6 @@ extends "res://tests/lib/tech_case.gd"
 const CHARIOT := {"id": "chariot", "name": "Chariot", "type": "tech", "cost": {"insight": 5}, "prereq": "bronze"}
 
 
-## The term names of details, in order.
-func term_names(details: Dictionary) -> Array[String]:
-	var out: Array[String] = []
-	for t in details.get("terms", []):
-		out.append(t.term)
-	return out
-
-
-## The text of term in details, or "".
-func term_text(details: Dictionary, term: String) -> String:
-	for t in details.get("terms", []):
-		if t.term == term:
-			return t.text
-	return ""
-
-
 ## Population on (start pop, no food upkeep or pop VP), a hand of Farms and 20 food.
 func pop_engine(start: int) -> GameEngine:
 	var e: GameEngine = make_engine({"farm": 10}, {"population": {"start": start, "food_upkeep": 0, "vp_per_pop": 0}})

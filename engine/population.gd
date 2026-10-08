@@ -202,20 +202,35 @@ static func free_workers(e: GameEngine, territory_uid: int) -> int:
 	return maxi(pop(e, territory_uid) - Territories.workers_on(e, territory_uid).size(), 0)
 
 
+## Whether the card in play uses a worker on its territory (415): a building or unit (CardDef.uses_worker), unless an
+## upgrade that frees its worker is built on it.
+static func uses_worker(e: GameEngine, card: CardInstance) -> bool:
+	return card.def.uses_worker() and not freed_uids(e).has(card.uid)
+
+
+## The tableau buildings with an upgrade that frees their worker built on them (415): uid -> true.
+static func freed_uids(e: GameEngine) -> Dictionary:
+	var out := {}
+	for c in e.zone("tableau").cards:
+		if c.def.frees_worker and c.base_uid >= 0:
+			out[c.base_uid] = true
+	return out
+
+
 ## Whether card uid is idle: a building or unit past its territory's pop (no worker), or a building past its
 ## territory's slots (281). An upgrade takes no worker, so it never is (it falls back instead, see Fallback).
 static func is_idle(e: GameEngine, uid: int) -> bool:
 	var card := e.zone("tableau").find(uid)
 	if card == null or not card.def.uses_worker() or not e.population_on():
 		return false
-	if Territories.workers_on(e, card.territory_uid).find(card) >= pop(e, card.territory_uid):
+	if uses_worker(e, card) and Territories.workers_on(e, card.territory_uid).find(card) >= pop(e, card.territory_uid):
 		return true
 	return card.def.type == CardDef.BUILDING and Territories.slot_use(e, card.territory_uid).unslotted.has(card)
 
 
 ## The tableau cards is_idle says are idle, in one pass (408): uid -> true. Each territory's pop goes to its
-## worker-using cards in tableau order, and its slots (sea slots first for a building that takes one, 366) to its
-## buildings; a card past either is idle. {} with population off.
+## worker-using cards in tableau order (not a building whose worker is freed, 415), and its slots (sea slots first for
+## a building that takes one, 366) to its buildings; a card past either is idle. {} with population off.
 static func idle_uids(e: GameEngine) -> Dictionary:
 	var out := {}
 	if not e.population_on():
@@ -233,11 +248,14 @@ static func idle_uids(e: GameEngine) -> Dictionary:
 	for c in tableau:
 		if c.def.type == CardDef.CITY and slots.has(c.territory_uid):
 			slots[c.territory_uid] += c.def.slots
+	var freed := freed_uids(e)
 	for c in tableau:
 		if not c.def.uses_worker():
 			continue
-		var left: int = workers.get(c.territory_uid, 0)
-		workers[c.territory_uid] = left - 1
+		var left := 1  # a building whose worker is freed (415) takes none, but still takes its slot
+		if not freed.has(c.uid):
+			left = workers.get(c.territory_uid, 0)
+			workers[c.territory_uid] = left - 1
 		var room := 1
 		if c.def.type == CardDef.BUILDING and sea.get(c.territory_uid, 0) > 0 and Territories.takes_sea_slot(e, c.def):
 			sea[c.territory_uid] -= 1

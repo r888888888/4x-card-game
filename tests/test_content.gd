@@ -559,13 +559,14 @@ func real_buildings(r: Dictionary) -> Array[CardDef]:
 
 
 ## Backlog 263: a building holds a slot and a worker for good, so it gives something that lasts too: printed VP, an
-## upkeep effect, or a standing field. Scoring once on play isn't enough.
+## upkeep effect, or a standing field (since 415, `frees_worker` too). Scoring once on play isn't enough.
 func test_every_building_gives_something_lasting() -> void:
 	var r := load_real()
 	var fleeting: Array[String] = []
 	for def in real_buildings(r):
 		var lasting := def.vp >= 1 or not def.modifiers.is_empty() or def.housing > 0 or def.famine_guard > 0 \
-				or def.defense > 0 or def.training > 0 or def.effects.any(func(e): return e.trigger == "upkeep")
+				or def.defense > 0 or def.training > 0 or def.frees_worker \
+				or def.effects.any(func(e): return e.trigger == "upkeep")
 		if not lasting:
 			fleeting.append(def.id)
 	eq(fleeting, [] as Array[String], "buildings that give nothing lasting")

@@ -167,6 +167,10 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   `slots + 2`) and may list `keywords` from config `keywords`. They go in `territory_deck` (never `deck`); `starting.territory` names the Capital's.
 - Terrains (130): config `terrains` (a subset of `keywords`) names the terrain keywords; the rest are features (fresh
   water, coastal, …). With `terrains` set, every territory card prints exactly one terrain (a load error otherwise).
+- Frees a worker (415): an upgrade may set `frees_worker` (bool, default false): while it is built on its base, the base
+  uses no worker (`Population.uses_worker(e, card)`), so it works with no pop and that pop staffs another building; it
+  still takes its slot. Only an upgrade, with no `tier`, on a base that isn't itself an upgrade. Text "Frees its Farm's
+  worker." and a details term naming the base.
 - Buildings may set `housing` (int ≥ 1: added to their territory's housing, idle or not) and `famine_guard` (int ≥ 1:
   pop on their territory saved from starving each upkeep, while working) (060).
 - Building upkeep (405): a base building may set `upkeep` (int ≥ 0), the wealth it pays each upkeep while working;
@@ -227,8 +231,8 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   (`fallen_back_reason` "Its Farm is idle.", "Its Sanctum has fallen back."). `upgrade_base(uid)`, `upgrades_on(uid)`;
   rules in `engine/upgrades.gd` (`Upgrades`). Its text starts "Builds on a Farm."; unlocking it reads "… can now be
   built on a Farm."
-- Rural upgrades (305): Ploughed Fields (The Plough) goes on a Farm, Harbor (Sailing,
-  coastal) on Fishing Huts, Timber Camp (Bronze Working) on a Hunters' Camp and Shaft Mine (Iron Working) on a Mine; they
+- Rural upgrades (305): Ploughed Fields (The Plough; since 415 it makes no food and frees its Farm's worker) goes on a
+  Farm, Harbor (Sailing, coastal) on Fishing Huts, Timber Camp (Bronze Working) on a Hunters' Camp and Shaft Mine (Iron Working) on a Mine; they
   need a tech and no tier. Caravanserai is now Caravan Station (Animal Husbandry) and the Granary opens on turn 1.
   Content tests hold every upgrade to its base: both are build-menu entries, some territory meets both's `requires`,
   and the upgrade never opens in an earlier era. Irrigation Canals (Irrigation) was the Farm's second upgrade until 406.
@@ -238,7 +242,7 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
 - Food and upkeep rebalance (406): every base building pays ⟳ 1 wealth upkeep (405; the Palace 2), so wealth buildings
   make 1 more (Kiln, Brewery, Reed Works ⟳ +2; Weavers' Workshop, Olive Groves, Caravan Station, Shipyard, Mine ⟳ +2
   plus their keyword bonus; Dye Works ⟳ +3; Market ⟳ +1 and +1 per city). Food rises with a ⟳ +4 Farm: Fishing Huts
-  ⟳ +3 (cost 3 wealth), Pasture +3, Hunters' Camp, Terraced Fields and Qanat +2, Ploughed Fields +2. Irrigation Canals
+  ⟳ +3 (cost 3 wealth), Pasture +3, Hunters' Camp, Terraced Fields and Qanat +2 (Ploughed Fields +2 until 415). Irrigation Canals
   (Irrigation; fresh water; 1 food + 3 wealth; housing 1) and Salt Pans (Pottery; coastal; 3 wealth) are buildings of
   their own, no longer upgrades, so a territory can specialise in food. Since 414 each feeds the others on its
   territory: Irrigation Canals ⟳ +2 food (+1 on desert), +1 per other farm here; Salt Pans ⟳ +1 food, +1 wealth, +1

@@ -359,6 +359,22 @@ func build_on(engine: GameEngine, territory_uid: int, card_ids: Array) -> void:
 		card.territory_uid = territory_uid
 
 
+## The term names of details, in order.
+func term_names(details: Dictionary) -> Array[String]:
+	var out: Array[String] = []
+	for t in details.get("terms", []):
+		out.append(t.term)
+	return out
+
+
+## The text of term in details, or "".
+func term_text(details: Dictionary, term: String) -> String:
+	for t in details.get("terms", []):
+		if t.term == term:
+			return t.text
+	return ""
+
+
 ## Puts a new copy of upgrade id straight onto the building base_uid (on its territory, 405): its uid.
 func upgrade_on(engine: GameEngine, id: String, base_uid: int) -> int:
 	var card: CardInstance = engine.create_card(id, "tableau", null)
