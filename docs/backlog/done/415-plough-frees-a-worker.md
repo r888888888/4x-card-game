@@ -2,7 +2,7 @@
 id: 415
 title: Ploughed Fields frees its Farm's worker instead of making food
 type: feature
-status: review
+status: done
 branch: feat/415-plough-frees-a-worker
 ---
 

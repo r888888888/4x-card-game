@@ -264,3 +264,4 @@ Food and building upkeep (after the plan through 412 above):
 2. 406 every base building pays ⟳ 1 wealth; a 4-food Farm; Irrigation Canals and Salt Pans stand alone (content)
 3. 407 Sumer as the breadbasket: no starting Farm, no +1 housing (content)
 4. 414 Irrigation Canals and Salt Pans count the farms and huts on their own territory (`gain_per_tag` `where: here`)
+5. 415 Ploughed Fields frees its Farm's worker instead of making food (new `frees_worker` field)
