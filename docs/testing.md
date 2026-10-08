@@ -16,6 +16,10 @@ sim's report, its options and the parallel run. The main suite and the Stop hook
 it (or asks for a run). Bot rules and `SimStats` stay in the main suite,
 tested on fixture games of a few turns.
 
+**The Python tools' tests** (`scripts/tests/`, stdlib `unittest`): `scripts/test.sh` runs them after the Godot shards
+(not with `--balance`), passes the filter as `-k`, and adds them to the count. `test_card_art.py` covers
+`scripts/card_art.py` against a temporary art folder and a fake image API (397).
+
 The script re-imports the project first when a `.gd` file changed, so a new `class_name` resolves
 in the same run. Output is quiet: one `FAIL` line per problem, then `N tests, M failures`.
 Exit code 0 means green.
