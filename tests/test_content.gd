@@ -404,7 +404,7 @@ func test_every_later_era_has_an_event_that_scales_with_the_realm() -> void:
 func test_every_per_keyword_and_per_tag_event_effect_can_fire() -> void:
 	var r := load_real()
 	var keywords := keywords_in_play(r)
-	var tagged: Array = r.config.deck.keys() + r.config.supply.keys()
+	var tagged: Array = r.config.deck.keys() + r.config.supply.keys() + r.config.build_menu.keys()  # buildings: 295
 	for id in r.cards:
 		for effect in r.cards[id].effects:
 			if effect.op == "create":
@@ -1120,6 +1120,19 @@ func test_civilization_start_gifts_are_obtainable_cards_in_the_discard() -> void
 					"%s puts %s into the discard, or a building on its home (got %s)" % [id, effect.card_id, effect.zone])
 				check(obtainable.has(effect.card_id), "%s gives %s, which the game also hands out" % [id, effect.card_id])
 	check(gifts > 0, "some civilization starts with a card")
+
+
+## Backlog 407: no listed civilization starts with a building on its home (Sumer's starting Farm was the last); the
+## loader still allows one (133, its TEST_CARDS tests).
+func test_no_civilization_starts_with_a_building() -> void:
+	var r := load_real()
+	var built: Array[String] = []
+	for id in r.config.get("civilizations", []):
+		for effect in r.cards[id].effects:
+			if effect.op == "create" and effect.trigger == "start" and effect.zone == "tableau" \
+					and r.cards[effect.card_id].type == CardDef.BUILDING:
+				built.append("%s starts with %s" % [id, effect.card_id])
+	eq(built, [] as Array[String], "civilizations that start with a building")
 
 
 ## Backlog 107: a game starts as each listed civilization. Since 295 its home takes most of the build menu's open
