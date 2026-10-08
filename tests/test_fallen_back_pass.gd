@@ -1,5 +1,5 @@
 extends "res://tests/lib/test_case.gd"
-## The fallen-back cards in one pass (backlog 408): `fallen_uids(e)` holds exactly the tableau cards whose
+## The fallen-back cards in one pass (backlog 408): `Fallback.fallen_uids(e)` holds exactly the tableau cards whose
 ## `fallen_back_reason` is non-empty, and the queries that test every tableau card (`score()`, `score_breakdown()`,
 ## `housing()`, `Population.smallest_with_room`) give the answers the per-card rules give. Fixtures: Shed (vp 1, housing 1) →
 ## Loft (needs a Village, vp 1) → Spire (vp 2), Hut (needs a Town, vp 1, housing 2), Obelisk (a project,
@@ -87,12 +87,6 @@ func score_by_rule(e: GameEngine) -> int:
 	return total
 
 
-## Fallback.fallen_uids(e), called dynamically until it exists.
-func fallen_uids(e: GameEngine) -> Dictionary:
-	var fallback = load("res://engine/fallback.gd")
-	return fallback.fallen_uids(e)
-
-
 ## Settled territory t's housing as the rule states it: its own plus every building on it that hasn't fallen back
 ## (idle ones too), at least 1. The fixtures have no housing modifier.
 func housing_by_rule(e: GameEngine, t: int) -> int:
@@ -133,17 +127,17 @@ func test_the_positions_cover_every_cause() -> void:
 func test_fallen_uids_is_the_cards_with_a_reason() -> void:
 	for population in ["tiers", "no_tiers", "off"]:
 		var e := pass_engine(population)
-		eq(fallen_uids(e), fallen_by_reason(e), population)
+		eq(Fallback.fallen_uids(e), fallen_by_reason(e), population)
 
 
 func test_fallen_uids_with_tiers_off_holds_only_the_idle_bases_upgrades() -> void:
 	var e := pass_engine("no_tiers")
 	eq(reasons(e, "loft"), ["", "", "Its Shed is idle."], "tiers off: only the idle Shed's Loft")
-	eq(fallen_uids(e).size(), 1, "one card")
+	eq(Fallback.fallen_uids(e).size(), 1, "one card")
 
 
 func test_fallen_uids_is_empty_with_population_off() -> void:
-	eq(fallen_uids(pass_engine("off")), {}, "nothing idle, nothing below a tier")
+	eq(Fallback.fallen_uids(pass_engine("off")), {}, "nothing idle, nothing below a tier")
 
 
 # --- AC2: the score ---
@@ -190,7 +184,7 @@ func test_the_queries_change_nothing() -> void:
 	e.changed.connect(func(): emitted.append(true))
 	e.score()
 	e.score_breakdown()
-	fallen_uids(e)
+	Fallback.fallen_uids(e)
 	e.housing(home_uid(e))
 	Population.smallest_with_room(e)
 	eq(state_dump(e.state), before, "the state")
