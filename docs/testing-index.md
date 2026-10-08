@@ -92,6 +92,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_hand_limit.gd` | `hand_size`, `hand_limit`, `discard_needed` / `discard_card`, free discards |
 | `tests/test_hand_size.gd` | Hand size as a modifier (109) |
 | `tests/test_harmful_ops.gd` | The `lose` and `lose_pop` ops (072) |
+| `tests/test_honeymoon.gd` | A new government's honeymoon (399) |
 | `tests/test_housing_modifier.gd` | The `housing` modifier key (110) |
 | `tests/test_hover_sound.gd` | Hover sound (245; UI) |
 | `tests/test_identity_cards.gd` | The civilization modal as two cards (231) |

@@ -2,7 +2,7 @@
 id: 399
 title: A new government's honeymoon - 3 turns where unrest can't rise
 type: feature
-status: ready
+status: red-review
 branch: feat/399-honeymoon
 ---
 
@@ -54,7 +54,13 @@ turn 4 (fallen at turn 2's start), Kings chosen.
 ## Test plan
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_honeymoon`: `test_the_honeymoon_counts_down_its_turns`, `test_during_the_honeymoon_no_source_raises_unrest`, `test_after_the_honeymoon_unrest_rises_as_usual` |
+| AC2 | `test_honeymoon::test_during_the_honeymoon_unrest_still_falls_to_0` |
+| AC3 | `test_honeymoon::test_no_revolution_during_the_honeymoon` |
+| AC4 | `test_honeymoon::test_anarchy_doesnt_fall_during_the_honeymoon` |
+| AC5 | `test_honeymoon::test_the_forecasts_count_no_unrest_during_the_honeymoon` |
+| AC6 | `test_honeymoon`: `test_a_new_game_has_no_honeymoon`, `test_without_honeymoon_turns_there_is_none`, `test_honeymoon_turns_loads_and_is_validated`, `test_a_copy_keeps_the_honeymoon`; `test_engine_structure` (`honeymoon_left`) |
+| UI (Design notes) | `test_honeymoon::test_the_sidebar_shows_the_honeymoon_turns_left` |
 
 ## Manual check
 - [ ] After choosing a government the honeymoon shows with its turns left and disappears on turn 8.
@@ -63,3 +69,7 @@ turn 4 (fallen at turn 2's start), Kings chosen.
   `scripts/sim.sh --level 2 --compare <main checkout>` (revolts, settlements).
 
 ## Log
+- 2026-10-08: red tests in a new `tests/test_honeymoon.gd`; only its games set `honeymoon_turns` (the shared
+  `UNREST_BLOCK` stays without it, so other Anarchy tests keep their unrest). Resolved: N in the revolt message is
+  "3 turns" / "1 turn"; AC4 also checks Anarchy falls at turn 8's start, once the honeymoon is over; the sidebar line
+  reads "Honeymoon: 3 turns" under the government.
