@@ -17,6 +17,7 @@ const TYPE_FIELDS := {
 	"upgrades_to": [CardDef.UNIT],
 	"defense": [CardDef.BUILDING, CardDef.CITY],
 	"training": [CardDef.BUILDING],
+	"upkeep": [CardDef.BUILDING],
 	"keywords": [CardDef.TERRITORY],
 	"prereq": [CardDef.TECH],
 	"eureka": [CardDef.TECH],
@@ -52,6 +53,7 @@ const INT_FIELDS := {
 	"strength": {"min": 1, "default": REQUIRED},
 	"defense": {"min": 1, "default": 0},
 	"training": {"min": 1, "default": 0},
+	"upkeep": {"min": 0, "default": -1},  # -1: the config's building_upkeep, which parse_config fills in (405)
 	"era": {"min": 1, "default": 1},
 	"actions": {"min": 1, "default": 0},
 	"unrest_limit": {"min": 1, "default": 0},

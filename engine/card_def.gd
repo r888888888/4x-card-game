@@ -51,6 +51,8 @@ var upgrade_of := ""  # buildings: the id of the building it is built onto (300)
 var tier := ""  # buildings: the id of the settlement tier its territory needs (301), or "" for none
 var tier_name := ""  # buildings: that tier's name, set by ConfigLoader (CardDef has no config)
 var project := false  # buildings: built over turns as a site, its wealth cost paid in bit by bit (286)
+var upkeep: int = -1  # buildings: the wealth paid each upkeep while working; -1 until parse_config resolves it to the
+	# config's building_upkeep, and always 0 for upgrades and projects (405)
 var training: int = 0  # buildings: strength added to the units stationed on their territory while working (164)
 var actions: int = 0  # governments: actions each turn while it rules (127); 0 sets none (unlimited)
 var unrest_limit: int = 0  # governments: most unrest while it rules (144); 0 sets none (no limit)
@@ -197,11 +199,18 @@ func _face_rules(card_db: Dictionary) -> PackedStringArray:
 		parts.append(defense_text())
 	if training > 0:
 		parts.append(training_text())
+	if upkeep > 0:
+		parts.append(upkeep_text())
 	if not raid.is_empty():
 		parts.insert(0, raid_face_text())
 	elif type == EVENT:
 		parts.append(lasts_text())
 	return parts
+
+
+## A building's upkeep line (405): "⟳ Upkeep 1 wealth".
+func upkeep_text() -> String:
+	return "⟳ Upkeep %d wealth" % upkeep
 
 
 ## The face's fine print (see face): requires, tier, prereq, eureka, home, project, in that order.

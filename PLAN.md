@@ -11,7 +11,7 @@
 | Deck model | A fixed main deck, grown through the supply, the build menu and techs (see The deck model) |
 | Balance simulation | Headless `GenericBot` over many seeds (`scripts/sim.sh`, 042, 313, 314): it values every legal action on a sample fork, with no rule per mechanic; three strategies as every civilization (generic, wide, tall); compared against `main` game by game (`--compare`, 293), at levels 1-4 from one game to 10 seeds × every strategy × civ (`--level`, 378), not pinned in tests; the games run on the performance cores but one from one queue, one run at a time (152, 291), cached by code and data (292) |
 | Win condition (demo) | Game ends after 100 turns (20 until 066); final score = sum of VP on tableau cards |
-| Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments) |
+| Resources (demo) | Food, wealth and insight (139); unspent resources carry over with no cap. Food pays for people (upkeep, Settlers, growth cards: 262), insight for techs (Capital ⟳ +1, Library ⟳ +2; start with 0), wealth for buildings: non-food buildings cost wealth only, food producers 1 food + wealth; start with 2 food + 2 wealth (Capital, Caravan, Market make wealth; Market +1 per city, 077) (021, 022, 076, 077). Unrest (144) is only gained and lost, capped at the government's unrest limit (see Governments). Working base buildings pay wealth upkeep after pop eats; what can't be paid is added to unrest (405) |
 | Actions (127) | Playing a card from hand uses 1 action; nothing else does (buying, learning a tech, choosing an explored territory, relieving a Famine, discarding). The ruling government's `actions` sets how many a turn has (Chiefdom 2, Kingship and Theocracy 3); unused ones are lost |
 | Threat effects | Event deck (039): one event drawn per turn, active until it lasts out; harmful ops (072), the Famine (083), eras of events (074), revolutionary events (148), choice events (269) and era 2 and 3 events that escalate (270); barbarians are specced (160–168) |
 
@@ -168,6 +168,9 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   water, coastal, …). With `terrains` set, every territory card prints exactly one terrain (a load error otherwise).
 - Buildings may set `housing` (int ≥ 1: added to their territory's housing, idle or not) and `famine_guard` (int ≥ 1:
   pop on their territory saved from starving each upkeep, while working) (060).
+- Building upkeep (405): a base building may set `upkeep` (int ≥ 0), the wealth it pays each upkeep while working;
+  without it, it pays config `building_upkeep` (int ≥ 0, default 0). `upkeep` on an upgrade or a project is an error
+  (they pay none); `parse_config` resolves each building's `CardDef.upkeep`. The face ends "⟳ Upkeep 1 wealth".
 - Units (`"type": "unit"`, 160) need `strength` (int ≥ 1). Played from the hand onto a settled territory with a free
   worker, their home: they take no slot but use a worker there (with its buildings, in placement order, so the last
   placed go idle first), and stand on a station (the home until moved). No `requires`, no effect `keyword`
@@ -292,7 +295,9 @@ piles and entries, 140); eras add techs and events to their own decks (027, 074)
 
 ## Turn loop (initial)
 1. Upkeep: cities and buildings trigger `@upkeep` (produce food), then researched techs, the civilization and the government, then active events
-   (which may end), then pop eats food (a shortfall brings or worsens a Famine; a fed upkeep ends it, 083).
+   (which may end), then pop eats food (a shortfall brings or worsens a Famine; a fed upkeep ends it, 083), then the
+   working base buildings pay their upkeep in wealth, the unpaid rest added to unrest (405; who works is decided before
+   pop eats; `building_upkeep_due()`).
 2. Draw up to hand size (unplayed cards stay in hand).
 3. Event (237: from turn 2): draw one event from the event deck and resolve its `play` effects (see Events). It is
    drawn last so it is active all turn: you see it in the Realm and play around it, and an event that lasts N turns
@@ -387,7 +392,8 @@ Pop lives on each settled territory and is held, not spent. Backlog: 009 (pop, h
   `raw_config` adds `FAMINE` when a test turns it on). `famine` is required with population on (083).
 - The starting territory gets `start` pop; a settled territory gets 1. Pop can't exceed `housing`: the
   territory's own plus its buildings' (060).
-- Upkeep: after every card's upkeep effects, pop eats `food_upkeep` food each. Famine (083, replaces 011's one
+- Upkeep: after every card's upkeep effects, pop eats `food_upkeep` food each, then the working base buildings pay
+  their wealth upkeep (405, see Card data format). Famine (083, replaces 011's one
   death per unpaid food): when pop can't be fed in full, the famine card (an event, never in `event_deck`, with no
   `discard`) becomes active if it isn't, gains a counter up to `max_counters`, and its upkeep effects resolve once
   per counter (real data: −1 pop from the territory with the most pop, ties settled first). A fed upkeep, even

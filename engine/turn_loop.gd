@@ -1,8 +1,8 @@
 class_name TurnLoop
 extends RefCounted
-## The turn loop: setting up a new game, starting a turn (upkeep, feeding pop, era unlocks, drawing), ending it
-## with the hand-limit discard, and game over. Static functions on the engine's state; GameEngine's public
-## methods call them.
+## The turn loop: setting up a new game, starting a turn (upkeep, feeding pop, the buildings' upkeep, era unlocks,
+## drawing), ending it with the hand-limit discard, and game over. Static functions on the engine's state; GameEngine's
+## public methods call them.
 
 
 ## The zones whose cards every turn forecast reads: the board and the always-on zones (336; forecast_zones adds the
@@ -10,6 +10,8 @@ extends RefCounted
 const FORECAST_ZONES: Array[String] = ["tableau", "researched", "civilization", "government", "active_events"]
 const CROWDED := "Crowded territories"  # size unrest's source (282, 379)
 const OVEREXTENDED := "Overextended realm"  # admin unrest's source (319, 379)
+const BUILDINGS_UPKEEP := "Buildings' upkeep"  # the wealth step's source (405)
+const UPKEEP_SHORT := "Upkeep short"  # its shortfall unrest's source (405)
 
 
 ## Sets up a game with seed p_seed played as civilization civ_id ("" for none) and starts turn 1.
@@ -152,8 +154,8 @@ static func start_turn(e: GameEngine) -> void:
 
 
 ## What starting the next turn would change (309), played on a fork so nothing here changes: {score, pop, starve (the
-## pop feeding starves), resource: change} after upkeep, feeding, era unlocks, Anarchy's fall and the raids
-## that strike; not the draw or the new event. {} on the last turn or after game over.
+## pop feeding starves), resource: change} after upkeep, feeding, the buildings' upkeep, era unlocks, Anarchy's fall
+## and the raids that strike; not the draw or the new event. {} on the last turn or after game over.
 static func forecast(e: GameEngine) -> Dictionary:
 	if e.is_over or e.turn >= e.turn_limit():
 		return {}
@@ -191,16 +193,18 @@ static func _begin(e: GameEngine) -> void:
 	e._log("— Turn %d —" % e.turn)
 
 
-## The start-of-turn steps before the draw (shared by start_turn and forecast): upkeep, feeding, era unlocks and
-## Anarchy's fall. Returns the pop feeding starved.
+## The start-of-turn steps before the draw (shared by start_turn and forecast): upkeep, feeding, the buildings' upkeep
+## (405), era unlocks and Anarchy's fall. Returns the pop feeding starved.
 static func _settle_in(e: GameEngine) -> int:
 	Anarchy.before_upkeep(e)
 	resolve_upkeep(e)
+	var due := building_upkeep_due(e)  # who works is decided before pop eats (405)
 	var starved := 0
 	if e.population_on():
 		var pop := e.total_pop()
 		Population.feed(e)
 		starved = pop - e.total_pop()
+	pay_building_upkeep(e, due)
 	Research.check_era_unlocks(e)
 	Anarchy.start_of_turn(e)
 	return starved
@@ -227,3 +231,25 @@ static func resolve_upkeep(e: GameEngine, step := Callable()) -> void:
 		if step.is_valid():
 			step.call(card.def.name, card)
 	Events.resolve_upkeep(e, step)
+
+
+## The wealth e's working base buildings owe at upkeep (405).
+static func building_upkeep_due(e: GameEngine) -> int:
+	var due := 0
+	for card in Modifiers.working_cards(e):
+		if card.def.type == CardDef.BUILDING:
+			due += maxi(0, card.def.upkeep)
+	return due
+
+
+## Pays the buildings' upkeep due from wealth, never below 0 (405); the unpaid rest is added to unrest, which the limit
+## caps.
+static func pay_building_upkeep(e: GameEngine, due: int) -> void:
+	if due <= 0:
+		return
+	var paid: int = mini(due, e.resources.get(GameEngine.WEALTH, 0))
+	e.pay({GameEngine.WEALTH: paid})
+	e._log("%s: −%d wealth." % [BUILDINGS_UPKEEP, paid])
+	if paid < due and e.unrest_on():
+		var added := e.set_unrest(e.resources.get(GameEngine.UNREST, 0) + due - paid)
+		e._log("%s %d wealth: +%d unrest." % [UPKEEP_SHORT, due - paid, added])

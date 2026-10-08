@@ -118,9 +118,9 @@ func upkeep_forecast() -> Dictionary:
 
 
 ## Where next upkeep's change of resource comes from (379): [{label, count, amount}], one row per source in upkeep
-## order (crowding, overextension, working cards, events), then what pop eats; copies of a card
-## are one row, a source that changes nothing has none, and the amounts sum to upkeep_forecast()[resource]. [] on the
-## last turn or after game over. Plays on a fork: nothing here changes, is logged or emitted.
+## order (crowding, overextension, working cards, events), then what pop eats, then the buildings' upkeep (405); copies
+## of a card are one row, a source that changes nothing has none, and the amounts sum to upkeep_forecast()[resource].
+## [] on the last turn or after game over. Plays on a fork: nothing here changes, is logged or emitted.
 func upkeep_breakdown(resource: String) -> Array[Dictionary]:
 	var ledger := UpkeepBreakdown.ledger(_as_engine())
 	var out: Array[Dictionary] = []
@@ -233,6 +233,12 @@ func unrest_limit() -> int:
 ## [{label, count, amount}] summing to unrest_limit() (the government's row absorbs its floor at 0); [] with no limit.
 func unrest_limit_breakdown() -> Array[Dictionary]:
 	return UpkeepBreakdown.limit_rows(_as_engine())
+
+
+## The wealth the working base buildings owe at upkeep (405): the sum of their upkeep. Idle, fallen-back and unfinished
+## buildings owe nothing, nor do upgrades and projects.
+func building_upkeep_due() -> int:
+	return TurnLoop.building_upkeep_due(_as_engine())
 
 
 ## The unrest the next upkeep adds for big territories (282): +1 per tier each settled territory is above the ruling

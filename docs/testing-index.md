@@ -28,6 +28,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_build_menu.gd` | The build menu (295) |
 | `tests/test_build_modal.gd` | Building from a territory's view (297; UI) |
 | `tests/test_building_tiers.gd` | Buildings that need a settlement tier (301) |
+| `tests/test_building_upkeep.gd` | Buildings' wealth upkeep, its shortfall unrest, forecast, loader and text (405) |
 | `tests/test_built_signal.gd` | The engine's `built` signal (357) |
 | `tests/test_button_widths.gd` | Button widths (100; UI) |
 | `tests/test_cabinet_doors.gd` | The government choice behind cabinet doors (209; UI) |

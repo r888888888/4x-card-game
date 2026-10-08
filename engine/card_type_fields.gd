@@ -64,6 +64,10 @@ static func _building(c: Dictionary, def: CardDef, ctx: Dictionary, errs: Array[
 	def.tier = Fields.read_string(c, "tier", errs, [], "")
 	if def.project and def.upgrade_of != "":
 		errs.append(UPGRADE_PROJECT_ERROR)
+	if c.has("upkeep") and def.upgrade_of != "":
+		errs.append("upkeep: an upgrade pays no upkeep (its base does)")
+	if c.has("upkeep") and def.project:
+		errs.append("upkeep: a project pays no upkeep")
 	if def.project and not def.cost_per_territory.is_empty():
 		errs.append("cost_per_territory: a project's cost is paid in over turns, so it can't grow")
 	def.requires = _requires(c, ctx, errs)
@@ -242,3 +246,16 @@ static func _city_names(raw: Variant, errs: Array[String]) -> Array[String]:
 		else:
 			out.append(name)
 	return out
+
+
+## Sets each building's upkeep once the config is read (405; ConfigLoader calls it): an upgrade's and a project's 0, a
+## base building's own, else default.
+static func resolve_upkeep(cards: Dictionary, default: int) -> void:
+	for id in cards:
+		var def: CardDef = cards[id]
+		if def.type != CardDef.BUILDING:
+			continue
+		if def.upgrade_of != "" or def.project:
+			def.upkeep = 0
+		elif def.upkeep < 0:
+			def.upkeep = default

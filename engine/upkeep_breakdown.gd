@@ -1,10 +1,10 @@
 class_name UpkeepBreakdown
 extends RefCounted
 ## Where next upkeep's change of each resource comes from (379): rows {label, count, amount}, one per source, in upkeep
-## resolution order (crowding, overextension, working cards, events), then what pop eats. Each
-## row is what its step actually changed, so clamps (the unrest limit, the 0 floors) fall on the step they hit and the
-## rows sum to upkeep_forecast, which is built from them. Copies of one card are one row (count: the copies). Plays on
-## a fork: nothing here changes, is logged or emitted.
+## resolution order (crowding, overextension, working cards, events), then what pop eats, then the buildings' upkeep
+## and its shortfall (405). Each row is what its step actually changed, so clamps (the unrest limit, the 0 floors) fall
+## on the step they hit and the rows sum to upkeep_forecast, which is built from them. Copies of one card are one row
+## (count: the copies). Plays on a fork: nothing here changes, is logged or emitted.
 
 const POP_EATS := "Pop eats"
 
@@ -29,11 +29,18 @@ static func ledger(e: GameEngine) -> Dictionary:
 			books[r].add(label, card, delta)
 		last.resources = f.resources.duplicate()
 		last.gains = f._insight_gains)
+	var due := TurnLoop.building_upkeep_due(f)
 	if e.population_on():
 		books[GameEngine.FOOD].add(POP_EATS, null, -f.total_pop() * e.config.population.food_upkeep)
 	var pop_before := f.total_pop()
 	if e.population_on():
 		Population.feed(f)
+	var held := f.resources.duplicate()
+	TurnLoop.pay_building_upkeep(f, due)
+	var labels := {GameEngine.WEALTH: TurnLoop.BUILDINGS_UPKEEP, GameEngine.UNREST: TurnLoop.UPKEEP_SHORT}
+	for r: String in labels:
+		if books.has(r):
+			books[r].add(labels[r], null, f.resources.get(r, 0) - held.get(r, 0))
 	var rows := {}
 	for r in books:
 		rows[r] = (books[r] as Ledger).rows()
