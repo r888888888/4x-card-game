@@ -221,6 +221,11 @@ func upkeep_text() -> String:
 	return "⟳ Upkeep %d wealth" % upkeep
 
 
+## A building's upkeep line in its details (417): "Each upkeep: pay 1 wealth".
+func upkeep_long_text() -> String:
+	return "Each upkeep: pay %d wealth" % upkeep
+
+
 ## The face's fine print (see face): requires, tier, prereq, eureka, home, project, in that order.
 func _fine_print(card_db: Dictionary) -> PackedStringArray:
 	var fine: PackedStringArray = []
@@ -295,6 +300,8 @@ func rules_tooltip(card_db: Dictionary, skip_ops: Array[String] = []) -> String:
 		parts.append(defense_text() + " on its territory")
 	if training > 0:
 		parts.append(training_text())
+	if upkeep > 0:
+		parts.append(upkeep_long_text())
 	if frees_worker:
 		parts.append(frees_worker_text(card_db))
 	if project:
