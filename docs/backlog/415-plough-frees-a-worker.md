@@ -2,7 +2,7 @@
 id: 415
 title: Ploughed Fields frees its Farm's worker instead of making food
 type: feature
-status: in-progress
+status: review
 branch: feat/415-plough-frees-a-worker
 ---
 
@@ -18,24 +18,24 @@ specialised farm territories: Farm and Irrigation Canals with a workshop still s
 Fixtures: `TEST_CARDS` Farm (tag `farm`, ⟳ +1 food) plus Yoke: `{"id": "yoke", "name": "Yoke", "type": "building",
 "cost": {"wealth": 1}, "upgrade_of": "farm", "frees_worker": true}`, in the build menu. Population on.
 
-- [ ] AC1 (frees the worker): Given Homeland with pop 2 and 3 slots holding a Farm and one other building, both
+- [x] AC1 (frees the worker): Given Homeland with pop 2 and 3 slots holding a Farm and one other building, both
   working, when Yoke is built on the Farm, then `free_workers(homeland)` goes from 0 to 1, a third building can be built
   there, and all three work. `is_idle` is false for each of them.
-- [ ] AC2 (works with no pop): Given Homeland holding a Farm with a Yoke, when Homeland's pop falls to 0, then the Farm
+- [x] AC2 (works with no pop): Given Homeland holding a Farm with a Yoke, when Homeland's pop falls to 0, then the Farm
   is not idle, Yoke's `fallen_back_reason` is "", and the next upkeep gains the Farm's 1 food. A Farm without a Yoke on
   the same territory, built after it, is idle. Workers still go to the other worker-using cards in tableau order, with
   the ploughed Farm skipped.
-- [ ] AC3 (still takes a slot): Given a Farm with a Yoke that is past its territory's slots (a slot was lost), then it
+- [x] AC3 (still takes a slot): Given a Farm with a Yoke that is past its territory's slots (a slot was lost), then it
   is idle as today, and Yoke falls back ("Its Farm is idle."). A Yoke never makes room for a building past the slots.
-- [ ] AC4 (taking it away): Given AC1 after the third building, when the Yoke is abandoned (`abandon`, 412), then the
+- [x] AC4 (taking it away): Given AC1 after the third building, when the Yoke is abandoned (`abandon`, 412), then the
   Farm uses a worker again, `free_workers` is 0, and the last of the three in tableau order is idle. `upkeep_forecast`
   agrees with the upkeep that follows, before and after.
-- [ ] AC5 (loader): `frees_worker` is an optional boolean on buildings (`DataLoader.TYPE_FIELDS`), default false;
+- [x] AC5 (loader): `frees_worker` is an optional boolean on buildings (`DataLoader.TYPE_FIELDS`), default false;
   another type is warned about as for any building field. Load errors naming the file, card and field: `frees_worker`
   on a building with no `upgrade_of` ("frees_worker: only an upgrade can free its base's worker"), or with a `tier`
   ("frees_worker: an upgrade that frees a worker can't need a tier"), or whose `upgrade_of` names an upgrade, which
   uses no worker of its own ("frees_worker: 'x' is an upgrade and uses no worker").
-- [ ] AC6 (card text): Yoke's generated rules include the line "Frees its Farm's worker." (so its face reads "Also
+- [x] AC6 (card text): Yoke's generated rules include the line "Frees its Farm's worker." (so its face reads "Also
   frees its Farm's worker."), and its details explain it: "Its Farm needs no worker: it works with no pop there, and
   that pop can work another building." A building without the field reads as today.
 
@@ -102,3 +102,13 @@ All in `tests/test_frees_worker.gd`.
   `tests/lib/test_case.gd`. AC6's details text is a generated term named "Frees a worker" (it names the base). The
   real data change (Ploughed Fields) has no test of its own beyond the loader and content suite; its numbers are
   under Manual check.
+- 2026-10-08: green. `CardDef.frees_worker` (a `TYPE_FIELDS` bool parsed in `CardTypeFields._building`; the
+  upgrade-of-an-upgrade check is in `DataLoader.parse_cards`' cross-card pass). `Population.uses_worker(e, card)` and
+  `freed_uids(e)` decide it per card; `Territories.workers_on`, the build-target count in `Territories`,
+  `Population.idle_uids` and `is_idle` use them. `Fallback.reason`, `CardDetails._state` and `CardPlay.needs_target`
+  keep `CardDef.uses_worker()` ("could ever use one"), which is right for them. Text: `CardDef.frees_worker_text` in
+  both the face and `rules_tooltip`; the details term is appended by `CardDetails._terms` as `FREES_A_WORKER` (not a
+  Glossary term: it names the base, and `capitalize()` would make it "Frees A Worker"). Ploughed Fields: 3 wealth, no
+  effects or tags, `frees_worker`. One existing content test grew: `test_every_building_gives_something_lasting`
+  counts `frees_worker` as a standing field, beside `training` and `defense`. Follow-up noticed: 405's upkeep line is
+  on the card face (`rules_text`) but not in the details (`rules_tooltip`).

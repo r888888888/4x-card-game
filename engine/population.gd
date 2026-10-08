@@ -229,8 +229,8 @@ static func is_idle(e: GameEngine, uid: int) -> bool:
 
 
 ## The tableau cards is_idle says are idle, in one pass (408): uid -> true. Each territory's pop goes to its
-## worker-using cards in tableau order (not a building whose worker is freed, 415), and its slots (sea slots first for a building that takes one, 366) to its
-## buildings; a card past either is idle. {} with population off.
+## worker-using cards in tableau order (not a building whose worker is freed, 415), and its slots (sea slots first for
+## a building that takes one, 366) to its buildings; a card past either is idle. {} with population off.
 static func idle_uids(e: GameEngine) -> Dictionary:
 	var out := {}
 	if not e.population_on():
