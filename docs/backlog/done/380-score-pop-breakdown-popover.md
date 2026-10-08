@@ -2,7 +2,7 @@
 id: 380
 title: Click Score or Pop to see what makes it up
 type: feature
-status: review
+status: done
 branch: feat/380-score-pop-breakdown-popover
 ---
 
