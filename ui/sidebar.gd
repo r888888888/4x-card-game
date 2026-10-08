@@ -2,13 +2,15 @@ class_name Sidebar
 extends PanelContainer
 ## The board's right rail (backlog 202, the mock's .rail): open on the board with a hairline to its left (221); under a
 ## 3 px rule, a "Civilization" heading, the civilization's name and its government as a small caps link ("CHIEFDOM ›"),
-## each opening the civilization modal (a name with no card is hidden), and End turn's key filling its foot (203, 221).
+## each opening the civilization modal (a name with no card is hidden), under it the honeymoon's turns left while a new
+## government has one (399), and End turn's key filling its foot (203, 221).
 
 const WIDTH := Tokens.SPACE_9 * 3
 
 var heading: Label
 var name_button: Button  # the civilization's name
 var government_button: Button  # "CHIEFDOM ›"
+var honeymoon: Label  # "Honeymoon: 3 turns", while the new government has one (399)
 var column: VBoxContainer  # the rail's contents, top to bottom
 var end_turn: EndTurnKey  # at its foot (203), its caption under it
 
@@ -42,6 +44,11 @@ func _init(on_open: Callable) -> void:
 	government_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	government_button.tooltip_text = "Your government: what it allows, and the government deck."
 	column.add_child(government_button)
+	honeymoon = Label.new()
+	honeymoon.theme_type_variation = &"Caption"
+	honeymoon.tooltip_text = "The people back the new government: unrest can't rise and no revolution can be declared."
+	honeymoon.mouse_filter = Control.MOUSE_FILTER_PASS
+	column.add_child(honeymoon)
 	var room := Control.new()  # End turn sits at the foot (203)
 	room.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	room.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -64,6 +71,9 @@ func refresh(e: GameEngine) -> void:
 		else e.card_db[e.anarchy_id()].name if e.anarchy() != -1 else ""  # 253: Anarchy, while no government rules
 	government_button.text = (ruler.to_upper() + " ›") if ruler != "" else ""
 	government_button.visible = ruler != ""
+	var left := e.honeymoon_left()
+	honeymoon.text = "Honeymoon: %d turn%s" % [left, "" if left == 1 else "s"]
+	honeymoon.visible = left > 0
 
 
 ## Where a card leaving for the government flies to (the government a player just played).

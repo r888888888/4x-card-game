@@ -20,7 +20,7 @@
       { "id": "town", "name": "Town", "pop": 8, "slots": 2 },
       { "id": "metropolis", "name": "Metropolis", "pop": 13, "slots": 3 }
     ] },
-  "unrest": { "anarchy": "anarchy", "anarchy_turns": 3, "era_unrest": 3, "renewal": 1 },
+  "unrest": { "anarchy": "anarchy", "anarchy_turns": 3, "era_unrest": 3, "renewal": 1, "honeymoon_turns": 3 },
   "starting": {
     "resources": { "food": 2, "wealth": 2, "insight": 0 },
     "tableau": ["capital"],

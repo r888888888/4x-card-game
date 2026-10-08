@@ -38,7 +38,7 @@ static func relieve_button(main: MainScreen) -> Button:
 
 ## The sidebar's honeymoon line under the government, visible or not (399).
 static func honeymoon_line(main: MainScreen) -> Label:
-	return main.sidebar.get("honeymoon")  # red phase (399): the sidebar has no honeymoon line yet
+	return main.sidebar.honeymoon
 
 
 ## The Renew button beside Relieve, visible or not (385).

@@ -187,8 +187,8 @@ static func _parse_famine(raw: Variant, cards: Dictionary, resources: Array[Stri
 	return {}
 
 
-## Normalizes the unrest block (145) {anarchy, anarchy_turns (384), era_unrest (default 0), renewal (147, only when
-## given; 0 when absent)}: only with unrest in resources; anarchy is an event (253) with no discard, never in event_deck. Returns {} when invalid.
+## Normalizes the unrest block (145) {anarchy, anarchy_turns (384), era_unrest (default 0), renewal (147) and
+## honeymoon_turns (399, ≥ 1), each of the last two only when given}: only with unrest in resources; anarchy is an event (253) with no discard, never in event_deck. Returns {} when invalid.
 static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, errs: Array[String], warnings: Array[String], src: String) -> Dictionary:
 	if not config.resources.has(GameEngine.UNREST):
 		errs.append("unrest: needs '%s' in resources" % GameEngine.UNREST)
@@ -217,14 +217,15 @@ static func _parse_unrest(raw: Variant, config: Dictionary, cards: Dictionary, e
 			u_errs.append("unrest.%s: must be an integer >= %d" % [key[0], key[1]])
 		else:
 			out[key[0]] = n
-	if raw.has("renewal"):
-		var renewal: Variant = Fields.as_int(raw.renewal)
-		if typeof(renewal) != TYPE_INT or renewal < 0:
-			u_errs.append("unrest.renewal: must be an integer >= 0")
-		else:
-			out.renewal = renewal
+	for key in [["renewal", 0], ["honeymoon_turns", 1]]:
+		if raw.has(key[0]):
+			var n: Variant = Fields.as_int(raw[key[0]])
+			if typeof(n) != TYPE_INT or n < key[1]:
+				u_errs.append("unrest.%s: must be an integer >= %d" % [key[0], key[1]])
+			else:
+				out[key[0]] = n
 	for key in raw:
-		if not ["anarchy", "anarchy_turns", "era_unrest", "renewal"].has(key):
+		if not ["anarchy", "anarchy_turns", "era_unrest", "renewal", "honeymoon_turns"].has(key):
 			warnings.append("%s: unrest: unknown field '%s'" % [src, key])
 	errs.append_array(u_errs)
 	return out if u_errs.is_empty() else {}

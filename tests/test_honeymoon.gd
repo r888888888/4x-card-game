@@ -18,13 +18,18 @@ const NO_REVOLT := "The people back the new government (%s)."
 ## it ended, at the end of turn 4: turn 5 has started under Kings.
 func chosen_engine(block := HONEYMOON) -> GameEngine:
 	var e := anarchy_engine(block, {}, [ROUSE, RIOT, MOB])
+	choose_kings_after_anarchy(e)
+	return e
+
+
+## Plays e (a new anarchy game) into Anarchy at turn 2's start and chooses Kings when it ends, at the end of turn 4.
+func choose_kings_after_anarchy(e: GameEngine) -> void:
 	e.resources["unrest"] = 5
 	e.end_turn()
 	e.create_card("kings", "discard", null)  # into the government deck (154)
 	outlast_anarchy(e)
 	check(e.choose_government(uid_of(e.zone("governments"), "kings")), "choose Kings")
 	eq([e.turn, ruling(e), e.resources.unrest], [5, "kings", 0], "precondition: turn 5 under Kings, unrest 0")
-	return e
 
 
 ## Plays a new Rouse (+2 unrest) from the hand.
@@ -172,8 +177,9 @@ func test_a_copy_keeps_the_honeymoon() -> void:
 # --- UI: the sidebar shows it ---
 
 func test_the_sidebar_shows_the_honeymoon_turns_left() -> void:
-	await with_main(chosen_engine(), func(main: Node):
+	await with_main(anarchy_engine(HONEYMOON, {}, [ROUSE, RIOT, MOB]), func(main: Node):
 		var e := Game.engine
+		choose_kings_after_anarchy(e)  # with_main started a new game
 		var line := MainProbe.honeymoon_line(main)
 		await wait_frames()
 		check(line != null and line.is_visible_in_tree(), "shown under the government")

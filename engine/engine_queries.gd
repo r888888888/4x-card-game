@@ -261,6 +261,12 @@ func renewals_left() -> int:
 	return Anarchy.renewals_left(self)
 
 
+## The turns of the new government's honeymoon left, this one included (399): unrest can't rise, no revolution can be
+## declared and Anarchy doesn't fall; 0 when there is none.
+func honeymoon_left() -> int:
+	return maxi(0, state.honeymoon_until - turn + 1)
+
+
 ## The cards renewal may trash (255): the hand's, deck's and discard's but governments, by name then uid.
 func renewal_options() -> Array[int]:
 	return Anarchy.renewal_options(self)
@@ -273,10 +279,10 @@ func at_unrest_limit() -> bool:
 
 
 ## Whether the next upkeep brings unrest to a limit, so the next turn falls into Anarchy unless it is calmed first
-## (228); false with no limit. The era's unrest isn't counted.
+## (228); false with no limit or when the next turn is in a honeymoon (399). The era's unrest isn't counted.
 func anarchy_ahead() -> bool:
 	var limit := unrest_limit()
-	return limit >= 0 and resources.get(UNREST, 0) + upkeep_forecast().get(UNREST, 0) >= limit
+	return limit >= 0 and honeymoon_left() < 2 and resources.get(UNREST, 0) + upkeep_forecast().get(UNREST, 0) >= limit
 
 
 ## The hand drawn up to each turn: config hand_size plus the hand_size modifier, between 1 and hand_limit (109).

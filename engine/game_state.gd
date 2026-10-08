@@ -28,6 +28,7 @@ var built_once: Array[String] = []  # the once build-menu entries built this gam
 var next_uid := 1
 var revolt_pending := false  # a revolution was declared: Anarchy falls at the next turn's start (155)
 var renewed := 0  # cards Anarchy's renewal trashed this turn (385)
+var honeymoon_until := 0  # the last turn of the new government's honeymoon, 0 for none (399)
 var moved_units: Array[int] = []  # uids of the units moved this turn (163)
 var last_raid_turn := 0  # the turn a raid last struck, 0 before any has (257)
 var names_given := 0  # default city names handed out (248): the next settled territory takes the next
@@ -62,6 +63,7 @@ func copy() -> GameState:
 	s.next_uid = next_uid
 	s.revolt_pending = revolt_pending
 	s.renewed = renewed
+	s.honeymoon_until = honeymoon_until
 	s.moved_units = moved_units.duplicate()
 	s.names_given = names_given
 	s.last_raid_turn = last_raid_turn
