@@ -115,6 +115,7 @@ Each helper's `##` comment in `tests/lib/test_case.gd` has the details (331).
 | `put_in_hand(engine, id)` | Puts a new copy in the hand (via `create_card`) and returns its uid |
 | `put_in(engine, id, zone)` | Same, into any zone (a government placed directly) |
 | `build_on(engine, territory_uid, ids)` | Puts new copies of those buildings straight on a territory, in order |
+| `upgrade_on(engine, id, base_uid)` | Puts a new copy of an upgrade straight onto a building; its uid (405, 414) |
 | `check_cases(cases, load)` / `check_loads(rows, load)` | Loader tables: rejected input / accepted input (340) |
 | `TEST_CIVS` / `civ_db()` / `civ_engine(civ, deck, overrides)` | Fixture civilizations and a game as one (062) |
 | `TEST_GOVS` / `gov_db()` / `gov_engine(gov, deck, overrides)` | Fixture governments and a game under one (065) |

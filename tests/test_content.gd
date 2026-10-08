@@ -1657,7 +1657,9 @@ func test_dry_desert_and_hills_each_take_a_food_building() -> void:
 		check(not fed.is_empty(), "no food building fits a dry %s territory" % terrain)
 
 
-## Backlog 275: a gain_per_tag counts a tag at least 2 reachable cards carry, on any reachable card or research tech.
+## Backlog 275: a gain_per_tag counts a tag at least 2 reachable cards carry, on any reachable card or research tech. A
+## here count (414) is exempt: it counts copies on one territory, which
+## test_every_here_count_has_a_building_to_count_beside_it checks.
 func test_every_gain_per_tag_tag_is_on_2_reachable_cards() -> void:
 	var r := load_real()
 	var reachable := reachable_cards(r)
@@ -1671,7 +1673,7 @@ func test_every_gain_per_tag_tag_is_on_2_reachable_cards() -> void:
 	var thin: Array[String] = []
 	for def in counters:
 		for effect in def.effects:
-			if effect.op == "gain_per_tag" and carriers.get(effect.get("tag"), 0) < 2:
+			if effect.op == "gain_per_tag" and effect.get("where") != "here" and carriers.get(effect.get("tag"), 0) < 2:
 				thin.append("%s: %s on %d" % [def.id, effect.get("tag"), carriers.get(effect.get("tag"), 0)])
 	eq(thin, [] as Array[String], "gain_per_tag tags fewer than 2 reachable cards carry")
 
@@ -1932,3 +1934,24 @@ func test_every_base_building_can_stand_on_some_territory() -> void:
 		if not lands.any(func(k: Array) -> bool: return meets(k, def.requires)):
 			homeless.append("%s %s" % [def.id, def.requires])
 	eq(homeless, [] as Array[String], "buildings no territory can hold")
+
+
+## Backlog 414: a "here" count (gain_per_tag "where": "here") counts a tag some other base building carries, and some
+## territory a game can hold meets both buildings' requires, so it can fire.
+func test_every_here_count_has_a_building_to_count_beside_it() -> void:
+	var r := load_real()
+	var lands := land_keyword_sets(r)
+	var counts := 0
+	var lonely: Array[String] = []
+	for def in real_buildings(r):
+		for effect: Effect in def.effects:
+			if effect.op != "gain_per_tag" or effect.get("where") != "here":
+				continue
+			counts += 1
+			var beside := real_base_buildings(r).filter(func(other: CardDef) -> bool:
+				return other.id != def.id and other.has_tag(effect.get("tag")) and lands.any(func(k: Array) -> bool:
+					return meets(k, def.requires) and meets(k, other.requires)))
+			if beside.is_empty():
+				lonely.append("%s counts %s" % [def.id, effect.get("tag")])
+	check(counts > 0, "some real building counts a tag here")
+	eq(lonely, [] as Array[String], "here counts with nothing to count beside them")

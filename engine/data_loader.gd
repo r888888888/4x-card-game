@@ -384,7 +384,7 @@ static func _effect_problem(effect: Effect, c: Dictionary, type: String) -> Stri
 		return no_territory_effect_problem(effect, type)
 	if type == CardDef.UNIT:
 		return _unit_effect_problem(effect)
-	return ""
+	return effect.type_problem(type)
 
 
 ## Why effect, a start create into the tableau, can't place its card (only a building goes on the home, 133), or "".

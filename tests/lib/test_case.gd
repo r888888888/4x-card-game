@@ -359,6 +359,14 @@ func build_on(engine: GameEngine, territory_uid: int, card_ids: Array) -> void:
 		card.territory_uid = territory_uid
 
 
+## Puts a new copy of upgrade id straight onto the building base_uid (on its territory, 405): its uid.
+func upgrade_on(engine: GameEngine, id: String, base_uid: int) -> int:
+	var card: CardInstance = engine.create_card(id, "tableau", null)
+	card.territory_uid = engine.zone("tableau").find(base_uid).territory_uid
+	card.base_uid = base_uid
+	return card.uid
+
+
 ## Moves one territory_deck copy of each id (in order) straight to the tableau, as if settled
 ## without a city.
 func settle(engine: GameEngine, ids: Array) -> void:

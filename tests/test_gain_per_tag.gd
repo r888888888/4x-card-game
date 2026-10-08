@@ -1,7 +1,8 @@
 extends "res://tests/lib/test_case.gd"
 ## The gain_per_tag op's `per` (367): gains amount × ⌊tagged cards ÷ per⌋, so Sailing pays +1 insight per 2 ports; and a
 ## play-trigger gain_per_tag (Sea Trade). Fixtures are local: Counter (building, ⟳ +1 insight per 2 t), Hut (building,
-## tag t) and Shipper (action, +2 wealth per t).
+## tag t) and Shipper (action, +2 wealth per t). Its "where": "here" (414) counts the other working base buildings with
+## the tag on the card's own territory: Canal (⟳ +1 food per other farm here) and Fat Plough (an upgrade tagged farm).
 
 const PER := {"op": "gain_per_tag", "resource": "insight", "amount": 1, "tag": "t", "per": 2, "trigger": "upkeep"}
 const COUNTER := {"id": "counter", "name": "Counter", "type": "building", "effects": [PER]}
@@ -102,3 +103,96 @@ func test_a_played_gain_per_tag_gains_per_tagged_card_and_plays_with_none() -> v
 	uid = put_in_hand(none, "shipper")
 	check(none.play_card(uid), "play Shipper with no Hut: %s" % none.play_error(uid))
 	eq(none.resources.wealth, 0, "no Hut: nothing")
+
+
+# --- 414: "where": "here" counts the other working farms on the card's own territory ---
+
+const HERE := {"op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "where": "here", "trigger": "upkeep"}
+const CANAL := {"id": "canal", "name": "Canal", "type": "building", "tags": ["farm"], "effects": [HERE]}
+const FAT_PLOUGH := {"id": "fat_plough", "name": "Fat Plough", "type": "building", "tags": ["farm"],
+	"upgrade_of": "farm"}
+
+
+## A game with population on (no food upkeep), the 414 fixtures, Homeland at home_pop pop holding home_ids (in order),
+## and Grassland settled.
+func here_engine(home_pop: int, home_ids: Array) -> GameEngine:
+	var o := {"population": {"start": home_pop, "food_upkeep": 0, "vp_per_pop": 0},
+		"territory_deck": {"grassland": 1}}
+	var e := make_engine({"scout": 10}, o, 1, [CANAL, FAT_PLOUGH])
+	set_home_pop(e, home_pop)
+	build_on(e, home_uid(e), home_ids)
+	settle(e, ["grassland"])
+	return e
+
+
+## The food row of card name in e's next upkeep breakdown, or 0 when it has none.
+func food_row(e: GameEngine, name: String) -> int:
+	for row in e.upkeep_breakdown("food"):
+		if row.label == name:
+			return row.amount
+	return 0
+
+
+## AC1: the Canal counts the two other farms on Homeland, not itself and not Grassland's Farm.
+func test_here_counts_the_other_farms_on_its_own_territory() -> void:
+	var e := here_engine(3, ["farm", "farm", "canal"])
+	var grassland := uid_of(e.zone("tableau"), "grassland")
+	e.zone("tableau").find(grassland).pop = 1
+	build_on(e, grassland, ["farm"])
+	eq(food_row(e, "Canal"), 2, "the Canal's row: the two other Homeland farms")
+	var food: int = e.resources.food
+	e.end_turn()
+	eq(e.resources.food - food, 2 + 3 + 2, "Canal 2 + three Farms 3 + Capital 2")
+
+
+## AC2: an idle farm and an upgrade on a farm don't count.
+func test_here_counts_only_working_base_buildings() -> void:
+	var e := here_engine(2, ["canal", "farm", "farm"])  # 2 pop: the second Farm is idle
+	upgrade_on(e, "fat_plough", uid_of(e.zone("tableau"), "farm"))
+	eq(food_row(e, "Canal"), 1, "the working Farm alone")
+
+
+## AC2: an idle Canal makes nothing.
+func test_an_idle_here_card_makes_nothing() -> void:
+	var e := here_engine(2, ["farm", "farm", "canal"])  # 2 pop: the Canal is idle
+	eq(food_row(e, "Canal"), 0, "an idle Canal has no row")
+	var food: int = e.resources.food
+	e.end_turn()
+	eq(e.resources.food - food, 2 + 2, "two Farms + Capital, nothing from the Canal")
+
+
+## AC3: the forecast's Canal row and total match what upkeep then does.
+func test_the_forecast_counts_the_farms_here() -> void:
+	var e := here_engine(3, ["farm", "farm", "canal"])
+	var forecast: int = e.upkeep_forecast().food
+	eq(food_row(e, "Canal"), 2, "the Canal's row")
+	var food: int = e.resources.food
+	e.end_turn()
+	eq(e.resources.food - food, forecast, "upkeep did what the forecast said")
+
+
+## AC4: where takes only "here", on the tableau, on a building.
+func test_where_here_is_a_building_count_on_the_tableau() -> void:
+	var building := func(effect: Dictionary) -> Dictionary: return card_load(card_with("building", effect))
+	check_cases([
+		["where not here", HERE.merged({"where": "there"}, true),
+			"cards.json: card 'x': effects[0]: 'where' must be one of: here (got 'there')"],
+		["here off the tableau", HERE.merged({"zone": "hand"}, true),
+			"cards.json: card 'x': effects[0]: 'where': 'here' counts the tableau, so it can't take 'zone'"],
+	], building)
+	check_cases([
+		["here on an action", card_with("action", HERE.merged({"trigger": "play"}, true)),
+			"cards.json: card 'x': effects[0]: 'where': 'here' only works on a building"],
+		["here on a tech", card_with("tech", HERE.merged({"trigger": "play"}, true)).merged({"cost": {"insight": 1}}),
+			"cards.json: card 'x': effects[0]: a tech effect can't act on its own territory"],
+	], card_load)
+	check_loads([["no where", card_with("building", PER), {"cards.x.effects.size()": 1}]], card_load)
+
+
+## AC5: the face and details text.
+func test_here_text_names_the_other_farms_here() -> void:
+	var db := fixture_db([CANAL, COUNTER])
+	var effect: Effect = db.canal.effects[0]
+	eq(effect.describe(db), "+1 food per other farm here", "face")
+	eq(effect.describe_long(db), "+1 food per other farm card on its territory", "details")
+	eq((db.counter.effects[0] as Effect).describe(db), "+1 insight per 2 t", "without where: unchanged")

@@ -296,7 +296,8 @@
       "flavor": "The canals carry the river across the fields; the silt fills them in; every spring the digging begins again, as it always will.",
       "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "requires": ["fresh_water"], "housing": 1,
       "effects": [
-        { "op": "gain", "resource": "food", "amount": 3, "trigger": "upkeep" },
+        { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
+        { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "farm", "where": "here", "trigger": "upkeep" },
         { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep", "keyword": "desert" }
       ]
     },
@@ -345,7 +346,7 @@
     {
       "id": "fishing_huts", "name": "Fishing Huts", "type": "building",
       "flavor": "Reed huts on the shore, nets drying in the sun, and the boats out at dawn on water the colour of pewter.",
-      "cost": { "wealth": 3 }, "vp": 0, "tags": ["port"], "requires": ["coastal", "marsh"], "housing": 1,
+      "cost": { "wealth": 3 }, "vp": 0, "tags": ["port", "fishing"], "requires": ["coastal", "marsh"], "housing": 1,
       "effects": [ { "op": "gain", "resource": "food", "amount": 3, "trigger": "upkeep" },
         { "op": "create", "card": "net_fishing", "zone": "deck", "unique": true } ]
     },
@@ -354,8 +355,9 @@
       "flavor": "Seawater stands in shallow clay beds until the sun takes the water and leaves the salt, and the catch keeps till winter.",
       "cost": { "wealth": 3 }, "vp": 0, "tags": [], "requires": ["coastal"],
       "effects": [
-        { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" },
-        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" }
+        { "op": "gain", "resource": "food", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain", "resource": "wealth", "amount": 1, "trigger": "upkeep" },
+        { "op": "gain_per_tag", "resource": "food", "amount": 1, "tag": "fishing", "where": "here", "trigger": "upkeep" }
       ]
     },
     {

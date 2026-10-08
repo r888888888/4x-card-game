@@ -38,6 +38,11 @@ func needs_own_territory() -> bool:
 	return false
 
 
+## Why this effect can't be on a card of type, or "" (414: a here count only works on a building).
+func type_problem(_type: String) -> String:
+	return ""
+
+
 ## Read fields from data, appending any problems to errors.
 ## ctx has "resources" and "zones" (the valid names for each).
 func configure(_data: Dictionary, _ctx: Dictionary, _errors: Array[String]) -> void:
