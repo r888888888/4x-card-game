@@ -2,7 +2,7 @@
 id: 379
 title: Click a resource counter to see its next-upkeep change by source
 type: feature
-status: review
+status: done
 branch: feat/379-resource-breakdown-popover
 ---
 
