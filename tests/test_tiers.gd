@@ -172,9 +172,9 @@ func test_a_building_idle_from_slots_skips_its_modifiers_and_defence() -> void:
 	var wg := grassland_uid(walls)
 	set_pop(walls, wg, 3)
 	build_on(walls, wg, ["guildhall", "guildhall", "rampart"])
-	var low: int = walls.defense_parts(wg).buildings
+	var low: int = walls.military.defense_parts(wg).buildings
 	set_pop(walls, wg, 4)
-	eq([low, walls.defense_parts(wg).buildings], [0, 2], "the Rampart defends only in its slot")
+	eq([low, walls.military.defense_parts(wg).buildings], [0, 2], "the Rampart defends only in its slot")
 
 
 func test_a_building_idle_from_slots_guards_no_pop_from_famine() -> void:

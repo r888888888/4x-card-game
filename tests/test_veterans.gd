@@ -1,7 +1,7 @@
 extends "res://tests/lib/raid_case.gd"
 ## Veteran units (backlog 165): each working unit stationed on a territory that repels a raid gains a veteran counter
 ## (`unit_veterancy`), +1 strength each, up to config `veteran_max`; it keeps them when it moves and loses them when it
-## leaves the tableau. `raid_resolved`'s outcome lists the units as `veterans`.
+## leaves the tableau. `raid_resolved`'s outcome lists the units as `veterans`. 388: `military.veteran_pips`.
 
 const VETERANS := {"veteran_max": 2}
 
@@ -25,7 +25,7 @@ func garrison_hills(e: GameEngine) -> int:
 func await_strike(e: GameEngine) -> void:
 	var raid := active_uid(e, "raiders")
 	check(raid != -1, "Raiders active")
-	for i in e.raid_turns_left(raid):
+	for i in e.military.raid_turns_left(raid):
 		e.end_turn()
 
 
@@ -70,14 +70,14 @@ func test_working_units_on_a_territory_that_repels_a_raid_become_veterans() -> v
 		return
 	var outcomes := record_raids(e)
 	var levy := garrison_hills(e)
-	eq([e.unit_veterancy(levy), e.unit_strength(levy)], [0, 2], "a fresh Levy")
+	eq([e.military.veterancy(levy), e.military.strength(levy)], [0, 2], "a fresh Levy")
 	await_strike(e)
 	if outcomes.size() != 1:
 		check(false, "one raid resolved: %s" % [outcomes])
 		return
 	eq(outcomes[0].repelled, true, "repelled")
-	eq(e.unit_veterancy(levy), 1, "1 counter")
-	eq(e.unit_strength(levy), 3, "Levy 2 + 1 veteran")
+	eq(e.military.veterancy(levy), 1, "1 counter")
+	eq(e.military.strength(levy), 3, "Levy 2 + 1 veteran")
 	eq(outcomes[0].get("veterans"), [levy], "the outcome lists it")
 
 
@@ -96,7 +96,7 @@ func test_idle_units_and_units_elsewhere_dont_become_veterans() -> void:
 			levies.append(c.uid)
 	var at_home := levies[0]
 	var idle := levies[1]
-	check(e.move_unit(idle, hills_of(e)), "the second Levy marches to Hills: %s" % e.move_unit_error(idle, hills_of(e)))
+	check(e.military.move(idle, hills_of(e)), "the second Levy marches to Hills: %s" % e.military.move_error(idle, hills_of(e)))
 	set_home_pop(e, 1)
 	check(e.is_idle(idle) and not e.is_idle(at_home), "one Levy from Homeland idle on Hills, the other working at home")
 	await_strike(e)
@@ -104,7 +104,7 @@ func test_idle_units_and_units_elsewhere_dont_become_veterans() -> void:
 		check(false, "one raid resolved: %s" % [outcomes])
 		return
 	eq(outcomes[0].repelled, true, "repelled")
-	eq([e.unit_veterancy(guard), e.unit_veterancy(idle), e.unit_veterancy(at_home)], [1, 0, 0], "veterancy")
+	eq([e.military.veterancy(guard), e.military.veterancy(idle), e.military.veterancy(at_home)], [1, 0, 0], "veterancy")
 	eq(outcomes[0].get("veterans"), [guard], "only the working Levy on Hills")
 
 
@@ -118,7 +118,7 @@ func test_no_veterans_when_veteran_max_is_0_or_the_raid_pillages() -> void:
 	recruit(off, hills_of(off))
 	var levy := uid_of(off.zone("tableau"), "levy")
 	await_strike(off)
-	eq(off.unit_veterancy(levy), 0, "veteran_max 0")
+	eq(off.military.veterancy(levy), 0, "veteran_max 0")
 	eq(off_outcomes.map(func(o): return [o.repelled, o.get("veterans")]), [[true, []]], "repelled, no veterans")
 	var e := veteran_engine()
 	if e == null:
@@ -140,11 +140,11 @@ func test_a_unit_at_veteran_max_gains_no_more() -> void:
 	var levy := garrison_hills(e)
 	await_strike(e)
 	raid_again(e)
-	eq(e.unit_veterancy(levy), 2, "2 counters after two repelled raids")
+	eq(e.military.veterancy(levy), 2, "2 counters after two repelled raids")
 	raid_again(e)
 	eq(outcomes.map(func(o): return o.repelled), [true, true, true], "three raids repelled")
-	eq(e.unit_veterancy(levy), 2, "still 2: the cap")
-	eq(e.unit_strength(levy), 4, "Levy 2 + 2 veteran")
+	eq(e.military.veterancy(levy), 2, "still 2: the cap")
+	eq(e.military.strength(levy), 4, "Levy 2 + 2 veteran")
 	if outcomes.size() == 3:
 		eq(outcomes[2].get("veterans"), [], "none listed at the cap")
 
@@ -157,9 +157,9 @@ func test_a_veteran_keeps_its_counters_when_it_moves() -> void:
 		return
 	var levy := garrison_hills(e)
 	await_strike(e)
-	check(e.move_unit(levy, home_uid(e)), "the Levy marches home: %s" % e.move_unit_error(levy, home_uid(e)))
-	eq(e.unit_veterancy(levy), 1, "still a veteran")
-	eq(e.unit_strength(levy), 3, "Levy 2 + 1 veteran")
+	check(e.military.move(levy, home_uid(e)), "the Levy marches home: %s" % e.military.move_error(levy, home_uid(e)))
+	eq(e.military.veterancy(levy), 1, "still a veteran")
+	eq(e.military.strength(levy), 3, "Levy 2 + 1 veteran")
 
 
 func test_a_disbanded_veteran_starts_again_at_0() -> void:
@@ -168,8 +168,8 @@ func test_a_disbanded_veteran_starts_again_at_0() -> void:
 		return
 	var levy := garrison_hills(e)
 	await_strike(e)
-	check(e.disband(levy), "disbanded: %s" % e.disband_error(levy))
-	eq(e.unit_veterancy(levy), 0, "no veterancy out of the tableau")
+	check(e.military.disband(levy), "disbanded: %s" % e.military.disband_error(levy))
+	eq(e.military.veterancy(levy), 0, "no veterancy out of the tableau")
 	var card: CardInstance = e.zone("discard").find(levy)
 	check(card != null, "the Levy is in the discard")
 	if card == null:
@@ -177,8 +177,8 @@ func test_a_disbanded_veteran_starts_again_at_0() -> void:
 	e.zone("discard").remove(card)
 	e.zone("hand").add(card)
 	check(e.play_card(levy, hills_of(e)), "played again: %s" % e.play_error(levy, hills_of(e)))
-	eq(e.unit_veterancy(levy), 0, "starts at 0")
-	eq(e.unit_strength(levy), 2, "printed strength")
+	eq(e.military.veterancy(levy), 0, "starts at 0")
+	eq(e.military.strength(levy), 2, "printed strength")
 
 
 func test_a_veteran_lost_in_a_raid_starts_again_at_0() -> void:
@@ -193,7 +193,7 @@ func test_a_veteran_lost_in_a_raid_starts_again_at_0() -> void:
 	raid_again(e)
 	eq(outcomes.map(func(o): return [o.repelled, o.units_lost]), [[true, []], [false, [levy]]],
 		"repelled, then pillaged and the Levy lost")
-	eq(e.unit_veterancy(levy), 0, "no veterancy out of the tableau")
+	eq(e.military.veterancy(levy), 0, "no veterancy out of the tableau")
 	var card: CardInstance = e.zone("discard").find(levy)
 	check(card != null, "the Levy is in the discard")
 	if card == null:
@@ -202,7 +202,7 @@ func test_a_veteran_lost_in_a_raid_starts_again_at_0() -> void:
 	e.zone("discard").remove(card)
 	e.zone("hand").add(card)
 	check(e.play_card(levy, hills_of(e)), "played again: %s" % e.play_error(levy, hills_of(e)))
-	eq(e.unit_veterancy(levy), 0, "starts at 0")
+	eq(e.military.veterancy(levy), 0, "starts at 0")
 
 
 func test_unit_veterancy_is_0_for_anything_but_a_unit_in_the_tableau() -> void:
@@ -211,7 +211,7 @@ func test_unit_veterancy_is_0_for_anything_but_a_unit_in_the_tableau() -> void:
 		return
 	garrison_hills(e)
 	for uid in [home_uid(e), uid_of(e.zone("tableau"), "town"), uid_of(e.zone("hand"), "levy"), 9999]:
-		eq(e.unit_veterancy(uid), 0, "unit_veterancy of %d" % uid)
+		eq(e.military.veterancy(uid), 0, "unit_veterancy of %d" % uid)
 
 
 # --- AC5: text ---
@@ -228,3 +228,25 @@ func test_veteran_details_show_its_counters() -> void:
 	state.assign(e.card_details(levy).state)
 	has_msg(state, "Veteran 1 (+1 strength)")
 	check(not state.any(func(s): return "training" in s), "veterancy isn't training: %s" % [state])
+
+
+# --- 388: the pips a unit's card shows ---
+
+func test_a_units_pips_are_its_counters_out_of_veteran_max() -> void:
+	var e := veteran_engine()
+	var levy := garrison_hills(e)
+	eq(e.military.veteran_pips(levy), {"filled": 0, "total": 2}, "a fresh Levy")
+	e.zone("tableau").find(levy).counters = 1
+	eq(e.military.veteran_pips(levy), {"filled": 1, "total": 2}, "a Levy with 1 counter")
+
+
+func test_no_pips_without_veterans_or_for_anything_but_a_unit_in_the_tableau() -> void:
+	var off := veteran_engine({"veteran_max": 0})
+	var levy := garrison_hills(off)
+	eq(off.military.veteran_pips(levy), {"filled": 0, "total": 0}, "veteran_max 0")
+	var e := veteran_engine()
+	garrison_hills(e)
+	var town := uid_of(e.zone("tableau"), "town")
+	var in_hand := put_in_hand(e, "levy")
+	for uid in [hills_of(e), town, in_hand, 999]:
+		eq(e.military.veteran_pips(uid), {"filled": 0, "total": 0}, "no pips for %d" % uid)

@@ -19,6 +19,11 @@ type's, the dominant colour; the rest are support, used smaller. Never signal or
 **Upgrades** say so in their brief: they redraw their base's picture from the same viewpoint, grown, so generate the
 base first and give it to the generator as a reference.
 
+**Making the pictures.** After changing a brief here, run the `card-art` skill
+([SKILL.md](../../.claude/skills/card-art/SKILL.md)): Claude writes the prompt into `assets/card-art-prompts.jsonl`,
+draws it with `scripts/card_art.py` once you approve the spend, reviews it, fixes or redraws what fails, and records
+each card's state in `assets/card-art-review.jsonl`.
+
 ## Civilizations (6)
 
 *Travel posters.*
@@ -256,7 +261,7 @@ base first and give it to the generator as a reference.
 | `comet_sighted.png` | Comet Sighted | A long-tailed comet over dark fields, priests on a roof pointing in two directions. | brick, indigo, ochre |
 | `distant_drums.png` | Distant Drums | A night sky over black hills, drum beats drawn as concentric rings rising beyond them. | brick, indigo |
 | `wild_berries.png` | Wild Berries | Children with purple hands picking berries from heavy hedges in long gold evening light. | brick, plum, ochre |
-| `tuna_run.png` | Tuna Run | A shoal of tuna as rhythmic silver shapes breaking the surface, boats rushing out. | brick, blue, ochre |
+| `tuna_run.png` | Tuna Run | A waterline cutaway: a dense shoal of tuna as rhythmic silver shapes below the surface, a few breaking it, one empty skiff with a heaped net riding above. | brick, blue, ochre |
 | `beached_whale.png` | Beached Whale | A great whale on the sand at dawn, townspeople with baskets around it, small against it. | brick, blue, ochre |
 | `shipwreck_salvage.png` | Shipwreck Salvage | Amphorae, timber and coils of rope strewn along a beach below a reef, morning light. | brick, blue, ochre |
 | `wandering_trader.png` | Wandering Trader | A lone trader leading a laden donkey into a town square, holding up a string of beads. | brick, ochre, teal |

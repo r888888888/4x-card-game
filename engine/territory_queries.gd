@@ -124,11 +124,17 @@ func card_tier_name(card_id: String) -> String:
 	return card_db[card_id].tier_name if card_db.has(card_id) else ""
 
 
-## Upgrade card_id's card text without its "Builds on" and "Needs" lines: what it adds (302); "" for anything else.
+## Upgrade card_id's face rules, one a line: what it adds (302, 382); "" for anything else.
 func upgrade_rules_text(card_id: String) -> String:
 	if not card_db.has(card_id) or not card_db[card_id].is_upgrade():
 		return ""
-	return card_db[card_id].rules_text(card_db, false)
+	return "\n".join(card_db[card_id].face(card_db).rules)
+
+
+## Building uid's upgrade rows for its details (387): {card_id, base, built, error} per base (uid, then its upgrades)
+## and build-menu entry, locked or not, that upgrades it; [] for anything but a building in the tableau.
+func upgrade_rows(uid: int) -> Array[Dictionary]:
+	return Upgrades.rows(self, uid)
 
 
 ## Building uid's upgrades and theirs, depth first in build order: its card's ribbons (302).
@@ -199,18 +205,3 @@ func territory_status(uid: int) -> Dictionary:
 func territory_tooltip(uid: int) -> String:
 	return Territories.tooltip(self, uid)
 
-
-## Settled territory uid's defence (161): defense_parts(uid).total, or 0 for anything else.
-func defense(uid: int) -> int:
-	return Military.defense_parts(self, uid).get("total", 0)
-
-
-## Settled territory uid's defence by source (161): {units, buildings, cities, terrain, total}, or {} for anything else.
-func defense_parts(uid: int) -> Dictionary:
-	return Military.defense_parts(self, uid)
-
-
-## The mark on settled territory uid while raids are aimed at it, "Raiders strike in 2 turns: 3 vs 0" (one line each,
-## 162); "" when none is.
-func raid_warning(territory_uid: int) -> String:
-	return Military.raid_warning(self, territory_uid)

@@ -73,14 +73,14 @@ func test_upgrading_a_unit_replaces_it_in_place_for_the_difference() -> void:
 	var levy := levy_of(e)
 	settle(e, ["hills"])
 	var hills := uid_of(e.zone("tableau"), "hills")
-	check(e.move_unit(levy, hills), "the Levy marches to Hills: %s" % e.move_unit_error(levy, hills))
+	check(e.military.move(levy, hills), "the Levy marches to Hills: %s" % e.military.move_error(levy, hills))
 	e.zone("tableau").find(levy).counters = 1  # a veteran (165)
 	e.resources["food"] = 2
 	e.resources["wealth"] = 1
 	var actions := e.actions_left()
 	var place := e.zone("tableau").cards.find(e.zone("tableau").find(levy))
-	eq(e.upgrade_unit_error(levy), "", "legal")
-	check(e.upgrade_unit(levy), "upgraded")
+	eq(e.military.upgrade_error(levy), "", "legal")
+	check(e.military.upgrade(levy), "upgraded")
 	eq([e.resources.food, e.resources.wealth], [0, 0], "paid 2 food and 1 wealth")
 	check(e.zone("removed").find(levy) != null, "the Levy is in removed")
 	check(e.zone("tableau").find(levy) == null, "and not in the tableau")
@@ -89,7 +89,7 @@ func test_upgrading_a_unit_replaces_it_in_place_for_the_difference() -> void:
 	if pikes == -1:
 		return
 	var card: CardInstance = e.zone("tableau").find(pikes)
-	eq([card.territory_uid, e.unit_station(pikes), e.unit_veterancy(pikes)], [home_uid(e), hills, 1],
+	eq([card.territory_uid, e.unit_station(pikes), e.military.veterancy(pikes)], [home_uid(e), hills, 1],
 		"home, station and veteran counters kept")
 	eq(e.zone("tableau").cards.find(card), place, "the Levy's place in the tableau")
 	eq(e.actions_left(), actions, "no action used")
@@ -100,13 +100,13 @@ func test_upgrading_a_unit_replaces_it_in_place_for_the_difference() -> void:
 
 func test_upgrade_cost_is_the_printed_difference_never_below_0() -> void:
 	var e := upgrade_engine()
-	eq(e.upgrade_cost(levy_of(e)), {"food": 2, "wealth": 1}, "Levy → Pikes: 3 − 1 food, 1 − 0 wealth")
+	eq(e.military.upgrade_cost(levy_of(e)), {"food": 2, "wealth": 1}, "Levy → Pikes: 3 − 1 food, 1 − 0 wealth")
 	var club := put_in_hand(e, "club")
 	check(e.play_card(club, home_uid(e)), "Club recruited: %s" % e.play_error(club, home_uid(e)))
-	eq(e.upgrade_cost(club), {"food": 1}, "Club → Pikes: 3 − 2 food; wealth 1 − 2 costs nothing")
+	eq(e.military.upgrade_cost(club), {"food": 1}, "Club → Pikes: 3 − 2 food; wealth 1 − 2 costs nothing")
 	var pikes := put_in_hand(e, "pikes")
-	eq(e.upgrade_cost(pikes), {}, "a unit in hand")
-	eq(e.upgrade_cost(home_uid(e)), {}, "a territory")
+	eq(e.military.upgrade_cost(pikes), {}, "a unit in hand")
+	eq(e.military.upgrade_cost(home_uid(e)), {}, "a territory")
 
 
 # --- AC4: errors ---
@@ -115,27 +115,27 @@ func test_upgrade_unit_errors() -> void:
 	var e := upgrade_engine()
 	var levy := levy_of(e)
 	var pikes_hand := put_in_hand(e, "pikes")
-	eq(e.upgrade_unit_error(home_uid(e)), "That isn't a unit in your realm.", "a territory")
-	eq(e.upgrade_unit_error(pikes_hand), "That isn't a unit in your realm.", "a unit in hand")
+	eq(e.military.upgrade_error(home_uid(e)), "That isn't a unit in your realm.", "a territory")
+	eq(e.military.upgrade_error(pikes_hand), "That isn't a unit in your realm.", "a unit in hand")
 	var club := put_in_hand(e, "club")
 	check(e.play_card(club, home_uid(e)), "Club recruited")
 	var pikes := put_in_hand(e, "pikes")
 	e.resources["food"] = 10
 	e.resources["wealth"] = 10
 	check(e.play_card(pikes, home_uid(e)), "Pikes recruited: %s" % e.play_error(pikes, home_uid(e)))
-	eq(e.upgrade_unit_error(pikes), "Pikes can't be upgraded.", "no upgrades_to")
+	eq(e.military.upgrade_error(pikes), "Pikes can't be upgraded.", "no upgrades_to")
 	e.resources["food"] = 1
-	eq(e.upgrade_unit_error(levy), "Upgrading Levy needs 2 food (you have 1).", "short of food only")
+	eq(e.military.upgrade_error(levy), "Upgrading Levy needs 2 food (you have 1).", "short of food only")
 	e.resources["food"] = 0
 	e.resources["wealth"] = 0
-	eq(e.upgrade_unit_error(levy), "Upgrading Levy needs 2 food, 1 wealth (you have 0 food, 0 wealth).",
+	eq(e.military.upgrade_error(levy), "Upgrading Levy needs 2 food, 1 wealth (you have 0 food, 0 wealth).",
 		"short of both")
 
 
 func test_a_locked_or_missing_entry_cant_be_upgraded_to() -> void:
 	for overrides in [{"build_menu": {"pikes": {"locked": true}}}, {"build_menu": {"calm": {}}}]:
 		var e := upgrade_engine(overrides)
-		eq(e.upgrade_unit_error(levy_of(e)), "Pikes isn't unlocked yet.", "%s" % [overrides])
+		eq(e.military.upgrade_error(levy_of(e)), "Pikes isn't unlocked yet.", "%s" % [overrides])
 
 
 func test_no_upgrade_under_anarchy() -> void:
@@ -148,7 +148,7 @@ func test_no_upgrade_under_anarchy() -> void:
 	e.resources["wealth"] = 10
 	var build := e.build_error("pikes", home_uid(e))
 	check(build.begins_with("Anarchy"), "building is refused: %s" % build)
-	eq(e.upgrade_unit_error(levy), build, "the build message")
+	eq(e.military.upgrade_error(levy), build, "the build message")
 
 
 func test_no_upgrade_while_a_decision_is_owed_or_after_the_game() -> void:
@@ -157,10 +157,10 @@ func test_no_upgrade_while_a_decision_is_owed_or_after_the_game() -> void:
 		put_in_hand(e, "farm")
 	e.end_turn()
 	check(e.discard_needed() > 0, "a discard is owed")
-	eq(e.upgrade_unit_error(levy_of(e)), "Discard down to 5 cards first.", "discard owed")
+	eq(e.military.upgrade_error(levy_of(e)), "Discard down to 5 cards first.", "discard owed")
 	var over := upgrade_engine()
 	over.is_over = true
-	eq(over.upgrade_unit_error(levy_of(over)), "The game is over.", "game over")
+	eq(over.military.upgrade_error(levy_of(over)), "The game is over.", "game over")
 
 
 func test_a_refused_upgrade_changes_nothing() -> void:
@@ -169,7 +169,7 @@ func test_a_refused_upgrade_changes_nothing() -> void:
 	e.resources["food"] = 1
 	var food: int = e.resources.food
 	var tableau := e.zone("tableau").cards.map(func(c): return c.uid)
-	check(not e.upgrade_unit(levy), "refused")
+	check(not e.military.upgrade(levy), "refused")
 	eq(e.resources.food, food, "food")
 	eq(e.zone("tableau").cards.map(func(c): return c.uid), tableau, "tableau")
 	eq(e.zone("removed").size(), 0, "nothing removed")
@@ -188,11 +188,11 @@ func test_an_upgraded_unit_keeps_its_place_among_the_workers() -> void:
 			break
 	check(e.is_idle(second) and not e.is_idle(first), "the second Levy idle, the first working")
 	e.resources["food"] = 10
-	check(e.upgrade_unit(second), "the idle Levy upgraded: %s" % e.upgrade_unit_error(second))
+	check(e.military.upgrade(second), "the idle Levy upgraded: %s" % e.military.upgrade_error(second))
 	var idle_pikes := uid_of(e.zone("tableau"), "pikes")
 	check(e.is_idle(idle_pikes), "its Pikes is idle")
 	check(not e.is_idle(first), "the first Levy still works")
-	check(e.upgrade_unit(first), "the working Levy upgraded: %s" % e.upgrade_unit_error(first))
+	check(e.military.upgrade(first), "the working Levy upgraded: %s" % e.military.upgrade_error(first))
 	var working := e.zone("tableau").cards.filter(func(c): return c.def.id == "pikes" and c.uid != idle_pikes)
 	check(working.size() == 1 and not e.is_idle(working[0].uid), "its Pikes works")
 	check(e.is_idle(idle_pikes), "the other Pikes is still idle")
@@ -202,15 +202,15 @@ func test_an_upgraded_unit_keeps_its_place_among_the_workers() -> void:
 
 func test_upgrade_line_names_the_upgrade_and_its_price() -> void:
 	var e := upgrade_engine()
-	eq(e.upgrade_line(levy_of(e)), "Upgrade to Pikes for 2 food, 1 wealth (no action).", "the Levy")
+	eq(e.military.upgrade_line(levy_of(e)), "Upgrade to Pikes for 2 food, 1 wealth (no action).", "the Levy")
 	var club := put_in_hand(e, "club")
 	check(e.play_card(club, home_uid(e)), "Club recruited")
 	e.resources["food"] = 10
 	var pikes := put_in_hand(e, "pikes")
 	check(e.play_card(pikes, home_uid(e)), "Pikes recruited: %s" % e.play_error(pikes, home_uid(e)))
-	eq(e.upgrade_line(club), "Upgrade to Pikes for 1 food (no action).", "the Club")
+	eq(e.military.upgrade_line(club), "Upgrade to Pikes for 1 food (no action).", "the Club")
 	for uid in [pikes, home_uid(e), put_in_hand(e, "levy"), 9999]:
-		eq(e.upgrade_line(uid), "", "upgrade_line of %d" % uid)
+		eq(e.military.upgrade_line(uid), "", "upgrade_line of %d" % uid)
 
 
 func test_details_upgrade_a_unit() -> void:
@@ -224,12 +224,12 @@ func test_details_upgrade_a_unit() -> void:
 		main.details.open_card(e.zone("tableau").find(levy))
 		var upgrade: Button = main.details.upgrade_button()
 		check(upgrade.visible and upgrade.disabled, "Upgrade offered but disabled")
-		eq(upgrade.tooltip_text, e.upgrade_unit_error(levy), "with the reason")
+		eq(upgrade.tooltip_text, e.military.upgrade_error(levy), "with the reason")
 		main.details.close()
 		e.resources["food"] = 10
 		main.details.open_card(e.zone("tableau").find(levy))
 		check(not upgrade.disabled, "enabled with the food")
-		eq(upgrade.tooltip_text, e.upgrade_line(levy), "the upgrade and its price")
+		eq(upgrade.tooltip_text, e.military.upgrade_line(levy), "the upgrade and its price")
 		upgrade.pressed.emit()
 		await wait_frames()
 		check(e.zone("removed").find(levy) != null, "the Levy was upgraded")

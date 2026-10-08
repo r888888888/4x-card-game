@@ -33,7 +33,12 @@ suite checks every path named here exists.
     `engine/engine_core.gd` (state accessors, signals, the helpers effects call).
   - `engine/game_state.gd`: `GameState`, everything that changes during a game; `copy()` is a deep copy (051).
   - Rules modules: one class of static functions per subsystem (`TurnLoop`, `CardPlay`, `Population`, `Research`,
-    `Supply`, `BuildMenu`, `Territories`, `Military`, `Anarchy`, `Events`, …), which `GameEngine` calls.
+    `Supply`, `BuildMenu`, `Territories`, `Anarchy`, `Events`, …), which `GameEngine` calls.
+  - Areas (394): a rules module that is an object on the engine, which callers use directly instead of a forward on
+    `GameEngine`: `engine.military` (`engine/military.gd`, `Military`: units, raids and defence; `engine.military.move(uid,
+    t)`). An area holds no state (a weak reference back to its engine), a fork gets its own, and its actions are listed
+    for bots as `"military.move"` and called with `LegalActions.apply`. The other modules move to areas one item at a
+    time.
   - Loading: `engine/data_loader.gd` (`DataLoader.load_all`: JSON to `CardDef`s, every error and warning collected;
     `TYPE_FIELDS` and `INT_FIELDS` say which types take a field and an integer field's minimum and default, and
     `engine/card_type_fields.gd` reads each type's own fields, 338) and `engine/config_loader.gd` (config.json,
@@ -48,7 +53,7 @@ suite checks every path named here exists.
   `autoload/settings_store.gd`).
 - `ui/`: the display, one component per script, built in code. `ui/main.tscn` and `ui/main.gd` (`MainScreen`: the
   refresh, the actions it wires up, the test hooks); `ui/board_layout.gd` builds the board; `ui/board_views.gd` keeps
-  the card views in line with the engine; the looks are `ui/palette.gd`, `ui/game_theme.gd`, `ui/tokens.gd` and `ui/surfaces.gd` (wood and paper, 341);
+  the card views in line with the engine; the looks are `ui/palette.gd`, `ui/game_theme.gd` (with its sections in `ui/theme/`, 393), `ui/tokens.gd` and `ui/surfaces.gd` (wood and paper, 341);
   modals extend `ui/modal.gd` on a `ui/modal_stack.gd`, screens go on `ui/navigator.gd`; sounds are `ui/sfx.gd`.
 - `assets/`: icons (white SVGs tinted in code), sounds (placeholders, 186) and the walnut and paper textures
   (`assets/background/`, 341); `default_bus_layout.tres` holds the
@@ -196,9 +201,11 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   `training` of the working buildings on its station (0 when idle), and defence sums it. A trained unit's face shows
   `unit_strength_tag(uid)` ("Strength 3") and its details explain the bonus.
 - Veterans (165): when a raid is repelled, each working unit stationed on its target gains a veteran counter
-  (`CardInstance.counters`, `unit_veterancy(uid)`), +1 strength each, up to config `veteran_max` (default 0: none;
+  (`CardInstance.counters`, `military.veterancy(uid)`), +1 strength each, up to config `veteran_max` (default 0: none;
   shipped 2); the outcome lists them as `veterans`. Moving keeps them; leaving the tableau clears them. Its details
-  show "Veteran 1 (+1 strength)" and its face the strength tag.
+  show "Veteran 1 (+1 strength)" and its face the strength tag. Its card in the territory view shows a pip per
+  `veteran_max`, lit per counter (388, `military.veteran_pips(uid)`); a raid's new counter lights as a tally once its
+  modal closes (`TurnNews.veterans_promoted`), one tick per pip, `Anim.TALLY_STEP` apart.
 - Building upgrades (300): a building may set `upgrade_of` (another building's id; never a project, and no cycles). It
   is a build-menu entry only (never in `deck` or `supply`, nor `create`d) and builds onto a base: `build("plough",
   farm_uid)` puts it on the base's territory (`CardInstance.base_uid`), taking no slot and no worker; `build_targets`
@@ -242,6 +249,11 @@ JSON only. Effects are structured objects, so no mini-language parser is needed.
   another (`upgrades_for`), opening the Build modal on that row. The modal's Upgrades heading lists
   `upgrade_options(t)` ("Plough … on Farm"), previewed with `build_preview(id, base)`. An upgrade's face reads
   "Upgrade · Farm", its lines led by "Also", with a stamp naming its tier (`upgrade_base_name`, `card_tier_name`).
+- A building's details (387) list its upgrades in an Upgrades section: `upgrade_rows(uid)` gives
+  `{card_id, base, built, error}` for each base (the building, then its upgrade tree) and each build-menu entry,
+  locked or not, that upgrades it. A row reads its name and rules, then "Built" (or its `fallen_back_reason`), its
+  error, or an Upgrade button with its cost that builds it (`build`) and closes the details; while a decision is owed
+  every row not built keeps its button, disabled with `build_menu_error()` (`ui/upgrade_list.gd`).
 - Buildings that need a tier (301): a building or upgrade may set `tier` (a `population.tiers` id; ignored with a
   warning when tiers are off). It is built only on a territory at that tier or larger ("Forum needs a Town (Homeland is
   a Village)."), and while its territory is smaller it falls back: it keeps its slot and worker but counts for nothing,
@@ -664,8 +676,8 @@ A game is played as one civilization: a permanent card with a starting gift and 
   new game screen a click on a civilization selects it and opens these details, with a "Play as <name>" button that
   starts the game as it.
   A government (205), a tech and an event (215), an action (351) and a building (352) may set `flavor` too, and a
-  government or a tech a `quote` (an event, action or building may not); every real tech and government has both
-  and every real event, action and building a flavor line. The text follows the style guide's §18 voice (353): present
+  government, a tech, an event (253) or a building (396) a `quote` (an action may not); every real tech and government
+  has both, every real event, action and building a flavor line, and every real wonder a quote too. The text follows the style guide's §18 voice (353): present
   tense, ~120 characters a line (the suite caps it at 150, civilizations 200). Flavor and quotes show only in the details
   (and a building's flavor under its card in the Build modal, 354), never on a card face.
 - UI: the new game screen (099) shows the civilizations as cards; a click selects one (and `Settings` saves it) and

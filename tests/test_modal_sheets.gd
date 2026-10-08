@@ -117,13 +117,13 @@ func test_the_event_modal_is_a_sheet_with_the_turn_as_context() -> void:
 		var main: Node = await open_game(true)
 		for i in 10:
 			Game.engine.end_turn()
-			if not main.event_modal().is_empty() and main.event_option_buttons().is_empty():
+			if not MainProbe.event_modal(main).is_empty() and MainProbe.event_option_buttons(main).is_empty():
 				break
 			close_event(main)  # a choice event has no OK: wait for one that does
-		check(not main.event_modal().is_empty(), "precondition: an event without choices within 10 turns of seed 1")
+		check(not MainProbe.event_modal(main).is_empty(), "precondition: an event without choices within 10 turns of seed 1")
 		await wait_sheet()
 		var modal: Object = main.modals.top()
-		var def: CardDef = Game.engine.card_db[main.event_modal().id]
+		var def: CardDef = Game.engine.card_db[MainProbe.event_modal(main).id]
 		check_sheet(modal, "event", def.name, "Turn %d" % Game.engine.turn, ["OK (Enter)"] as Array[String])
 		eq(accent_footer(modal), ["OK (Enter)"] as Array[String], "251: OK is the primary")
 		close_game(main))
@@ -151,8 +151,8 @@ func test_game_over_is_a_sheet_on_the_modal_stack_that_stays() -> void:
 		play_seed_1(main, func(_m): pass)
 		await wait_sheet()
 		check(Game.engine.is_over, "precondition: game over")
-		while not main.event_modal().is_empty():  # the last turn's event, if any, closes first
-			main.event_modal_ok_button().pressed.emit()
+		while not MainProbe.event_modal(main).is_empty():  # the last turn's event, if any, closes first
+			MainProbe.event_modal_ok_button(main).pressed.emit()
 		await wait_sheet()
 		eq(main.modals.depth(), 1, "the game-over sheet is on main.modals")
 		var sheet: Object = main.modals.top()

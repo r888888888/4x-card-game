@@ -61,18 +61,18 @@ func test_realm_size_counts_territories_and_the_cost_of_cities_buildings_and_uni
 	var e: GameEngine = paced_engine(["omen"])
 	if e == null:
 		return
-	eq(e.realm_size(), BASE_SIZE, "Homeland and Hills at 3 each; the Capital costs nothing")
+	eq(e.military.realm_size(), BASE_SIZE, "Homeland and Hills at 3 each; the Capital costs nothing")
 	var capital: CardInstance = e.zone("tableau").find_id("capital")
 	e.zone("tableau").remove(capital)
 	build_on(e, hills_of(e), ["fort"])
 	build_on(e, home_uid(e), ["stockade"])
 	e.create_card("spearmen", "tableau", null)
-	eq(e.realm_size(), 13, "3 + 3 + Fort 2 + Stockade 3 + Spearmen 2")
+	eq(e.military.realm_size(), 13, "3 + 3 + Fort 2 + Stockade 3 + Spearmen 2")
 	e.create_card("stockade", "hand", null)
 	e.create_card("spearmen", "discard", null)
 	e.zone("tableau").find(hills_of(e)).pop = 4
 	e.resources.wealth = 30
-	eq(e.realm_size(), 13, "cards outside the tableau, pop and resources add nothing")
+	eq(e.military.realm_size(), 13, "cards outside the tableau, pop and resources add nothing")
 
 
 # --- AC2: a raid waits for a large enough realm ---
@@ -97,8 +97,8 @@ func test_a_raid_is_drawn_once_the_realm_reaches_the_minimum() -> void:
 	build_on(e, home_uid(e), ["stockade"])
 	e.end_turn()
 	var raid := active_uid(e, "raiders")
-	check(raid != -1, "Raiders active at size %d" % e.realm_size())
-	eq(e.raid_target(raid), hills_of(e), "and announced")
+	check(raid != -1, "Raiders active at size %d" % e.military.realm_size())
+	eq(e.military.raid_target(raid), hills_of(e), "and announced")
 
 
 # --- AC3: only raids left ---
@@ -125,13 +125,13 @@ func test_raid_turns_left_counts_down_from_2() -> void:
 		return
 	e.end_turn()
 	var raid := active_uid(e, "raiders")
-	eq(e.raid_turns_left(raid), 2, "on the turn it is drawn")
+	eq(e.military.raid_turns_left(raid), 2, "on the turn it is drawn")
 	e.end_turn()
-	eq(e.raid_turns_left(raid), 1, "the turn after")
-	eq(e.raid_turns_left(active_uid(e, "omen")), 0, "an Omen")
-	eq(e.raid_turns_left(9999), 0, "no card")
+	eq(e.military.raid_turns_left(raid), 1, "the turn after")
+	eq(e.military.raid_turns_left(active_uid(e, "omen")), 0, "an Omen")
+	eq(e.military.raid_turns_left(9999), 0, "no card")
 	e.end_turn()
-	eq(e.raid_turns_left(raid), 0, "struck and discarded")
+	eq(e.military.raid_turns_left(raid), 0, "struck and discarded")
 
 
 func test_a_raid_drawn_on_the_turn_before_the_final_turn_never_strikes() -> void:
@@ -205,11 +205,11 @@ func test_raid_text_says_in_2_turns_then_next_turn() -> void:
 	e.end_turn()
 	var raid := active_uid(e, "raiders")
 	var hills := hills_of(e)
-	eq(e.raid_line(raid), "Raiders will strike Hills in 2 turns: 3 against your 0.", "the line on turn 2")
-	eq(e.raid_warning(hills), "Raiders strike in 2 turns: 3 vs 0", "the target's mark on turn 2")
+	eq(e.military.raid_line(raid), "Raiders will strike Hills in 2 turns: 3 against your 0.", "the line on turn 2")
+	eq(e.military.raid_warning(hills), "Raiders strike in 2 turns: 3 vs 0", "the target's mark on turn 2")
 	e.end_turn()
-	eq(e.raid_line(raid), "Raiders will strike Hills next turn: 3 against your 0.", "the line on turn 3")
-	eq(e.raid_warning(hills), "Raiders strike next turn: 3 vs 0", "the target's mark on turn 3")
+	eq(e.military.raid_line(raid), "Raiders will strike Hills next turn: 3 against your 0.", "the line on turn 3")
+	eq(e.military.raid_warning(hills), "Raiders strike next turn: 3 vs 0", "the target's mark on turn 3")
 	var db: Dictionary = raid_load().cards
 	var tip: String = db.raiders.rules_tooltip(db)
 	check("Raid 3: strikes your least defended mountain territory 2 turns after it is drawn" in tip, tip)

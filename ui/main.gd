@@ -46,17 +46,17 @@ var sidebar: Sidebar  # the right rail: the civilization and government (202)
 var vellum: Vellum  # over the play area while a card waits for one of several targets (210)
 var era_sheet: EraSheet  # the era ceremony, over everything (211)
 var doors: CabinetDoors  # shut over the board while the government choice comes and goes (209)
+var board: Control  # the top bar and the play area
+var top_bar: TopBar  # the turn plate, the resource counters and the bar's keys (177, 201)
+var menu: GameMenu  # the game menu, from the Menu key or Esc (067)
+var relief: ActionButton  # below the Realm while a Famine can be relieved
+var restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
+var play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
+var game_over: GameOverOverlay  # the end of the game's sheet (045)
+var news: TurnNews  # the turn start's event and raid, shown by the next _refresh (079, 271)
 
 var _views: BoardViews  # syncs the card views with the engine (176)
-var _board: Control  # the top bar and the play area
-var _top_bar: TopBar
-var _menu: GameMenu
 var _card_before_menu_button: CardView  # the focused card when the Menu button took the focus
-var _relief: ActionButton  # below the Realm while a Famine can be relieved
-var _restore: ActionButton  # beside it while Anarchy rules and order can be bought (146)
-var _play_area: VBoxContainer  # the sections, top to bottom: Realm (events, frontier, territories), Hand
-var _game_over: GameOverOverlay
-var _news: TurnNews  # the turn start's event and raid, shown by the next _refresh (079, 271)
 var _palette_day := false  # the palette main's theme was built in (183)
 
 
@@ -71,7 +71,7 @@ func _ready() -> void:
 	Game.engine.noticed.connect(toasts.notice)
 	Game.engine.card_played.connect(_on_card_played)
 	Game.engine.built.connect(_views.note_built)  # the build ceremony (357)
-	_news.listen(Game.engine, toasts.notice)
+	news.listen(Game.engine, toasts.notice)
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
 	if LaunchOptions.starts_game(Game.launch):  # --civ / --seed on the command line (135)
 		start_game(Game.launch.seed, Game.launch.civ)
@@ -91,7 +91,7 @@ func _input(event: InputEvent) -> void:
 	if doors.moving() and event is InputEventKey:  # nothing gets through the cabinet doors (209)
 		get_viewport().set_input_as_handled()
 		return
-	if _menu.is_open():  # a sheet on the stack: it takes its own keys (207)
+	if menu.is_open():  # a sheet on the stack: it takes its own keys (207)
 		return
 	if nav.handle_key(event):  # Esc works like Back on the new game and settings screens (099)
 		get_viewport().set_input_as_handled()
@@ -110,21 +110,21 @@ func start_game(seed_value: int, civ_id := "") -> void:
 	if seed_value < 0:
 		seed_value = randi_range(1, 999999)
 	nav.clear()
-	_board.show()
+	board.show()
 	log_drawer.clear()
 	log_drawer.close()
 	toasts.clear()  # an old game's flags, urgent ones included (250)
 	supply.close()
 	modals.close_all()  # an old game's event, details or tree
-	_news.clear()
+	news.clear()
 	territory_view.reset()
 	_views.reset()
 	choices.refresh(null)  # an old game's choice goes at once, without doors (209)
 	era_sheet.reset()
-	_top_bar.reset_counters()  # a new game's counters show their values at once (126)
+	top_bar.reset_counters()  # a new game's counters show their values at once (126)
 	Game.new_game(seed_value, civ_id)
 	log_drawer.mark_read()  # the new game's own lines
-	_menu.set_game(seed_value, _civilization_name())
+	menu.set_game(seed_value, _civilization_name())
 
 
 ## Starts again as this game's civilization (Restart, Replay, the game-over New game).
@@ -174,112 +174,7 @@ func _leave_game() -> void:
 	modals.close_all()
 	_views.reset()
 	choices.refresh(null)
-	_board.hide()
-
-
-## Test hook (063): whether the board (top bar and play area) is showing.
-func board_shown() -> bool:
-	return _board.visible
-
-
-## Test hook (045): the number of card views in the hand row, resting or flying in.
-func hand_view_count() -> int:
-	return views_in(hand).size()
-
-
-## Test hook (045): the game-over overlay's text, or "" while it is hidden.
-func game_over_text() -> String:
-	return _game_over.text()
-
-
-## Test hook (068): the active events' views as {visible, tooltip, views: [{uid, id, text}]}, views in row order (137:
-## they lead the Realm's row); visible while any shows; tooltip is the explanation every event card's tooltip ends with.
-func event_panel() -> Dictionary:
-	var shown := []
-	for view in views_in(tableau.row):
-		var event := Game.engine.zone("active_events").find(view.uid)
-		if event != null:
-			shown.append({"uid": view.uid, "id": event.def.id, "text": view.event_info_text()})
-	return {"visible": not shown.is_empty(), "tooltip": TableauView.LEADING_ZONES.active_events, "views": shown}
-
-
-## Test hook (137): the Relieve button below the Realm (visible or not).
-func relieve_button() -> Button:
-	return _relief.button
-
-
-## Test hook (146): the Restore order button beside Relieve (visible or not). Revolt is in the civilization modal (205).
-func restore_order_button() -> Button:
-	return _restore.button
-
-
-## Test hook (079): the drawn-event modal on show, {uid, id, text, lasts, summary}; {} while closed.
-func event_modal() -> Dictionary:
-	return _news.event_modal.shown()
-
-
-## Test hook (079): the drawn-event modal's OK button.
-func event_modal_ok_button() -> Button:
-	return _news.event_modal.ok_button
-
-
-## Test hook (269): a choice event's option buttons in the event modal, in order.
-func event_option_buttons() -> Array[Button]:
-	return _news.event_modal.option_buttons
-
-
-## Test hook (271): the raid modal on show, {uid, id, repelled, result, title, context, art}; {} while closed.
-func raid_modal() -> Dictionary:
-	return _news.raid_modal.shown()
-
-
-## Test hook (389): the raid modal's verdict headline.
-func raid_modal_verdict() -> Label:
-	return _news.raid_modal.verdict
-
-
-## Test hook (271): the raid modal's OK button.
-func raid_modal_ok_button() -> Button:
-	return _news.raid_modal.ok_button
-
-
-## Test hook (053): the play area's section headings, top to bottom, as {text, tooltip}.
-func section_headings() -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
-	for section in _play_area.get_children().filter(func(c): return c != territory_view and c != knowledge):
-		var heading: Label = section.find_children("*", "Label", true, false)[0]  # the hand's shares a row (127)
-		out.append({"text": heading.text, "tooltip": heading.tooltip_text})
-	return out
-
-
-## Test hook (067): the menu's buttons, in order.
-func menu_buttons() -> Array[Button]:
-	return UIKit.buttons_in(_menu)
-
-
-## Test hook (187): the locked tip, a disabled key's reason shown at once.
-func locked_tip() -> Control:
-	return key_sounds.tip()
-
-
-## Test hook (067): the game-over overlay's buttons, in order.
-func game_over_buttons() -> Array[Button]:
-	return UIKit.buttons_in(_game_over)
-
-
-## The top bar's counter for key (TopBar.counter, 177).
-func counter(key: String) -> Control:
-	return _top_bar.counter(key)
-
-
-## The top bar's reading for key (TopBar.counter_text, 177).
-func forecast_text(key: String) -> String:
-	return _top_bar.forecast_text(key)
-
-
-## The top bar's reading for key (TopBar.counter_text, 177): the figure and its words, not the forecast (201).
-func counter_text(key: String) -> String:
-	return _top_bar.counter_text(key)
+	board.hide()
 
 
 ## The kind of decision the engine is waiting for (GameEngine.PENDING_*), or "".
@@ -320,12 +215,12 @@ func open_menu() -> void:
 	var card := focus.focused if focus.focused != null else _card_before_menu_button
 	drag.end_targeting()
 	focus.set_card(null)
-	_menu.open(card)
+	menu.open(card)
 
 
 ## Closes the menu. give_back: return the focus to the card that had it, else to the Menu button.
 func _close_menu(give_back := true) -> void:
-	_menu.dismiss(give_back)
+	menu.dismiss(give_back)
 
 
 ## The menu closed (207): the focus goes back to card if it is still in the row, else to the Menu button.
@@ -336,13 +231,13 @@ func _on_menu_closed(card: CardView, give_back: bool) -> void:
 	if is_instance_valid(card) and focus.row().has(card):
 		focus.set_card(card)
 	else:
-		FocusRing.focus(_top_bar.menu_button)
+		FocusRing.focus(top_bar.menu_button)
 
 
 ## A button or field took the focus: the card focus goes. Remembers the card if it was the Menu
 ## button (clicking it moves the focus before it is pressed).
 func _on_gui_focus_changed(control: Control) -> void:
-	_card_before_menu_button = focus.focused if control == _top_bar.menu_button else null
+	_card_before_menu_button = focus.focused if control == top_bar.menu_button else null
 	focus.set_card(null)
 
 
@@ -356,24 +251,24 @@ func _on_card_played(outcome: Dictionary) -> void:
 func _refresh() -> void:
 	var e := Game.engine
 	territory_view.close_if_stale(e)
-	_top_bar.refresh(e, supply.is_open())
+	top_bar.refresh(e, supply.is_open())
 	actions_label.visible = e.actions_per_turn() >= 0
 	UIKit.set_stat(actions_label, "%d / %d" % [e.actions_left(), e.actions_per_turn()])
 	_views.sync(e)
 	choices.refresh(e)
 	renewal_modal.refresh(e)
 	log_drawer.refresh(e)
-	_relief.refresh(e)
-	_restore.refresh(e)
+	relief.refresh(e)
+	restore.refresh(e)
 	sidebar.refresh(e)
 	identity_modal.refresh(e)
 	knowledge.refresh(e)
 	supply.refresh(e)
 	focus.sync()
-	_game_over.refresh(e)
+	game_over.refresh(e)
 	era_sheet.refresh(e)
 	if not era_sheet.is_open():  # the event and the raid wait for the era ceremony (211)
-		_news.show(e)
+		news.show(e)
 
 
 # --- Layout ---
@@ -388,17 +283,18 @@ func _build_layout() -> void:
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	var layout := BoardLayout.new(self, _restart, _close_menu, _push_new_game_screen)
-	_board = layout.board
-	_top_bar = layout.top_bar
-	_play_area = layout.play_area
-	_relief = layout.relief
-	_restore = layout.restore
-	_menu = layout.menu
-	_menu.closed_giving_back.connect(_on_menu_closed)
-	era_sheet.closed.connect(func(): if board_shown(): _refresh())
-	_game_over = layout.game_over
-	_news = layout.news
-	_views = BoardViews.new(self, _top_bar)
+	board = layout.board
+	top_bar = layout.top_bar
+	play_area = layout.play_area
+	relief = layout.relief
+	restore = layout.restore
+	menu = layout.menu
+	menu.closed_giving_back.connect(_on_menu_closed)
+	era_sheet.closed.connect(func(): if board.visible: _refresh())
+	game_over = layout.game_over
+	news = layout.news
+	news.veterans_promoted.connect(func(uids: Array[int]): _views.tally_veterans(Game.engine, uids))
+	_views = BoardViews.new(self, top_bar)
 	territory_view.navigated.connect(func():  # the view carries its cards as it grows or shrinks (105)
 		_views.quiet = true
 		_refresh()
@@ -418,17 +314,6 @@ func _apply_settings() -> void:
 	theme = GameTheme.build()
 	UIKit.repaint(get_tree())
 	get_tree().call_group(CardView.GROUP, "restyle")
-	if board_shown():
+	if board.visible:
 		_refresh()
 
-
-## Test hook (357): the build ceremonies playing on the fx layer.
-func build_ceremonies() -> Array[BuildCeremony]:
-	var out: Array[BuildCeremony] = []
-	out.assign(fx.get_children().filter(func(n): return n is BuildCeremony and not n.is_queued_for_deletion()))
-	return out
-
-
-## Test hook (183, 341): the board's background, its grain under BACKGROUND.
-func background_box() -> StyleBox:
-	return (get_node("Background") as Control).get_theme_stylebox("panel")

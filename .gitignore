@@ -10,3 +10,9 @@
 
 # macOS Finder metadata
 .DS_Store
+
+# Card art: pictures replaced by scripts/card_art.py (397)
+assets/card-art-history/
+
+# Python bytecode (scripts/)
+__pycache__/

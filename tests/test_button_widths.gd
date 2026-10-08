@@ -84,17 +84,17 @@ func test_the_menu_column_shares_one_width_and_footer_buttons_fit_their_text() -
 	main.open_menu()
 	await wait_frames()
 	var column: Array = []  # untyped: menu_buttons() is Array[Button]
-	var footer: Array = main.menu_buttons().filter(func(b): return b.text in ["Close", "Exit game"])  # in the sheet's footer (207)
+	var footer: Array = MainProbe.menu_buttons(main).filter(func(b): return b.text in ["Close", "Exit game"])  # in the sheet's footer (207)
 	eq(footer.size(), 2, "Close and Exit in the menu's footer")
 	for b in footer:
 		check_fits(b, "menu footer %s" % b.text)
-	column.assign(main.menu_buttons().filter(func(b): return not footer.has(b)))  # Restart, New game, Settings (206)
+	column.assign(MainProbe.menu_buttons(main).filter(func(b): return not footer.has(b)))  # Restart, New game, Settings (206)
 	check_column(column, "menu")
 	press_key(main, KEY_ESCAPE)
 	play_seed_1(main, func(_m): pass)
 	await wait_frames()
 	check(Game.engine.is_over, "game over")
-	for b in main.game_over_buttons():  # in the sheet's footer since 207
+	for b in MainProbe.game_over_buttons(main):  # in the sheet's footer since 207
 		check_fits(b, "game over %s" % b.text)
 	close_at_1080(main)
 
@@ -127,7 +127,7 @@ func test_event_ok_fits_its_text() -> void:
 	main.start_game(1)
 	Game.engine.end_turn()
 	await wait_frames()
-	check_fits(main.event_modal_ok_button(), "event OK")
+	check_fits(MainProbe.event_modal_ok_button(main), "event OK")
 	close_at_1080(main)
 	Game.engine = real
 

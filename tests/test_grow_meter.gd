@@ -134,5 +134,5 @@ func test_a_refresh_that_changes_nothing_starts_no_animation() -> void:
 		var view: Object = main.territory_view
 		Game.engine.changed.emit()
 		await wait_frames()
-		eq(counter_tag(main.counter(TopBar.POP)), null, "no +1 tag")
+		eq(counter_tag(MainProbe.counter(main, TopBar.POP)), null, "no +1 tag")
 		eq((view.pips() as Array).filter(func(p: Control): return p.scale != Vector2.ONE).size(), 0, "no pip scaling"))

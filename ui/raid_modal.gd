@@ -6,6 +6,9 @@ extends Modal
 ## Above the verdict, a drawing of how it ended (389); the verdict is a Verdict headline in capitals.
 
 ## The drawing per outcome; placeholders until the final art replaces these files (389).
+## Closed (its OK, Enter or Esc): what it showed is past (388: the veterans' pips light).
+signal dismissed
+
 const ART := {true: "res://assets/art/raid_repelled.svg", false: "res://assets/art/raid_pillaged.svg"}
 const ART_SIZE := Vector2(420, 236)  # the body's width at 16:9
 
@@ -51,7 +54,7 @@ func open(outcome: Dictionary) -> void:
 	var def: CardDef = e.card_db[outcome.id]
 	title = def.name
 	context = "Turn %d" % e.turn
-	_shown = {"uid": outcome.uid, "id": def.id, "repelled": outcome.repelled, "result": e.raid_outcome_text(outcome),
+	_shown = {"uid": outcome.uid, "id": def.id, "repelled": outcome.repelled, "result": e.military.outcome_text(outcome),
 		"title": title, "context": context, "art": ART[outcome.repelled]}
 	_art.texture = load(_shown.art)
 	verdict.text = "Repelled" if outcome.repelled else "Pillaged"
@@ -63,3 +66,4 @@ func open(outcome: Dictionary) -> void:
 
 func closed() -> void:
 	_shown = {}
+	dismissed.emit()

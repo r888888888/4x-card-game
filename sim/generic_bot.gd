@@ -349,7 +349,7 @@ static func _refunds(before: GameEngine, after: GameEngine, c: Array) -> bool:
 
 ## Calls entry's action on e; false when it refused.
 static func _do(e: GameEngine, entry: Array) -> bool:
-	return e.callv(entry[0], entry.slice(1)) != false
+	return LegalActions.apply(e, entry)
 
 
 ## Answers e's owed decisions, up to 3 deep, each with the option whose fork values most: for valuing a fork whose

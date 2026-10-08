@@ -87,11 +87,10 @@ func test_a_tiers_text_names_it_after_the_upgrade_line() -> void:
 	var e := tier_engine(4)
 	var sanctum: CardDef = e.card_db["sanctum"]
 	var forum: CardDef = e.card_db["forum"]
-	eq(Array(sanctum.rules_text(e.card_db).split("\n")).slice(0, 2), ["Builds on a Chapel.", "Needs a Village."],
-		"the Sanctum's face text")
+	eq(sanctum.face(e.card_db).fine, PackedStringArray(["Needs a Village"]), "the Sanctum's face: its tier as fine print (382)")
 	eq(Array(sanctum.rules_tooltip(e.card_db).split("\n")).slice(0, 2), ["Builds on a Chapel.", "Needs a Village."],
 		"the Sanctum's tooltip")
-	eq(forum.rules_text(e.card_db).split("\n")[0], "Needs a Town.", "the Forum's face text")
+	eq(forum.face(e.card_db).fine, PackedStringArray(["Needs a Town"]), "the Forum's face: fine print (382)")
 	eq(e.def_details("forum").rules[0], "Needs a Town.", "the Forum's details")
 
 

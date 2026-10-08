@@ -91,6 +91,7 @@ static func message_overlay(parent: Control, text: String, lines: Array[String])
 	var box := dimmer.get_meta("box") as VBoxContainer
 	box.add_child(heading(text))
 	var body := RichTextLabel.new()
+	body.theme_type_variation = &"RichBody"
 	body.custom_minimum_size = Vector2(800, 400)
 	body.text = "\n".join(PackedStringArray(lines))
 	box.add_child(body)

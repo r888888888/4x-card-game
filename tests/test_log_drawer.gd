@@ -65,7 +65,7 @@ func test_the_log_button_esc_and_a_click_outside_close_it() -> void:
 		await wait_screen_transition()
 		press_key(main, KEY_ESCAPE)
 		check(not drawer.is_open(), "Esc closes it")
-		check(not main.menu_buttons()[0].is_visible_in_tree(), "Esc doesn't also open the menu")
+		check(not MainProbe.menu_buttons(main)[0].is_visible_in_tree(), "Esc doesn't also open the menu")
 		press_key(main, KEY_L)
 		await wait_screen_transition()
 		click_point(main, Vector2(100, 500))  # on the board, left of the drawer
@@ -113,8 +113,8 @@ func test_dealt_cards_start_from_the_log_button_and_it_pulses_as_cards_arrive() 
 			check(Game.engine.discard_card(Game.engine.zone("hand").cards[0].uid), "discard a hand card")
 		var hand_before := Game.engine.zone("hand").cards.map(func(c): return c.uid)
 		Game.engine.end_turn()
-		if not main.event_modal().is_empty():
-			main.event_modal_ok_button().pressed.emit()
+		if not MainProbe.event_modal(main).is_empty():
+			MainProbe.event_modal_ok_button(main).pressed.emit()
 		var dealt: Array = Game.engine.zone("hand").cards.filter(func(c): return not hand_before.has(c.uid))
 		check(not dealt.is_empty(), "cards dealt")
 		var origin := button.get_global_rect().get_center()  # where it is after the turn's counters (126: laid out at once)

@@ -49,7 +49,7 @@ func sync(e: GameEngine) -> void:
 		if views.has(group.territory):
 			var t: int = group.territory
 			views[t].show_settled(TerritoryView.stats(e, t), e.territory_tooltip(t))
-			views[t].set_raid_warning(e.raid_warning(t))
+			views[t].set_raid_warning(e.military.raid_warning(t))
 	for zone_name in rows:
 		var cards := e.zone(zone_name).cards
 		if zone_name == "governments" and m.pending_kind() == GameEngine.PENDING_GOVERNMENT:  # the default first (254)
@@ -62,12 +62,14 @@ func sync(e: GameEngine) -> void:
 			place(card, rows[zone_name], i, 0.0)
 	for uid in viewed:  # a unit away from home says where it is from (163); a trained one, its strength (164)
 		if views.has(uid) and e.unit_station(uid) != -1:
-			views[uid].set_unit_origin(e.unit_origin(uid))
-			views[uid].set_unit_strength(e.unit_strength_tag(uid))
+			views[uid].set_unit_origin(e.military.origin(uid))
+			views[uid].set_unit_strength(e.military.strength_tag(uid))
+			var pips := e.military.veteran_pips(uid)  # a counter waiting for its tally shows once the raid closes (388)
+			views[uid].set_veteran_pips(pips.filled - _main.news.waiting_veterans().count(uid), pips.total)
 	for card in e.zone("active_events").cards:
-		var raid := e.raid_tag(card.uid)
+		var raid := e.military.raid_tag(card.uid)
 		if raid != "":
-			views[card.uid].set_raid_info(raid, e.raid_short(card.uid))
+			views[card.uid].set_raid_info(raid, e.military.raid_short(card.uid))
 		else:
 			views[card.uid].set_event_info(e.event_turns_left(card.uid), e.event_counters(card.uid))
 	outcome = {}
@@ -76,6 +78,20 @@ func sync(e: GameEngine) -> void:
 		if base != -1 and views.has(base):
 			_ceremony(views[base], e.zone("tableau").find(base).def, "")
 	_built.clear()
+
+
+## Switches on the new veteran pip of each of uids' views (388, §10.3's tally): in tableau order, one per unit,
+## Anim.TALLY_STEP apart (all at once with Reduce motion), each with a counter tick, still TALLY_STEP apart.
+func tally_veterans(e: GameEngine, uids: Array[int]) -> void:
+	var shown := e.zone("tableau").cards.filter(func(c): return uids.has(c.uid) and views.has(c.uid))
+	for k in shown.size():
+		var view: CardView = views[shown[k].uid]
+		var delay := k * Anim.TALLY_STEP
+		if UIKit.calm() or delay == 0.0:
+			view.light_veteran_pip()
+		else:
+			_main.get_tree().create_timer(delay).timeout.connect(func(): if is_instance_valid(view): view.light_veteran_pip())
+		_main.sfx.play(Sfx.COUNTER_TICK, delay)
 
 
 ## The engine built uid (its built signal, 357): the next sync gives it the build ceremony.

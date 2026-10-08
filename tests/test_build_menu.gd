@@ -334,7 +334,7 @@ func test_a_preview_lists_only_what_changes() -> void:
 	var river := river_of(e)
 	eq(e.build_preview("well", river).get("lines"), [["free_slots", 2, 1], ["free_workers", 2, 1], ["actions_left", 2, 1]],
 		"a Well changes no forecast")
-	var d: int = e.defense(river)
+	var d: int = e.military.defense(river)
 	eq(e.build_preview("spears", river).get("lines"), [["free_workers", 2, 1], ["defense", d, d + 2],
 		["actions_left", 2, 1]], "a unit takes no slot and defends")
 	var free := preview_engine("")

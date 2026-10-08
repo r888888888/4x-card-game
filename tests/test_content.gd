@@ -1739,6 +1739,15 @@ func test_every_government_has_flavor_and_a_quote() -> void:
 			check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % def.id)
 
 
+## Backlog 396: every wonder (a building tagged wonder) has a quote with its source, as the techs do.
+func test_every_wonder_has_a_quote() -> void:
+	var wonders := 0
+	for def: CardDef in load_real().cards.values():
+		if def.type == CardDef.BUILDING and def.tags.has("wonder"):
+			wonders += 1
+			check(def.quote_text != "" and def.quote_by != "", "%s has a quote and its source" % def.id)
+	check(wonders > 0, "the real data has wonders")
+
 # --- Military content (backlog 167) ---
 
 ## The real units: card defs of type unit, checked to be there.
@@ -1833,3 +1842,26 @@ func test_every_raid_target_is_on_some_territory() -> void:
 	for raid in real_raids(r):
 		for k in raid.raid.get("targets", []):
 			check(on_land.has(k), "%s's target %s is on some territory" % [raid.id, k])
+
+
+## Backlog 381: across the real cards every placeholder motif occurs.
+func test_every_art_motif_occurs_across_the_real_cards() -> void:
+	var seen := {}
+	for id in load_real().cards:
+		seen[CardArt.motif_for(id)] = true
+	eq(seen.size(), CardArt.Motif.size(), "every motif is some card's: %s" % [seen.keys()])
+
+
+## Backlog 381: docs/design/card-art.md has exactly one row naming <id>.png for every card, and none for a non-card.
+func test_the_card_art_list_has_one_row_per_card() -> void:
+	var rows := {}
+	var file_cell := RegEx.create_from_string("^\\| `([a-z0-9_]+)\\.png` \\|")
+	for line in FileAccess.get_file_as_string("res://docs/design/card-art.md").split("\n"):
+		var found := file_cell.search(line)
+		if found != null:
+			rows[found.get_string(1)] = rows.get(found.get_string(1), 0) + 1
+	var cards: Dictionary = load_real().cards
+	for id in cards:
+		eq(rows.get(id, 0), 1, "%s has one row" % id)
+	for id in rows:
+		check(cards.has(id), "%s.png is listed but isn't a card" % id)

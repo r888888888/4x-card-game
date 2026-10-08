@@ -12,6 +12,8 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
   starting civ), 2 every strategy, 3 every civ too, 4 ten seeds of all of it; add `--compare <checkout>` to pair with main.
 - Run the game: `godot --path .` (testing: `godot --path . -- --civ sumer --turns 20 --seed 5`)
 - A Stop hook runs the suite when you finish a turn and sends failures back to you.
+- Card art: the `card-art` skill takes `docs/design/card-art.md` to reviewed pictures with `scripts/card_art.py`
+  (`status` is free; `generate` and `fix` cost API calls, so the skill asks first).
 - In a Claude Code cloud session: [docs/cloud.md](docs/cloud.md) (`scripts/cloud-setup.sh` installs Godot).
 
 ## Architecture rules
@@ -29,6 +31,9 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - Actions come with an error query: `foo()` has `foo_error()` returning "" when legal, else the reason
   (`play_card` pairs with `play_error`). The action refuses whenever the query is non-empty, and the UI
   calls the query instead of re-deriving the condition.
+- An area (394) is a rules module held on the engine as an object (`engine.military`): its actions (with their `_error`
+  twins) and queries are called on the area, and a new one goes on the area, never as a forward on `GameEngine` (the
+  suite checks). Bots list an area's action as `"military.move"` and call any entry with `LegalActions.apply`.
 - A decision the player owes is one `PENDING_*` kind in `pending()`; every action's `*_error` starts with
   `_blocked_error`. New decision kind: follow the `add-decision` skill.
 - New effect op: follow the `add-effect` skill. Only ops whose `upkeep_ok()` is true may trigger on `upkeep`: ops that
@@ -38,7 +43,7 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 ## UI design
 - Design tokens, which file holds each, and the style guide's names for the code's: [docs/design/tokens.md](docs/design/tokens.md).
   Read the full guide (`docs/design/mcm-style-guide.md`) only for its section on your task's topic.
-- Flavor text and quotes follow the guide's §18 (voice, length, endings, real quotes); read it before writing any.
+- Flavor text and quotes follow the guide's §18 (voice, length, endings; choosing a quote: §18.5); read it before writing any.
 - Buttons are generally not full width: a `Button` sizes to its text plus padding and doesn't stretch across its
   panel or column. The exception is a stacked column of buttons in a menu or a screen (the menu, the title screen):
   they share one width, the widest button's, with the column centred in its panel (`UIKit.button()` doesn't
@@ -47,8 +52,10 @@ Design and roadmap: [PLAN.md](PLAN.md). Development process: [docs/development-p
 - Spacing, margins, corner radii and text sizes are `Tokens` steps (`ui/tokens.gd`, the guide's scales), never numbers
   (the suite checks); a repeated text look is a `GameTheme` variation (`Body`, `Caption`, `RichBody`, …).
 - Colours live in `ui/palette.gd` (`Palette`), named for what they're for; no other `ui/` script writes a colour
-  literal (the suite checks). A look the UI repeats is a theme type variation in `ui/game_theme.gd` (`GameTheme`,
-  e.g. `Heading`, `Title`, `Stat`, `DarkPanel`) set with `theme_type_variation`, not per-control overrides.
+  literal, BBCode included: rich text colours with `Palette.bbcode` (the suite checks). A look the UI repeats is a
+  theme type variation set with `theme_type_variation`, not per-control overrides: the label type scale (`Heading`,
+  `Title`, `Stat`, …) in `ui/game_theme.gd` (`GameTheme`), every other look in its section file in `ui/theme/` (a new
+  look: a new section, listed in `GameTheme.SECTIONS`; the suite checks).
 - Focus a control from code with `FocusRing.focus(control)`, never `grab_focus()` (the suite checks): its ring stays
   hidden until the player presses Tab, and a click hides it again (230).
 - A modal extends `Modal` and opens on `main.modals` (`ModalStack`), over any modal already open; only the top one

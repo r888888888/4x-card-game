@@ -216,12 +216,12 @@ func test_the_top_bar_shows_unrest_alone_with_the_limit_in_its_tooltip_and_rolls
 	var real := Game.engine
 	var main := open_unrest_main("chiefs", 2)
 	await wait_frames()
-	var counter: Control = main.counter(GameEngine.UNREST)
+	var counter: Control = MainProbe.counter(main, GameEngine.UNREST)
 	check(counter != null and counter.is_visible_in_tree(), "an Unrest counter in the top bar")
-	eq(main.counter_text(GameEngine.UNREST), "2", "unrest alone; the limit is in the tooltip (228)")
+	eq(MainProbe.counter_text(main, GameEngine.UNREST), "2", "unrest alone; the limit is in the tooltip (228)")
 	if counter != null:
 		check(counter.tooltip_text.contains("5"), "the tooltip names the limit: %s" % counter.tooltip_text)
-	eq(main.forecast_text(GameEngine.UNREST), "+1", "the forecast apart (201)")
+	eq(MainProbe.forecast_text(main, GameEngine.UNREST), "+1", "the forecast apart (201)")
 	if counter != null:
 		eq(counter.figure().color, Palette.TEXT,
 			"below the limit: the figure in ink (180; the glyph carries Palette.UNREST; 181: an odometer)")
@@ -238,13 +238,13 @@ func test_the_top_bar_shows_unrest_alone_without_a_limit() -> void:
 	var real := Game.engine
 	var main := open_unrest_main("council", 2)
 	await wait_frames()
-	var counter: Control = main.counter(GameEngine.UNREST)
+	var counter: Control = MainProbe.counter(main, GameEngine.UNREST)
 	check(counter != null and counter.is_visible_in_tree(), "an Unrest counter in the top bar")
-	eq(main.counter_text(GameEngine.UNREST), "2", "unrest, no limit")
-	var counter_: Control = main.counter(GameEngine.UNREST)
+	eq(MainProbe.counter_text(main, GameEngine.UNREST), "2", "unrest, no limit")
+	var counter_: Control = MainProbe.counter(main, GameEngine.UNREST)
 	if counter_ != null:
 		check(counter_.tooltip_text.contains("no limit"), "the tooltip: %s" % counter_.tooltip_text)
-	eq(main.forecast_text(GameEngine.UNREST), "+1", "the forecast apart (201)")
+	eq(MainProbe.forecast_text(main, GameEngine.UNREST), "+1", "the forecast apart (201)")
 	close_main(main)
 	Game.engine = real
 
@@ -272,7 +272,7 @@ func test_the_unrest_glyph_breathes_while_anarchy_is_ahead() -> void:
 	var real := Game.engine
 	var main := open_unrest_main("chiefs", 4)
 	await wait_frames()
-	var counter: Control = main.counter(GameEngine.UNREST)
+	var counter: Control = MainProbe.counter(main, GameEngine.UNREST)
 	eq(counter.breathing(), true, "4 of 5 with upkeep +1: breathing")
 	set_unrest(2)
 	await wait_frames()
@@ -288,7 +288,7 @@ func test_the_unrest_glyph_holds_still_with_reduce_motion() -> void:
 		Settings.set_reduce_motion(true)
 		var main := open_unrest_main("chiefs", 4)
 		await wait_frames()
-		var counter: Control = main.counter(GameEngine.UNREST)
+		var counter: Control = MainProbe.counter(main, GameEngine.UNREST)
 		eq(counter.breathing(), false, "reduce motion: still")
 		eq(counter.glyph().modulate.a, 1.0, "at full opacity")
 		Settings.set_reduce_motion(false)
@@ -304,8 +304,8 @@ func test_the_top_bar_has_no_unrest_counter_when_unrest_is_off() -> void:
 	var main := open_main()
 	main.start_game(1)
 	await wait_frames()
-	check(main.counter(TopBar.SCORE).is_visible_in_tree(), "the top bar is up")
-	check(not main.counter(GameEngine.UNREST).is_visible_in_tree(), "no Unrest counter shown")
+	check(MainProbe.counter(main, TopBar.SCORE).is_visible_in_tree(), "the top bar is up")
+	check(not MainProbe.counter(main, GameEngine.UNREST).is_visible_in_tree(), "no Unrest counter shown")
 	close_main(main)
 	Game.engine = real
 
