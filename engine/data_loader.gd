@@ -35,6 +35,7 @@ const TYPE_FIELDS := {
 	"administers": [CardDef.GOVERNMENT],
 	"project": [CardDef.BUILDING],
 	"upgrade_of": [CardDef.BUILDING],
+	"frees_worker": [CardDef.BUILDING],
 	"tier": [CardDef.BUILDING],
 	"discounts": [CardDef.CIVILIZATION],
 	"modifiers": [CardDef.BUILDING, CardDef.CITY, CardDef.TECH, CardDef.CIVILIZATION, CardDef.GOVERNMENT, CardDef.EVENT],
@@ -181,6 +182,9 @@ static func parse_cards(raw: Variant, resources: Array[String], src: String, err
 		var base_problem := _upgrade_base_problem(db[id].upgrade_of, db)
 		if base_problem != "":
 			errors.append("%s: card '%s': %s" % [src, id, base_problem])
+		elif db[id].frees_worker and db[id].is_upgrade() and db[db[id].upgrade_of].is_upgrade():
+			errors.append("%s: card '%s': frees_worker: '%s' is an upgrade and uses no worker" % [
+				src, id, db[id].upgrade_of])
 		for j in db[id].effects.size():
 			var start_building := _start_building_problem(db[id].effects[j], db)
 			if start_building != "":

@@ -97,7 +97,7 @@ static func buildings_on(e: GameEngine, territory_uid: int) -> Array[CardInstanc
 static func workers_on(e: GameEngine, territory_uid: int) -> Array[CardInstance]:
 	var out: Array[CardInstance] = []
 	for card in e.zone("tableau").cards:
-		if card.def.uses_worker() and card.territory_uid == territory_uid:
+		if card.territory_uid == territory_uid and Population.uses_worker(e, card):
 			out.append(card)
 	return out
 
@@ -151,6 +151,7 @@ static func building_targets(e: GameEngine, card: CardInstance) -> Array[int]:
 	var slots := {}  # territory uid -> city slots on it minus the buildings on it that can't fill a sea slot
 	var seafarers := {}  # territory uid -> the buildings on it that may fill a sea slot (366)
 	var workers := {}  # territory uid -> cards using its workers (see free_workers)
+	var freed := Population.freed_uids(e)  # their worker freed by an upgrade (415)
 	for c in tableau:
 		if c.def.type == CardDef.CITY:
 			slots[c.territory_uid] = slots.get(c.territory_uid, 0) + c.def.slots
@@ -159,7 +160,7 @@ static func building_targets(e: GameEngine, card: CardInstance) -> Array[int]:
 				seafarers[c.territory_uid] = seafarers.get(c.territory_uid, 0) + 1
 			else:
 				slots[c.territory_uid] = slots.get(c.territory_uid, 0) - 1
-		if c.def.uses_worker():
+		if c.def.uses_worker() and not freed.has(c.uid):
 			workers[c.territory_uid] = workers.get(c.territory_uid, 0) + 1
 	var pop_on := e.population_on()
 	var seafaring := takes_sea_slot(e, card.def)

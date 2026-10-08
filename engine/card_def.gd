@@ -50,6 +50,7 @@ var defense: int = 0  # buildings and cities: defence added to their territory w
 var upgrade_of := ""  # buildings: the id of the building it is built onto (300), or "" for none
 var tier := ""  # buildings: the id of the settlement tier its territory needs (301), or "" for none
 var tier_name := ""  # buildings: that tier's name, set by ConfigLoader (CardDef has no config)
+var frees_worker := false  # upgrades: the building it is built on uses no worker while it is there (415)
 var project := false  # buildings: built over turns as a site, its wealth cost paid in bit by bit (286)
 var upkeep: int = -1  # buildings: the wealth paid each upkeep while working; -1 until parse_config resolves it to the
 	# config's building_upkeep, and always 0 for upgrades and projects (405)
@@ -201,11 +202,18 @@ func _face_rules(card_db: Dictionary) -> PackedStringArray:
 		parts.append(training_text())
 	if upkeep > 0:
 		parts.append(upkeep_text())
+	if frees_worker:
+		parts.append(frees_worker_text(card_db))
 	if not raid.is_empty():
 		parts.insert(0, raid_face_text())
 	elif type == EVENT:
 		parts.append(lasts_text())
 	return parts
+
+
+## An upgrade's frees_worker line (415): "Frees its Farm's worker."
+func frees_worker_text(card_db: Dictionary) -> String:
+	return "Frees its %s's worker." % card_db[upgrade_of].name
 
 
 ## A building's upkeep line (405): "⟳ Upkeep 1 wealth".
@@ -287,6 +295,8 @@ func rules_tooltip(card_db: Dictionary, skip_ops: Array[String] = []) -> String:
 		parts.append(defense_text() + " on its territory")
 	if training > 0:
 		parts.append(training_text())
+	if frees_worker:
+		parts.append(frees_worker_text(card_db))
 	if project:
 		parts.append(PROJECT_TEXT)
 	if prereq != "":

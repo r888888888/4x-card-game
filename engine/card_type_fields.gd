@@ -62,6 +62,15 @@ static func _building(c: Dictionary, def: CardDef, ctx: Dictionary, errs: Array[
 		errs.append("project: its cost must be wealth only, at least 1 (like {\"wealth\": 30})")
 	def.upgrade_of = Fields.read_string(c, "upgrade_of", errs, [], "")
 	def.tier = Fields.read_string(c, "tier", errs, [], "")
+	if c.has("frees_worker"):
+		if not (c.frees_worker is bool):
+			errs.append("'frees_worker' must be true or false")
+		else:
+			def.frees_worker = c.frees_worker
+	if def.frees_worker and def.upgrade_of == "":
+		errs.append("frees_worker: only an upgrade can free its base's worker")
+	if def.frees_worker and def.tier != "":
+		errs.append("frees_worker: an upgrade that frees a worker can't need a tier")
 	if def.project and def.upgrade_of != "":
 		errs.append(UPGRADE_PROJECT_ERROR)
 	if c.has("upkeep") and def.upgrade_of != "":

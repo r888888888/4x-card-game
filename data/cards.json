@@ -304,8 +304,8 @@
     {
       "id": "ploughed_fields", "name": "Ploughed Fields", "type": "building",
       "flavor": "Oxen lean into the yoke where people once broke the soil by hand, and one family now feeds many it will never meet.",
-      "cost": { "food": 1, "wealth": 3 }, "vp": 0, "tags": ["farm"], "upgrade_of": "farm",
-      "effects": [ { "op": "gain", "resource": "food", "amount": 2, "trigger": "upkeep" } ]
+      "cost": { "wealth": 3 }, "vp": 0, "tags": [], "upgrade_of": "farm", "frees_worker": true,
+      "effects": []
     },
     {
       "id": "weavers_workshop", "name": "Weavers' Workshop", "type": "building",
