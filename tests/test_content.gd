@@ -1932,3 +1932,24 @@ func test_every_base_building_can_stand_on_some_territory() -> void:
 		if not lands.any(func(k: Array) -> bool: return meets(k, def.requires)):
 			homeless.append("%s %s" % [def.id, def.requires])
 	eq(homeless, [] as Array[String], "buildings no territory can hold")
+
+
+## Backlog 414: a "here" count (gain_per_tag "where": "here") counts a tag some other base building carries, and some
+## territory a game can hold meets both buildings' requires, so it can fire.
+func test_every_here_count_has_a_building_to_count_beside_it() -> void:
+	var r := load_real()
+	var lands := land_keyword_sets(r)
+	var counts := 0
+	var lonely: Array[String] = []
+	for def in real_buildings(r):
+		for effect: Effect in def.effects:
+			if effect.op != "gain_per_tag" or effect.get("where") != "here":
+				continue
+			counts += 1
+			var beside := real_base_buildings(r).filter(func(other: CardDef) -> bool:
+				return other.id != def.id and other.has_tag(effect.get("tag")) and lands.any(func(k: Array) -> bool:
+					return meets(k, def.requires) and meets(k, other.requires)))
+			if beside.is_empty():
+				lonely.append("%s counts %s" % [def.id, effect.get("tag")])
+	check(counts > 0, "some real building counts a tag here")
+	eq(lonely, [] as Array[String], "here counts with nothing to count beside them")

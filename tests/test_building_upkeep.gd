@@ -60,14 +60,6 @@ func run_upkeep(e: GameEngine) -> void:
 	eq(e.turn, turn + 1, "the next turn started")
 
 
-## A copy of card id on Homeland whose base is base_uid (an upgrade built on it): its uid.
-func upgrade_on(e: GameEngine, id: String, base_uid: int) -> int:
-	var card: CardInstance = e.create_card(id, "tableau", null)
-	card.territory_uid = home_uid(e)
-	card.base_uid = base_uid
-	return card.uid
-
-
 # --- AC1: the config's default upkeep ---
 
 func test_each_working_building_pays_the_default_upkeep_in_wealth() -> void:

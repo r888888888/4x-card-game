@@ -2,7 +2,7 @@
 id: 414
 title: Irrigation Canals and Salt Pans boost the farms and huts on their own territory
 type: feature
-status: ready
+status: red-review
 branch: feat/414-farms-here
 ---
 
@@ -53,10 +53,16 @@ other effect) and Fat Plough (an upgrade of Farm tagged `farm`). Population on, 
 - PLAN.md: the effect op list (gain_per_tag's `where`) and 406's food line.
 
 ## Test plan
-<!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
+In `tests/test_gain_per_tag.gd` unless named.
+
 | AC | Test |
 |---|---|
-| AC1 | |
+| AC1 | `test_here_counts_the_other_farms_on_its_own_territory` |
+| AC2 | `test_here_counts_only_working_base_buildings`, `test_an_idle_here_card_makes_nothing` |
+| AC3 | `test_the_forecast_counts_the_farms_here` |
+| AC4 | `test_where_here_is_a_building_count_on_the_tableau` |
+| AC5 | `test_here_text_names_the_other_farms_here` |
+| AC6 | `test_content::test_every_here_count_has_a_building_to_count_beside_it` |
 
 ## Manual check
 - [ ] Irrigation Canals in `data/cards.json`: ⟳ +2 food, +1 on desert, +1 per other farm here, housing 1, tag `farm`.
@@ -71,3 +77,7 @@ other effect) and Fat Plough (an upgrade of Farm tagged `farm`). Population on, 
 - 2026-10-08: specced from the user's request after 406 shipped the two as flat-food buildings. Assumed, not asked:
   the count excludes the source itself and counts only working base buildings (an upgrade like Ploughed Fields carries
   `farm` but isn't a farm of its own).
+- 2026-10-08: red tests written. `test_an_idle_here_card_makes_nothing` passes already (an idle card never resolves
+  its upkeep). `upgrade_on` moved from `test_building_upkeep.gd` to `tests/lib/test_case.gd`, since these tests use it
+  too. A here count on a tech is refused by the existing own-territory check (`needs_own_territory`); one on an action
+  (or a city or civilization) gets a new error.
