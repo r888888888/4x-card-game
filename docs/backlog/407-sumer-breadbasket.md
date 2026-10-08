@@ -2,7 +2,7 @@
 id: 407
 title: Sumer as the breadbasket - drop the starting Farm and +1 housing
 type: feature
-status: in-progress
+status: review
 branch: feat/407-sumer-breadbasket
 ---
 
@@ -19,10 +19,10 @@ It loses the starting Farm and "every territory houses 1 more pop" (the Hanging 
 Ships with 406 (same branch or merged right after it), so Sumer never plays on 406's numbers with its old perks.
 
 ## Acceptance criteria
-- [ ] AC1 (start gifts still check): The config loader's starting-tableau checks (133) still hold for every listed
+- [x] AC1 (start gifts still check): The config loader's starting-tableau checks (133) still hold for every listed
   civilization, and the real data loads with no warnings. No civilization now starts with a building in its tableau,
   and the checks stay for future data (their `TEST_CARDS` tests are unchanged).
-- [ ] AC2 (real-data UI tests): The real-data tests that start a seed-5 Sumer game (`test_revolt_modal`, `test_day_mode`,
+- [x] AC2 (real-data UI tests): The real-data tests that start a seed-5 Sumer game (`test_revolt_modal`, `test_day_mode`,
   `test_identity_cards`) pass unchanged. If one depends on the starting Farm, stop and say which, rather than rewrite it.
 
 ## Out of scope
@@ -61,3 +61,8 @@ PLAN.md: the civilizations line (107) and 133's note that Sumer starts with a Fa
 
 - 2026-10-08: red test written: the real data's one civilization starting with a building is Sumer. AC2's tests are
   existing ones that must pass unchanged (`test_settings_modal` also starts a seed-5 Sumer game).
+- 2026-10-08: green. Sumer loses its Farm `create` and `modifiers`. One existing content test needed a fix, approved
+  in chat: `test_every_per_keyword_and_per_tag_event_effect_can_fire` counted the deck, supply and created cards as
+  in play but not the build menu (where buildings come from since 295), so with no civilization creating a Farm,
+  Harvest Festival and Bumper Harvest looked dead. It now counts build-menu entries. The seed-5 Sumer UI tests
+  pass unchanged (none depended on the Farm). Balance: run with 406, under Manual check.
