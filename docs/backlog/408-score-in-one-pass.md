@@ -2,7 +2,7 @@
 id: 408
 title: Work out the fallen-back cards in one pass, so score() stops dominating bot time
 type: feature
-status: ready
+status: red-review
 branch: feat/408-score-in-one-pass
 ---
 
@@ -56,7 +56,10 @@ project). -->
 <!-- Filled in by Claude at the red checkpoint: AC → test name(s). -->
 | AC | Test |
 |---|---|
-| AC1 | `test_…` |
+| AC1 | `test_fallen_back_pass::test_the_positions_cover_every_cause`, `test_fallen_uids_is_the_cards_with_a_reason`, `test_fallen_uids_with_tiers_off_holds_only_the_idle_bases_upgrades`, `test_fallen_uids_is_empty_with_population_off` |
+| AC2 | `test_score_counts_what_the_rule_counts`, `test_score_in_the_mixed_position` (guards: pass now) |
+| AC3 | `test_housing_and_room_count_what_the_rule_counts`, `test_a_fallen_buildings_housing_returns_with_its_tier` (guards: pass now) |
+| AC4 | `test_the_queries_change_nothing` |
 
 ## Manual check
 - [ ] Sim speed against main, same games: `scripts/sim.sh --level 1 --compare <main checkout>`. Every metric should
@@ -64,3 +67,6 @@ project). -->
   the game.
 
 ## Log
+- Red: the loader refuses negative VP (`vp` must be ≥ 0), so AC2's "a card with negative VP" is dropped. AC2 and AC3
+  are behavior-preserving, so their tests pass already and guard the refactor; AC3 compares with the rule computed card
+  by card (territories have a default housing of their own), plus the Hut's housing returning at a Town.

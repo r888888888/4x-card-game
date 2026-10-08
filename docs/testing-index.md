@@ -70,6 +70,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/test_events.gd` | The event deck (039, 237) |
 | `tests/test_events_at_turn_start.gd` | When the turn's event is drawn (237) |
 | `tests/test_explore.gd` | The `explore` op |
+| `tests/test_fallen_back_pass.gd` | The fallen-back cards in one pass; score and housing match the per-card rule (408) |
 | `tests/test_famine.gd` | The Famine (083) |
 | `tests/test_famine_guard.gd` | Building `housing` and `famine_guard` (060) |
 | `tests/test_famine_relief.gd` | Relieving a Famine (084) |
