@@ -2,7 +2,7 @@
 id: 397
 title: card_art.py tracks each card's art state and only generates and fixes
 type: feature
-status: review
+status: done
 branch: feat/397-card-art-script-pipeline
 ---
 
