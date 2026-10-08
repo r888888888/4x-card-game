@@ -467,3 +467,34 @@ func test_a_row_short_of_its_cost_reads_why_with_no_button() -> void:
 		eq(rows.map(func(r): return [r.status, r.button]),
 			[[e.build_error("plough", farm), null], [e.build_error("ditch", farm), null]], "can't afford: why, no button")
 		check(e.build_error("ditch", farm).contains("food"), "the reason is the food: %s" % e.build_error("ditch", farm)))
+
+
+## The status label of each row of the open details that has one.
+func status_labels(main: Node) -> Array:
+	return main.details.upgrade_rows().map(func(r): return r.get("status_label")).filter(func(l): return l != null)
+
+
+func test_bug_411_an_upgrade_rows_status_wraps_at_words_not_letters() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var farm := put_home(e, "farm")
+		e.resources.food = 0
+		await open_card_details(main, farm)
+		var labels := status_labels(main)
+		eq(labels.size(), 2, "the Plough's and the Ditch's reasons")
+		for label: Label in labels:
+			var words := label.text.split(" ", false).size()
+			check(label.get_line_count() <= words,
+				"%d lines for %d words: %s" % [label.get_line_count(), words, label.text]))
+
+
+func test_bug_411_an_upgrade_rows_built_reads_on_one_line() -> void:
+	await with_main(ribbon_engine(), func(main: Node):
+		var e := home_at(8)
+		var farm := put_home(e, "farm")
+		build_it(e, "plough", farm)
+		await open_card_details(main, farm)
+		var labels := status_labels(main)
+		eq(labels.map(func(l): return l.text), ["Built"], "the Plough's status")
+		if labels.size() == 1:
+			eq(labels[0].get_line_count(), 1, "on one line"))
