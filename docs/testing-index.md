@@ -12,6 +12,7 @@ run and write tests: [testing.md](testing.md).
 | `tests/balance/test_sim_cache_runs.gd` | Balance suite: the sim's result cache (292) |
 | `tests/balance/test_sim_compare_runs.gd` | Balance suite: comparing two checkouts game by game (293) |
 | `tests/balance/test_sim_reports.gd` | Balance suite: the sim's report (042, 134, 135) |
+| `tests/test_abandon_buildings.gd` | Abandoning finished buildings and their upgrades (412) |
 | `tests/test_action_errors.gd` | `discard_error`, `choose_error`, and the main scene showing them (093) |
 | `tests/test_actions.gd` | Actions per turn (127) |
 | `tests/test_admin_unrest.gd` | Admin unrest (319) |
