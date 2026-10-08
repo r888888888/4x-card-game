@@ -2,7 +2,7 @@
 id: 405
 title: Buildings cost wealth upkeep - a shortfall adds unrest
 type: feature
-status: in-progress
+status: review
 branch: feat/405-building-upkeep
 ---
 
@@ -16,24 +16,24 @@ Fixtures: `TEST_CARDS` buildings with no upkeep effects (Hut, Shed), one with �
 `upkeep: 2` (Big Hall), one with `upkeep: 0` (Free Shed), an upgrade on Hut and a 10-wealth project. The config has
 `building_upkeep: 1`, unless a criterion says otherwise.
 
-- [ ] AC1 (default upkeep): Given Hut and Shed working and 5 wealth, when upkeep runs, then wealth is 3 and unrest is
+- [x] AC1 (default upkeep): Given Hut and Shed working and 5 wealth, when upkeep runs, then wealth is 3 and unrest is
   unchanged.
-- [ ] AC2 (per-card upkeep): Given Hut, Big Hall and Free Shed working and 5 wealth, when upkeep runs, then wealth is 2
+- [x] AC2 (per-card upkeep): Given Hut, Big Hall and Free Shed working and 5 wealth, when upkeep runs, then wealth is 2
   (1 + 2 + 0).
-- [ ] AC3 (who doesn't pay): Given Hut working with an upgrade built on it, a second Hut idle (its territory short of a
+- [x] AC3 (who doesn't pay): Given Hut working with an upgrade built on it, a second Hut idle (its territory short of a
   worker), an unfinished project site, a completed project and the Capital, all with 5 wealth, when upkeep runs, then
   wealth is 4: only the working Hut pays. Without `building_upkeep` in the config (rules off) nothing pays, and every
   existing test's numbers stay the same.
-- [ ] AC4 (production first): Given Mint Hut working and 0 wealth, when upkeep runs, then wealth is 1 (+2, then −1)
+- [x] AC4 (production first): Given Mint Hut working and 0 wealth, when upkeep runs, then wealth is 1 (+2, then −1)
   and unrest is unchanged.
-- [ ] AC5 (shortfall): Given Hut, Shed and Big Hall working (upkeep 4), 1 wealth and unrest 0 with limit 8, when upkeep
+- [x] AC5 (shortfall): Given Hut, Shed and Big Hall working (upkeep 4), 1 wealth and unrest 0 with limit 8, when upkeep
   runs, then wealth is 0 and unrest is 3. With unrest 7, unrest stops at the limit, 8.
-- [ ] AC6 (forecast): In AC1's and AC5's setups, `upkeep_forecast()` reports wealth −2 (AC1), and wealth −1 with unrest
+- [x] AC6 (forecast): In AC1's and AC5's setups, `upkeep_forecast()` reports wealth −2 (AC1), and wealth −1 with unrest
   +3 (AC5), before upkeep. The game state is unchanged, and the forecast matches what upkeep then does.
-- [ ] AC7 (loader): A building's `upkeep` must be an int ≥ 0. A negative or non-int value, `upkeep` on a non-building, or
+- [x] AC7 (loader): A building's `upkeep` must be an int ≥ 0. A negative or non-int value, `upkeep` on a non-building, or
   `upkeep` on an upgrade or a project is a load error naming the file, card and field. The config's `building_upkeep`
   must be an int ≥ 0 (error names `config.json` and the field). Absent, it is 0.
-- [ ] AC8 (card text): Hut's rules text ends with an upkeep line, "⟳ Upkeep 1 wealth". Big Hall's reads "⟳ Upkeep 2
+- [x] AC8 (card text): Hut's rules text ends with an upkeep line, "⟳ Upkeep 1 wealth". Big Hall's reads "⟳ Upkeep 2
   wealth". Free Shed, an upgrade and a project have no upkeep line.
 
 ## Out of scope
@@ -72,6 +72,8 @@ All in `tests/test_building_upkeep.gd` unless named.
 | AC8 | `test_a_paying_buildings_text_ends_with_its_upkeep_line`, `test_buildings_that_pay_nothing_have_no_upkeep_line` |
 
 ## Manual check
+The real data sets no `building_upkeep` yet (406 does), so these need a config with `"building_upkeep": 1` added to
+`data/config.json` locally (don't commit it), then `godot --path . -- --seed 5`.
 - [ ] The top bar's wealth forecast includes the buildings' upkeep. Build a second building and the "(+n)" drops by 1.
 - [ ] A building's card face and details show "⟳ Upkeep 1 wealth"; an upgrade's ribbon shows none.
 - [ ] Run broke with buildings: the turn's log shows the shortfall and the unrest forecast shows it a turn ahead.
@@ -81,3 +83,11 @@ All in `tests/test_building_upkeep.gd` unless named.
   config (AC3's "rules off" is the config default); `upkeep` on a non-building is the usual loader warning ("only
   applies to buildings (ignored)"), not an error; a building's `upkeep` reads -1 (the config's) until `parse_config`
   resolves it.
+- 2026-10-08: green. `upkeep` is in `TYPE_FIELDS` / `INT_FIELDS` (default -1); `CardTypeFields.resolve_upkeep`, called
+  from `ConfigLoader.parse_config`, fills it in (it lives there because `config_loader.gd` is at its 450-line cap). The
+  step is `TurnLoop.building_upkeep_due` / `pay_building_upkeep`, run from `_settle_in` and from
+  `UpkeepBreakdown.ledger` (rows "Buildings' upkeep" for wealth and "Upkeep short" for unrest), so `upkeep_forecast`,
+  the counters' popover and `turn_forecast` (GenericBot) all see it. Follow-up: the glossary's "Upkeep" term still says
+  only "every card with an upkeep effect resolves it"; worth a line on building upkeep when 406 turns it on. Balance:
+  none of this changes the real game until 406 sets `building_upkeep`; check it there with
+  `scripts/sim.sh --level 2 --compare <main checkout>`.
